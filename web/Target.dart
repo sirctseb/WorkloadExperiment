@@ -39,13 +39,19 @@ class Target {
     this.y = y;
   }
   
+  // whether the target is in the scene
+  bool _visible = false;
+  bool get visible => _visible;
+  
   // add the element to the task div
   void show() {
     document.body.query("#task").elements.add(element);
+    _visible = true;
   }
   // remove the element from the DOM
   void remove() {
     element.remove();
+    _visible = false;
   }
   
   /// Create a new [Target]

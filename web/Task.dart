@@ -35,8 +35,16 @@ class FixedTargetEvent extends TargetEvent {
   void execute() {
     // show the target
     target.show();
+    
     new Timer(timeOut, (timer) {
-      target.remove();
+      // if the target is still visible, it hasn't been dismissed, so remove and update score
+      if(target.visible) {
+        // remove the target
+        target.remove();
+        
+        // update the score
+        delegate.score -= 100;
+      }
     });
   }
 }
