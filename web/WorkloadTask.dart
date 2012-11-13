@@ -16,6 +16,9 @@ void main() {
     ws.send("${event.screenX}, ${event.screenY}");
   });
   
+  // create task controller
+  TaskController controller = new TaskController();
+  
   // create target display
   Target target = new Target(ws);
 }

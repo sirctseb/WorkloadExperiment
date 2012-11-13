@@ -12,7 +12,23 @@ class TaskController {
   /// Task properties
   
   TaskController() {
+    // store task and settings root elements
+    taskRoot = document.body.query("#task");
+    settingsRoot = document.body.query("#settings");
     
+    // register for keyboard input
+    window.on.keyPress.add(handleKeyPress);
+  }
+  
+  void handleKeyPress(KeyboardEvent event) {
+    // receive keyboard input
+    if(event.which == "s".charCodeAt(0)) {
+      // show settings screen
+      showSettings();
+    } else if(event.which == "t".charCodeAt(0)) {
+      // show task screen
+      showTask();
+    }
   }
   
   void showSettings() {
