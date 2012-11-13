@@ -11,6 +11,13 @@ class TaskController implements TargetDelegate {
   
   /// Task state
   bool taskRunning = false;
+  num _score = 0;
+  num get score => _score;
+  set score(num s) {
+    _score = s;
+    // update html
+    taskRoot.query("#score-content").text = s.toStringAsFixed(0);
+  }
   
   /// Task properties
   Task task;
@@ -71,5 +78,9 @@ class TaskController implements TargetDelegate {
   void TargetClicked(Target target, MouseEvent event) {
     // notify data server
     ws.send("target hit: ${event.clientX}, ${event.clientY}");
+    
+    // update score
+    num dist = sqrt(pow(target.x - event.clientX, 2) + pow(target.y - event.clientY, 2));
+    score += 100 - dist;
   }
 }
