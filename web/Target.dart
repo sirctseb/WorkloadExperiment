@@ -38,7 +38,7 @@ class Target {
   Target(WebSocket ws) {
     element.classes.add("target");
     move(200,200);
-    document.body.elements.add(element);
+    document.body.query("#task").elements.add(element);
     element.on.mouseDown.add((MouseEvent e) {
       ws.send("target hit: ${e.clientX}, ${e.clientY}");
     });
