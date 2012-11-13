@@ -40,6 +40,53 @@ class FixedTargetEvent extends TargetEvent {
 /// [Task] represents an experimental task
 class Task {
   
+  // the task controller
+  TaskController delegate;
+  
   /// A list of task events ordered by time
-  List<TaskEvent> events;
+  List<TaskEvent> events = [];
+  
+  /// The index in events that is next to process
+  int eventIndex = 0;
+  
+  /// The timer to control events
+  // TODO should we use one global timer?
+  Timer timer;
+  
+  /// Stopwatch to keep track of progress
+  Stopwatch stopwatch = new Stopwatch();
+  
+  Task(this.delegate);
+  
+  void start() {
+    timer = new Timer.repeating(100, onTimer);
+    stopwatch.start();
+  }
+  void stop() {
+    timer.cancel();
+    stopwatch.stop();
+  }
+  void reset() {
+    stop();
+    stopwatch.reset();
+  }
+  void onTimer(Timer timer) {
+    // if we are done processing all events, stop
+    if(eventIndex >= events.length) {
+      stop();
+    }
+    
+    // process events that are scheduled at or before the current time
+    while(eventIndex < events.length && events[eventIndex].time <= stopwatch.elapsedMilliseconds) {
+      events[eventIndex].execute();
+      eventIndex++;
+    }
+  }
+}
+
+class ExampleTask extends Task {
+  
+  ExampleTask(TaskController delegate) : super(delegate) {
+    events.add(new FixedTargetEvent(delegate, 1000, 200, 300));
+  }
 }

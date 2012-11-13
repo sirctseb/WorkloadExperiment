@@ -13,6 +13,7 @@ class TaskController implements TargetDelegate {
   bool taskRunning = false;
   
   /// Task properties
+  Task task;
   
   /// Web socket to communicate with data server
   WebSocket ws = new WebSocket("ws://localhost:8000/ws");
