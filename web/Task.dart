@@ -87,6 +87,7 @@ class Task {
 class ExampleTask extends Task {
   
   ExampleTask(TaskController delegate) : super(delegate) {
-    events.add(new FixedTargetEvent(delegate, 1000, 200, 300));
+    events.addAll([new FixedTargetEvent(delegate, 1000, 200, 300),
+                   new FixedTargetEvent(delegate, 2000, 500, 200)]);
   }
 }
