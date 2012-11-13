@@ -11,6 +11,10 @@ class TaskController {
   
   /// Task properties
   
+  /// Web socket to communicate with data server
+  WebSocket ws = new WebSocket("ws://localhost:8000/ws");
+  
+  /// Create a task controller
   TaskController() {
     // store task and settings root elements
     taskRoot = document.body.query("#task");
@@ -18,6 +22,9 @@ class TaskController {
     
     // register for keyboard input
     window.on.keyPress.add(handleKeyPress);
+    
+    // create target display
+    Target target = new Target(ws);
   }
   
   void handleKeyPress(KeyboardEvent event) {
