@@ -26,14 +26,18 @@ class TargetEvent extends TaskEvent {
 /// [FixedTargetEvent] is a [TargetEvent] that shows a target in a fixed position
 class FixedTargetEvent extends TargetEvent {
   num x, y;
+  num timeOut;
   
-  FixedTargetEvent(TaskController delegate, num time, this.x, this.y): super(delegate, time) {
+  FixedTargetEvent(TaskController delegate, num time, this.x, this.y, [this.timeOut = 1000]): super(delegate, time) {
     target.move(x, y);
   }
   
   void execute() {
     // show the target
     target.show();
+    new Timer(timeOut, (timer) {
+      target.remove();
+    });
   }
 }
 

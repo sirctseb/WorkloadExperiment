@@ -42,6 +42,9 @@ class Target {
   void show() {
     document.body.query("#task").elements.add(element);
   }
+  void remove() {
+    element.remove();
+  }
   
   /// Create a new [Target]
   Target(this.delegate, {show: false}) {
@@ -52,7 +55,7 @@ class Target {
     }
     element.on.mouseDown.add((MouseEvent e) {
       // dismiss the target
-      element.remove();
+      this.remove();
       
       // notify delegate
       delegate.TargetClicked(this, e);
