@@ -1,0 +1,5 @@
+name:  WorkloadTask
+description:  A sample application
+
+#dependencies:
+#  unittest: { sdk: unittest }
