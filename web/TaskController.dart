@@ -29,6 +29,9 @@ class TaskController implements TargetDelegate {
     
     // create target display
     //Target target = new Target(ws);
+    
+    // create the task
+    task = new ExampleTask(this);
   }
   
   void handleKeyPress(KeyboardEvent event) {
@@ -39,6 +42,12 @@ class TaskController implements TargetDelegate {
     } else if(event.which == "t".charCodeAt(0)) {
       // show task screen
       showTask();
+    } else if(event.which == "g".charCodeAt(0)) {
+      // g for 'go', start the task
+      task.start();
+    } else if(event.which == "p".charCodeAt(0)) {
+      // p for 'pause', stop the task
+      task.stop();
     }
   }
   
