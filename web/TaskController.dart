@@ -9,6 +9,9 @@ class TaskController {
   /// The root view of the settings screen
   DivElement settingsRoot;
   
+  /// Task state
+  bool taskRunning = false;
+  
   /// Task properties
   
   /// Web socket to communicate with data server
