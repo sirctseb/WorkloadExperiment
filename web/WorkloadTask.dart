@@ -1,6 +1,7 @@
 library WorkloadTask;
 import 'dart:html';
 part 'Target.dart';
+part 'TaskController.dart';
 
 void main() {
   
