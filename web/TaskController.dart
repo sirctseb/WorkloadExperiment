@@ -1,7 +1,7 @@
 part of WorkloadTask;
 
 /// [TaskController] oversees the presentation of the whole task
-class TaskController {
+class TaskController implements TargetDelegate {
   
   /// The root view of the actual task
   DivElement taskRoot;
@@ -27,7 +27,7 @@ class TaskController {
     window.on.keyPress.add(handleKeyPress);
     
     // create target display
-    Target target = new Target(ws);
+    //Target target = new Target(ws);
   }
   
   void handleKeyPress(KeyboardEvent event) {
@@ -55,5 +55,11 @@ class TaskController {
     
     // show task root
     taskRoot.style.display = "block";
+  }
+  
+  /* TargetDelegate implementation */
+  void TargetClicked(Target target, MouseEvent event) {
+    // notify data server
+    ws.send("target hit: ${event.clientX}, ${event.clientY}");
   }
 }

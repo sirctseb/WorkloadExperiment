@@ -1,7 +1,12 @@
 part of WorkloadTask;
 
+abstract class TargetDelegate {
+  void TargetClicked(Target target, MouseEvent event);
+}
+
 /// [Target] is a class that represents a visible target on the screen
 class Target {
+  TargetDelegate delegate;
   
   /// The div element that shows the target
   DivElement element = new DivElement();
@@ -34,17 +39,23 @@ class Target {
     this.y = y;
   }
   
+  void show() {
+    document.body.query("#task").elements.add(element);
+  }
+  
   /// Create a new [Target]
-  Target(WebSocket ws) {
+  Target(this.delegate, {show: false}) {
     element.classes.add("target");
     move(200,200);
-    document.body.query("#task").elements.add(element);
+    if(show) {
+      show();
+    }
     element.on.mouseDown.add((MouseEvent e) {
       // dismiss the target
       element.remove();
       
-      // send info to data server
-      ws.send("target hit: ${e.clientX}, ${e.clientY}");
+      // notify delegate
+      delegate.TargetClicked(this, e);
     });
   }
 }
