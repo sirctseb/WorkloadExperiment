@@ -39,20 +39,30 @@ class Target {
     this.y = y;
   }
   
+  // add the element to the task div
   void show() {
     document.body.query("#task").elements.add(element);
   }
+  // remove the element from the DOM
   void remove() {
     element.remove();
   }
   
   /// Create a new [Target]
   Target(this.delegate, {show: false}) {
+    
+    // add target class
     element.classes.add("target");
+    
+    // set default location 
     move(200,200);
+    
+    // show if flag passed
     if(show) {
       show();
     }
+    
+    // register mouse down event
     element.on.mouseDown.add((MouseEvent e) {
       // dismiss the target
       this.remove();
