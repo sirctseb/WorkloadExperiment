@@ -21,12 +21,12 @@ class Target {
   set x(num x_in) {
     _x = x_in;
     // update css location
-    element.style.left = "${x + width/2}px"; 
+    element.style.left = "${x - width/2}px"; 
   }
   set y(num y_in) {
     _y = y_in;
     // update css location
-    element.style.top = "${y + height/2}px";
+    element.style.top = "${y - height/2}px";
   }
   // set together
   void move(num x, num y) {
