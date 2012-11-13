@@ -7,3 +7,11 @@ body {
   line-height: 1.2em;
   margin: 15px;
 }
+
+.target {
+  background-image: url('img/target.png');
+  background-size: contain;
+  width:128px;
+  height:128px;
+  position:absolute;
+}
