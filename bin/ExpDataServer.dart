@@ -9,8 +9,7 @@ void main() {
     print('new connection');
     
     conn.onMessage = (message) {
-      print("message is $message");
-      conn.send("Echo: $message");
+      print("mouse click at: $message");
     };
     
     conn.onClosed = (int status, String reason) {
