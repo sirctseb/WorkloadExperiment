@@ -1,4 +1,6 @@
+library WorkloadTask;
 import 'dart:html';
+part 'Target.dart';
 
 void main() {
   
@@ -14,11 +16,5 @@ void main() {
   });
   
   // create target display
-  Element target = new DivElement()..classes.add("target")
-      ..style.left = "200px"
-      ..style.top = "200px";
-  document.body.elements.add(target);
-  target.on.mouseDown.add((MouseEvent e) {
-    ws.send("target hit: ${e.clientX}, ${e.clientY}");
-  });
+  Target target = new Target(ws);
 }
