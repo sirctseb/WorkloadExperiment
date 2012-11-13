@@ -40,6 +40,10 @@ class Target {
     move(200,200);
     document.body.query("#task").elements.add(element);
     element.on.mouseDown.add((MouseEvent e) {
+      // dismiss the target
+      element.remove();
+      
+      // send info to data server
       ws.send("target hit: ${e.clientX}, ${e.clientY}");
     });
   }
