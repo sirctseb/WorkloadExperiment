@@ -49,6 +49,58 @@ class FixedTargetEvent extends TargetEvent {
   }
 }
 
+/// [MovingTargetEvent] is a [TargetEvent] that displays a moving target
+class MovingTargetEvent extends TargetEvent {
+  num startX, startY;
+  num endX, endY;
+  num duration;
+  
+  MovingTargetEvent(TaskController delegate, num time,
+                    this.startX, this.startY,
+                    this.endX, this.endY,
+                    [this.duration = 1000]) : super(delegate, time) {
+    target.move(startX, startY);
+  }
+  
+  void execute() {
+    // show the target
+    target.show();
+    
+    // start a stopwatch for measuring time
+    Stopwatch stopwatch = new Stopwatch()..start();
+    
+    // start a timer for animation
+    new Timer.repeating(10, (timer) {
+      // if target is not visible, then it has been dismissed, so shut it down
+      if(!target.visible) {
+        // stop stopwatch
+        stopwatch.stop();
+        // cancel timer
+        timer.cancel();
+        return;
+      }
+      // find fraction of animation complete
+      var fraction = stopwatch.elapsedMilliseconds / duration;
+      
+      // position target
+      target.move(startX + fraction * (endX - startX), startY + fraction * (endY - startY));
+      
+      // kill timer and update score if duration is up
+      if(stopwatch.elapsedMilliseconds > duration) {
+        // stop stopwatch
+        stopwatch.stop();
+        // kill timer
+        timer.cancel();
+        // remove target
+        target.remove();
+        // update score
+        delegate.score -= 100;
+      }
+    });
+  }
+  
+}
+
 /// [Task] represents an experimental task
 class Task {
   
@@ -99,7 +151,9 @@ class Task {
 class ExampleTask extends Task {
   
   ExampleTask(TaskController delegate) : super(delegate) {
-    events.addAll([new FixedTargetEvent(delegate, 1000, 200, 300),
-                   new FixedTargetEvent(delegate, 2000, 500, 200)]);
+    events.addAll([
+                   new MovingTargetEvent(delegate, 0, 500, 200, 100, 600, 1000),
+                   new FixedTargetEvent(delegate, 1000, 200, 300),
+                   new FixedTargetEvent(delegate, 2000, 500, 200),]);
   }
 }
