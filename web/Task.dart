@@ -64,42 +64,39 @@ class MovingTargetEvent extends TargetEvent {
   }
   
   void execute() {
-    // show the target
-    target.show();
+    window.requestAnimationFrame(update);
+  }
+  
+  bool running = false;
+  num startTime;
+  
+  void update(num time) {
     
-    // start a stopwatch for measuring time
-    Stopwatch stopwatch = new Stopwatch()..start();
-    
-    // start a timer for animation
-    new Timer.repeating(10, (timer) {
-      // if target is not visible, then it has been dismissed, so shut it down
-      if(!target.visible) {
-        // stop stopwatch
-        stopwatch.stop();
-        // cancel timer
-        timer.cancel();
-        return;
-      }
-      // find fraction of animation complete
-      var fraction = stopwatch.elapsedMilliseconds / duration;
+    // check for first run and store start time
+    if(!running) {
+      running = true;
+      startTime = time;
+      // show target
+      target.show();
+    }
+    // if target has been dismissed, don't do anything
+    if(target.visible) {
+      // find fraction of time elapsed
+      var fraction = (time - startTime) / duration;
       
       // position target
       target.move(startX + fraction * (endX - startX), startY + fraction * (endY - startY));
       
-      // kill timer and update score if duration is up
-      if(stopwatch.elapsedMilliseconds > duration) {
-        // stop stopwatch
-        stopwatch.stop();
-        // kill timer
-        timer.cancel();
-        // remove target
+      // call for next frame if not done
+      if(fraction < 1) {
+        window.requestAnimationFrame(update);
+      } else {
+        // update score for missed target
         target.remove();
-        // update score
         delegate.score -= 100;
       }
-    });
+    }
   }
-  
 }
 
 /// [Task] represents an experimental task
