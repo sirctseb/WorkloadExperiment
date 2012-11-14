@@ -63,6 +63,25 @@ class MovingTargetEvent extends TargetEvent {
     //target.resize(64,64);
   }
   
+  MovingTargetEvent.eventWithLength(TaskController delegate, num time, num length, num this.duration) 
+      : super(delegate, time) {
+        
+    Random rng = new Random();
+    
+    // get random start point
+    startX = rng.nextInt(document.body.clientWidth);
+    startY = rng.nextInt(document.body.clientHeight);
+    
+    // compute random end point at a given distance
+    // TODO we have to be careful that there is a point on the circle that lies in the rect
+    Point end = new Circle(new Point(startX, startY), length).randomPointInRect(
+        new Rectangle(0,0, document.body.clientWidth, document.body.clientHeight));
+    
+    // store in member vars
+    endX = end.x;
+    endY = end.y;
+  }
+  
   void execute() {
     window.requestAnimationFrame(update);
   }
@@ -197,9 +216,10 @@ class InfiniteTask extends Task {
   void onTimer(Timer timer) {
     if(eventIndex >= events.length){
       // create a new event
-      events.add(new MovingTargetEvent(delegate, eventIndex*1000, rng.nextInt(800), rng.nextInt(600),
+      /*events.add(new MovingTargetEvent(delegate, eventIndex*1000, rng.nextInt(800), rng.nextInt(600),
                                                   rng.nextInt(800), rng.nextInt(600),
-                                                  1000));
+                                                  1000));*/
+      events.add(new MovingTargetEvent.eventWithLength(delegate, eventIndex*1000, 400.0, 1000));
     }
     super.onTimer(timer);
   }

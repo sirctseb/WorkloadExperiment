@@ -34,12 +34,9 @@ class TaskController implements TargetDelegate {
     // register for keyboard input
     window.on.keyPress.add(handleKeyPress);
     
-    // create target display
-    //Target target = new Target(ws);
-    
     // create the task
-    task = new ExampleTask(this);
-    //task = new InfiniteTask(this);
+    //task = new ExampleTask(this);
+    task = new InfiniteTask(this);
   }
   
   void handleKeyPress(KeyboardEvent event) {
