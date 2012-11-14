@@ -38,8 +38,8 @@ class TaskController implements TargetDelegate {
     //Target target = new Target(ws);
     
     // create the task
-    //task = new ExampleTask(this);
-    task = new InfiniteTask(this);
+    task = new ExampleTask(this);
+    //task = new InfiniteTask(this);
   }
   
   void handleKeyPress(KeyboardEvent event) {

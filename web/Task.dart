@@ -99,6 +99,27 @@ class MovingTargetEvent extends TargetEvent {
   }
 }
 
+/// [AdditionEvent] is a [TaskEvent] that displays an addition problem on the screen
+class AdditionEvent extends TaskEvent {
+  
+  int op1, op2;
+  num duration;
+  
+  AdditionEvent(TaskController delegate, num time, int this.op1, int this.op2, num this.duration)
+      : super(delegate, time) {
+  }
+  
+  void execute() {
+    // display text in addition task problem
+    query("#addition").text = "$op1 + $op2";
+    
+    // set timeout to hide
+    new Timer(duration, (timer) {
+      query("#addition").text = "";
+    });
+  }
+}
+
 /// [Task] represents an experimental task
 class Task {
   
@@ -149,8 +170,9 @@ class Task {
 class ExampleTask extends Task {
   
   ExampleTask(TaskController delegate) : super(delegate) {
-    events.addAll([
+    events.addAll([new AdditionEvent(delegate, 0, 4, 9, 1000),
                    new MovingTargetEvent(delegate, 0, 500, 200, 100, 600, 1000),
+                   new AdditionEvent(delegate, 1000, 11, 6, 1000),
                    new FixedTargetEvent(delegate, 1000, 200, 300),
                    new FixedTargetEvent(delegate, 2000, 500, 200),]);
   }
