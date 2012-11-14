@@ -8,6 +8,10 @@ part 'Task.dart';
 part 'mathutility.dart';
 
 void main() {
+  // disable all selection
+  document.on.selectStart.add((e) {
+    e.preventDefault();
+  });
   
   // create task controller
   TaskController controller = new TaskController();
