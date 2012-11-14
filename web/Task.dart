@@ -105,16 +105,24 @@ class AdditionEvent extends TaskEvent {
   int op1, op2;
   num duration;
   
+  static Timer outstanding;
+  
   AdditionEvent(TaskController delegate, num time, int this.op1, int this.op2, num this.duration)
       : super(delegate, time) {
   }
   
   void execute() {
+    // if there is an outstanding timer, cancel it so it doesn't clear after this starts
+    if(outstanding != null) {
+      outstanding.cancel();
+      outstanding = null;
+    }
+    
     // display text in addition task problem
     query("#addition").text = "$op1 + $op2";
     
     // set timeout to hide
-    new Timer(duration, (timer) {
+    outstanding = new Timer(duration, (timer) {
       query("#addition").text = "";
     });
   }
