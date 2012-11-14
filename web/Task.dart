@@ -60,6 +60,7 @@ class MovingTargetEvent extends TargetEvent {
                     this.endX, this.endY,
                     [this.duration = 1000]) : super(delegate, time) {
     target.move(startX, startY);
+    target.resize(64,64);
   }
   
   void execute() {

@@ -12,8 +12,27 @@ class Target {
   DivElement element = new DivElement();
   
   // the size of the target
-  final num width = 128;
-  final num height = 128;
+  num _width = 128;
+  num _height = 128;
+  num get width => _width;
+  num get height => _height;
+  set width(num w) {
+    // set backing var
+    _width = w;
+    // update css
+    element.style.width = "${w}px";
+  }
+  set height(num h) {
+    // set backing var
+    _height = h;
+    // update css
+    element.style.height = "${h}px";
+  }
+  // set together
+  void resize(num w, num h) {
+    width = w;
+    height = h;
+  }
   
   // The coordinates of the target
   num _x = 0, _y = 0;
