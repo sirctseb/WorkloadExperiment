@@ -60,7 +60,7 @@ class MovingTargetEvent extends TargetEvent {
                     this.endX, this.endY,
                     [this.duration = 1000]) : super(delegate, time) {
     target.move(startX, startY);
-    target.resize(64,64);
+    //target.resize(64,64);
   }
   
   void execute() {
@@ -156,5 +156,24 @@ class ExampleTask extends Task {
                    new MovingTargetEvent(delegate, 0, 500, 200, 100, 600, 1000),
                    new FixedTargetEvent(delegate, 1000, 200, 300),
                    new FixedTargetEvent(delegate, 2000, 500, 200),]);
+  }
+}
+
+class InfiniteTask extends Task {
+  
+  InfiniteTask(TaskController delegate) : super(delegate) {
+  }
+  
+  Random rng = new Random();
+  
+  // produce an endless string of task events
+  void onTimer(Timer timer) {
+    if(eventIndex >= events.length){
+      // create a new event
+      events.add(new MovingTargetEvent(delegate, eventIndex*1000, rng.nextInt(800), rng.nextInt(600),
+                                                  rng.nextInt(800), rng.nextInt(600),
+                                                  1000));
+    }
+    super.onTimer(timer);
   }
 }
