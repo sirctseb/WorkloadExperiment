@@ -1,4 +1,4 @@
-part of WorkloadTask;
+part of WorkloadExperiment;
 
 /// [TaskController] oversees the presentation of the whole task
 class TaskController implements TargetDelegate {

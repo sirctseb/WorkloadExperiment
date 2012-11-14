@@ -1,4 +1,4 @@
-part of WorkloadTask;
+part of WorkloadExperiment;
 
 /// Utility math classes
 

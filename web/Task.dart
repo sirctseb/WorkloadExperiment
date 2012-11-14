@@ -1,4 +1,4 @@
-part of WorkloadTask;
+part of WorkloadExperiment;
 
 /// [TaskEvent] is an event that occurs during a task
 

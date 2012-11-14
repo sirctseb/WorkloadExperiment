@@ -1,4 +1,4 @@
-library WorkloadTask;
+library WorkloadExperiment;
 import 'dart:html';
 import 'dart:isolate';
 import 'dart:math';

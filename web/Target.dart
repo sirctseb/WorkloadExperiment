@@ -1,4 +1,4 @@
-part of WorkloadTask;
+part of WorkloadExperiment;
 
 abstract class TargetDelegate {
   void TargetClicked(Target target, MouseEvent event);
