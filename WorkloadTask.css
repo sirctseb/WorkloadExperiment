@@ -1,4 +1,7 @@
-
+html {
+  height: 100%;
+  width: 100%;
+}
 body {
   /*background-color: #F8F8F8;
   font-family: 'Open Sans', sans-serif;
@@ -6,6 +9,9 @@ body {
   font-weight: normal;
   line-height: 1.2em;
   margin: 15px;*/
+  cursor: url('img/crosshair.png') 25 25, default;
+  height: 100%;
+  width: 100%;
 }
 
 .target {
