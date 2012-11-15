@@ -235,17 +235,29 @@ abstract class TrialTask extends Task {
   int maxOp = 15;
 }
 
-class SlowTrialTask extends TrialTask {
+class MultiTargetSlowTrialTask extends TrialTask {
+  // the number of targets to present
+  int numTargets;
   
-  SlowTrialTask(TaskController delegate) : super(delegate) {
+  MultiTargetSlowTrialTask(TaskController delegate, this.numTargets)
+      : super(delegate) {
     // generate task events
     for(int i = 0; i < iterations; i++) {
-      events.add(new MovingTargetEvent.eventWithLength(delegate, i * iterationTime, 400.0, iterationTime));
+      // generate target events
+      for(int j = 0; j < numTargets; j++) {
+        events.add(new MovingTargetEvent.eventWithLength(delegate, i * iterationTime, 400.0, iterationTime));
+      }
+      // addition event
       events.add(new AdditionEvent.withRandomOps(delegate, i * iterationTime, maxOp, maxOp, iterationTime));
     }
   }
-  
-  Random rng = new Random();
+}
+
+class SlowTrialTask extends MultiTargetSlowTrialTask { 
+  SlowTrialTask(TaskController delegate) : super(delegate, 1);
+}
+class TwoTargetSlowTrialTask extends MultiTargetSlowTrialTask {
+  TwoTargetSlowTrialTask(TaskController delegate) : super(delegate, 2);
 }
 
 class FixedTrialTask extends TrialTask {
@@ -255,18 +267,6 @@ class FixedTrialTask extends TrialTask {
     for(int i = 0; i < iterations; i++) {
       events.add(new FixedTargetEvent.atRandomPoint(delegate, i * iterationTime, iterationTime));
       events.add(new AdditionEvent.withRandomOps(delegate, i * iterationTime, maxOp, maxOp, iterationTime));
-    }
-  }
-}
-
-class TwoTargetSlowTrialTask extends TrialTask {
-  TwoTargetSlowTrialTask(TaskController delegate) : super(delegate) {
-    // generate task events
-    for(int i = 0; i < iterations; i++) {
-      events.add(new MovingTargetEvent.eventWithLength(delegate, i * iterationTime, 400.0, iterationTime));
-      events.add(new MovingTargetEvent.eventWithLength(delegate, i * iterationTime, 400.0, iterationTime));
-      events.add(new AdditionEvent.withRandomOps(delegate, i * iterationTime, maxOp, maxOp, iterationTime));
-      
     }
   }
 }
