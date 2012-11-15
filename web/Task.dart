@@ -225,48 +225,57 @@ class ExampleTask extends Task {
 
 abstract class TrialTask extends Task {
   
-  TrialTask(TaskController delegate) : super(delegate) {
-    timerLength = iterationTime;
-  }
+  //TrialTask(TaskController delegate) : super(delegate) {
+  //  timerLength = iterationTime;
+  //}
   
   // the number of iterations of the task to present
   int iterations = 12;
   num iterationTime = 5000;
   int maxOp = 15;
-}
-
-class MultiTargetSlowTrialTask extends TrialTask {
+  
   // the number of targets to present
   int numTargets;
   
-  MultiTargetSlowTrialTask(TaskController delegate, this.numTargets)
+  TrialTask(TaskController delegate, this.numTargets)
       : super(delegate) {
+        
+    timerLength = iterationTime;
+    
     // generate task events
     for(int i = 0; i < iterations; i++) {
       // generate target events
       for(int j = 0; j < numTargets; j++) {
-        events.add(new MovingTargetEvent.eventWithLength(delegate, i * iterationTime, 400.0, iterationTime));
+        events.add(buildTargetEvent(i));
       }
       // addition event
-      events.add(new AdditionEvent.withRandomOps(delegate, i * iterationTime, maxOp, maxOp, iterationTime));
+      events.add(buildAdditionEvent(i));
     }
+  }
+  
+  TargetEvent buildTargetEvent(int index);
+  AdditionEvent buildAdditionEvent(int index) {
+    return new AdditionEvent.withRandomOps(delegate, index * iterationTime, maxOp, maxOp, iterationTime);
   }
 }
 
-class SlowTrialTask extends MultiTargetSlowTrialTask { 
-  SlowTrialTask(TaskController delegate) : super(delegate, 1);
+class SlowTrialTask extends TrialTask { 
+  SlowTrialTask(TaskController delegate, [int targetNumber = 1]) : super(delegate, targetNumber);
+  
+  final double slowDist = 400.0;
+  TargetEvent buildTargetEvent(int index) {
+    return new MovingTargetEvent.eventWithLength(delegate, index * iterationTime, slowDist, iterationTime);
+  }
 }
-class TwoTargetSlowTrialTask extends MultiTargetSlowTrialTask {
+class TwoTargetSlowTrialTask extends SlowTrialTask {
   TwoTargetSlowTrialTask(TaskController delegate) : super(delegate, 2);
 }
 
 class FixedTrialTask extends TrialTask {
   
-  FixedTrialTask(TaskController delegate) : super(delegate) {
-    // generate task events
-    for(int i = 0; i < iterations; i++) {
-      events.add(new FixedTargetEvent.atRandomPoint(delegate, i * iterationTime, iterationTime));
-      events.add(new AdditionEvent.withRandomOps(delegate, i * iterationTime, maxOp, maxOp, iterationTime));
-    }
+  FixedTrialTask(TaskController delegate) : super(delegate, 1);
+  
+  TargetEvent buildTargetEvent(int index) {
+    return new FixedTargetEvent.atRandomPoint(delegate, index * iterationTime, iterationTime);
   }
 }
