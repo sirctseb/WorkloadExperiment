@@ -162,6 +162,8 @@ class Task {
   /// The timer to control events
   // TODO should we use one global timer?
   Timer timer;
+  // how often the timer should fire
+  num timerLength = 100;
   
   /// Stopwatch to keep track of progress
   Stopwatch stopwatch = new Stopwatch();
@@ -169,8 +171,10 @@ class Task {
   Task(this.delegate);
   
   void start() {
-    timer = new Timer.repeating(100, onTimer);
+    timer = new Timer.repeating(timerLength, onTimer);
     stopwatch.start();
+    // manually call first timer event
+    onTimer(timer);
   }
   void stop() {
     timer.cancel();
@@ -205,22 +209,26 @@ class ExampleTask extends Task {
   }
 }
 
-class InfiniteTask extends Task {
+abstract class TrialTask extends Task {
   
-  InfiniteTask(TaskController delegate) : super(delegate) {
+  TrialTask(TaskController delegate) : super(delegate) {
+    timerLength = iterationTime;
+  }
+  
+  // the number of iterations of the task to present
+  int iterations = 12;
+  num iterationTime = 5000;
+}
+
+class SlowTrialTask extends TrialTask {
+  
+  SlowTrialTask(TaskController delegate) : super(delegate) {
+    // generate task events
+    for(int i = 0; i < iterations; i++) {
+      events.add(new MovingTargetEvent.eventWithLength(delegate, i * 5000, 400.0, 5000));
+      events.add(new AdditionEvent(delegate, i * 5000, rng.nextInt(15), rng.nextInt(15), 5000));
+    }
   }
   
   Random rng = new Random();
-  
-  // produce an endless string of task events
-  void onTimer(Timer timer) {
-    if(eventIndex >= events.length){
-      // create a new event
-      /*events.add(new MovingTargetEvent(delegate, eventIndex*1000, rng.nextInt(800), rng.nextInt(600),
-                                                  rng.nextInt(800), rng.nextInt(600),
-                                                  1000));*/
-      events.add(new MovingTargetEvent.eventWithLength(delegate, eventIndex*1000, 400.0, 1000));
-    }
-    super.onTimer(timer);
-  }
 }
