@@ -36,7 +36,9 @@ class TaskController implements TargetDelegate {
     
     // create the task
     //task = new ExampleTask(this);
-    task = new SlowTrialTask(this);
+    //task = new SlowTrialTask(this);
+    //task = new FixedTrialTask(this);
+    task = new TwoTargetSlowTrialTask(this);
   }
   
   void handleKeyPress(KeyboardEvent event) {

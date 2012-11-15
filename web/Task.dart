@@ -32,6 +32,12 @@ class FixedTargetEvent extends TargetEvent {
     target.move(x, y);
   }
   
+  FixedTargetEvent.atRandomPoint(TaskController delegate, num time, [this.timeOut = 1000]) : super(delegate, time) {
+    Random rng = new Random();
+    // put target at random place on screen
+    target.move(rng.nextInt(document.body.clientWidth), rng.nextInt(document.body.clientHeight));
+  }
+  
   void execute() {
     // show the target
     target.show();
@@ -130,6 +136,14 @@ class AdditionEvent extends TaskEvent {
       : super(delegate, time) {
   }
   
+  AdditionEvent.withRandomOps(TaskController delegate, num time, int op1max, int op2max, num this.duration)
+      : super(delegate, time) {
+    // set ops randomly within max
+    Random rng = new Random();
+    op1 = rng.nextInt(op1max);
+    op2 = rng.nextInt(op2max);
+  }
+  
   void execute() {
     // if there is an outstanding timer, cancel it so it doesn't clear after this starts
     if(outstanding != null) {
@@ -218,6 +232,7 @@ abstract class TrialTask extends Task {
   // the number of iterations of the task to present
   int iterations = 12;
   num iterationTime = 5000;
+  int maxOp = 15;
 }
 
 class SlowTrialTask extends TrialTask {
@@ -225,10 +240,33 @@ class SlowTrialTask extends TrialTask {
   SlowTrialTask(TaskController delegate) : super(delegate) {
     // generate task events
     for(int i = 0; i < iterations; i++) {
-      events.add(new MovingTargetEvent.eventWithLength(delegate, i * 5000, 400.0, 5000));
-      events.add(new AdditionEvent(delegate, i * 5000, rng.nextInt(15), rng.nextInt(15), 5000));
+      events.add(new MovingTargetEvent.eventWithLength(delegate, i * iterationTime, 400.0, iterationTime));
+      events.add(new AdditionEvent.withRandomOps(delegate, i * iterationTime, maxOp, maxOp, iterationTime));
     }
   }
   
   Random rng = new Random();
+}
+
+class FixedTrialTask extends TrialTask {
+  
+  FixedTrialTask(TaskController delegate) : super(delegate) {
+    // generate task events
+    for(int i = 0; i < iterations; i++) {
+      events.add(new FixedTargetEvent.atRandomPoint(delegate, i * iterationTime, iterationTime));
+      events.add(new AdditionEvent.withRandomOps(delegate, i * iterationTime, maxOp, maxOp, iterationTime));
+    }
+  }
+}
+
+class TwoTargetSlowTrialTask extends TrialTask {
+  TwoTargetSlowTrialTask(TaskController delegate) : super(delegate) {
+    // generate task events
+    for(int i = 0; i < iterations; i++) {
+      events.add(new MovingTargetEvent.eventWithLength(delegate, i * iterationTime, 400.0, iterationTime));
+      events.add(new MovingTargetEvent.eventWithLength(delegate, i * iterationTime, 400.0, iterationTime));
+      events.add(new AdditionEvent.withRandomOps(delegate, i * iterationTime, maxOp, maxOp, iterationTime));
+      
+    }
+  }
 }
