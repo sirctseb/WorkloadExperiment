@@ -279,3 +279,7 @@ class FixedTrialTask extends TrialTask {
     return new FixedTargetEvent.atRandomPoint(delegate, index * iterationTime, iterationTime);
   }
 }
+
+// TODO define constructor params in terms of actual experiment independent variables and levels
+// enum TargetCount = {1, 2, 3}
+// enum TargetSpeed = {fixed, slow, fast}
