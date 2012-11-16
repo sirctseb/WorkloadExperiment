@@ -37,6 +37,11 @@ body {
   width:128px;
   height:128px;
   position:absolute;
+  -webkit-transition: -webkit-transform 0.2s linear;
+}
+
+.target.dismissed {
+  -webkit-transform: scale(0,0);
 }
 
 .score {
@@ -45,3 +50,4 @@ body {
   right:0px;
   font-size: 28px;
 }
+

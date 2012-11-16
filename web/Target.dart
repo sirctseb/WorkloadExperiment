@@ -69,7 +69,9 @@ class Target {
   }
   // remove the element from the DOM
   void remove() {
-    element.remove();
+    //element.remove();
+    // TODO actually remove after transition
+    element.classes.add("dismissed");
     _visible = false;
   }
   
