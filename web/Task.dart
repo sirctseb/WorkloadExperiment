@@ -46,7 +46,8 @@ class FixedTargetEvent extends TargetEvent {
       // if the target is still visible, it hasn't been dismissed, so remove and update score
       if(target.visible) {
         // remove the target
-        target.remove();
+        //target.remove();
+        target.timeout();
         
         // update the score
         delegate.score -= 100;
@@ -117,7 +118,8 @@ class MovingTargetEvent extends TargetEvent {
         window.requestAnimationFrame(update);
       } else {
         // update score for missed target
-        target.remove();
+        //target.remove();
+        target.timeout();
         delegate.score -= 100;
       }
     }

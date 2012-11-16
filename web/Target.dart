@@ -74,6 +74,12 @@ class Target {
     element.classes.add("dismissed");
     _visible = false;
   }
+  // remove the element due to it being timed out
+  void timeout() {
+    // TODO actually remove after transition
+    element.classes.add("timeout");
+    _visible = false;
+  }
   
   /// Create a new [Target]
   Target(this.delegate, {show: false}) {

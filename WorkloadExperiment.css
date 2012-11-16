@@ -51,6 +51,16 @@ body {
   -webkit-transform: scale(0,0);
 }
 
+@-webkit-keyframes target-timeout {
+  from { -webkit-opacity: 1; }
+  to { -webkit-opacity: 0; }
+}
+.target.timeout {
+  -webkit-animation-name: target-timeout;
+  -webkit-animation-duration: 0.2s;
+  -webkit-opacity: 0;
+}
+
 @-webkit-keyframes shoot-animation {
   from { -webkit-transform: rotate(45deg) scale(1,1); }
   to { -webkit-transform: rotate(45deg) scale(0,0); }
