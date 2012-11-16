@@ -71,5 +71,26 @@ body {
   top:0px;
   right:0px;
   font-size: 28px;
+  color: black;
 }
 
+@-webkit-keyframes score-increase {
+  from { color: #0f0 }
+  to { color: black; }
+}
+.increase {
+  -webkit-animation-name: score-increase;
+  /* TODO if this changes, change timer in score setter in TaskController */
+  -webkit-animation-duration: 0.4s;
+  -webkit-animation-timing-function: ease-in;
+}
+@-webkit-keyframes score-decrease {
+  from { color: #f00; }
+  to { color: black; }
+}
+.decrease {
+  -webkit-animation-name: score-decrease;
+  /* TODO if this changes, change timer in score setter in TaskController */
+  -webkit-animation-duration: 0.4s;
+  -webkit-animation-timing-function: ease-out
+}

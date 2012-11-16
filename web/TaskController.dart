@@ -14,9 +14,16 @@ class TaskController implements TargetDelegate {
   num _score = 0;
   num get score => _score;
   set score(num s) {
+    bool increase = s > score;
     _score = s;
     // update html
     taskRoot.query("#score-content").text = s.toStringAsFixed(0);
+    // animate color of score text
+    query(".score").classes.add(increase ? "increase" : "decrease");
+    // remove the class in 400ms
+    new Timer(400, (timer) {
+      query(".score").classes.removeAll(["increase", "decrease"]);
+    });
   }
   
   /// Task properties
