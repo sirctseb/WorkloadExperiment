@@ -50,6 +50,22 @@ body {
   -webkit-transform: scale(0,0);
 }
 
+@-webkit-keyframes miss-animation {
+  from { -webkit-transform: rotate(45deg) scale(1,1); }
+  to { -webkit-transform: rotate(45deg) scale(0,0); }
+}
+
+.miss {
+  width: 40px;
+  height: 40px;
+  background-image: url('img/crosshair.png');
+  background-size: contain;
+  -webkit-transform: rotate(45deg) scale(0,0);
+  position: absolute;
+  -webkit-animation-name: miss-animation;
+  -webkit-animation-duration: 0.5s;
+}
+
 .score {
   position:absolute;
   top:0px;
