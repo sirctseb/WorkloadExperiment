@@ -878,9 +878,9 @@ class Circle {
   double _length;
   double get length => _length;
   
-  Circle(Point center, double length) {
+  Circle(Point center, num length) {
     _center = center;
-    _length = length;
+    _length = length.toDouble();
   }
   
   Point randomPoint() {
