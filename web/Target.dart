@@ -69,16 +69,23 @@ class Target {
   }
   // remove the element from the DOM
   void dismiss() {
-    //element.remove();
-    // TODO actually remove after transition
     element.classes.add("dismissed");
     _visible = false;
+    delayedRemove();
   }
   // remove the element due to it being timed out
   void timeout() {
-    // TODO actually remove after transition
     element.classes.add("timeout");
     _visible = false;
+    // remove after animation
+    delayedRemove();
+  }
+  void delayedRemove() {
+    // remove after 200ms
+    // TODO if animation time changes, change this delay
+    new Timer(200, (timer) {
+      element.remove();
+    });
   }
   
   /// Create a new [Target]
