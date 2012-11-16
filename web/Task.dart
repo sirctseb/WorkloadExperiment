@@ -239,7 +239,7 @@ abstract class TrialTask extends Task {
   // the number of targets to present
   int numTargets;
   
-  TrialTask(TaskController delegate, this.numTargets)
+  TrialTask(TaskController delegate, {int this.numTargets: 1, int this.iterations: 12, int this.maxOp: 15, int this.iterationTime: 5000})
       : super(delegate) {
         
     timerLength = iterationTime;
@@ -262,7 +262,7 @@ abstract class TrialTask extends Task {
 }
 
 class SlowTrialTask extends TrialTask { 
-  SlowTrialTask(TaskController delegate, [int targetNumber = 1]) : super(delegate, targetNumber);
+  SlowTrialTask(TaskController delegate, [int numTargets = 1]) : super(delegate, numTargets: numTargets);
   
   final double slowDist = 400.0;
   TargetEvent buildTargetEvent(int index) {
@@ -273,9 +273,27 @@ class TwoTargetSlowTrialTask extends SlowTrialTask {
   TwoTargetSlowTrialTask(TaskController delegate) : super(delegate, 2);
 }
 
+// TODO this just adds one parameter to the constructor and a buildTargetEvent method
+class ConfigurableTrialTask extends TrialTask {
+  
+  num targetDist;
+  
+  ConfigurableTrialTask(TaskController delegate,
+      { int numTargets: 1,
+        num this.targetDist: 0,
+        int iterations: 12,
+        int maxOp: 15,
+        int iterationTime: 5000})
+      : super(delegate, numTargets: numTargets, iterations: iterations, maxOp: maxOp, iterationTime: iterationTime);
+  
+  TargetEvent buildTargetEvent(int index) {
+    return new MovingTargetEvent.eventWithLength(delegate, index * iterationTime, targetDist, iterationTime);
+  }
+}
+
 class FixedTrialTask extends TrialTask {
   
-  FixedTrialTask(TaskController delegate) : super(delegate, 1);
+  FixedTrialTask(TaskController delegate) : super(delegate, numTargets: 1);
   
   TargetEvent buildTargetEvent(int index) {
     return new FixedTargetEvent.atRandomPoint(delegate, index * iterationTime, iterationTime);
