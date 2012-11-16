@@ -53,6 +53,39 @@ class TaskController implements TargetDelegate {
     // add handler to body for missed target clicks
     document.body.on.click.add(onBodyClick);
     document.body.elements.add(shotElement);
+    
+    // add handler to watch for changes to settings
+    /*document.queryAll(".settings input").forEach((InputElement e) {
+      e.on.change.add(settingChanged);
+    })*/
+    // only add handler on button click
+    document.query("#set-params").on.click.add(settingChanged);
+    
+    // show task on startup
+    showTask();
+  }
+  
+  void settingChanged(Event event) {
+    // if custom is enabled, create a new task
+    if((query("#enable-custom") as InputElement).checked) {
+      // parse input elements
+      num iterations = getInputValue("iterations");
+      num iterationTime = getInputValue("iteration-time");
+      num numTargets = getInputValue("num-targets");
+      num targetDist = getInputValue("target-dist");
+      num maxOp = getInputValue("max-op");
+      
+      task = new ConfigurableTrialTask(this,
+          iterations: iterations,
+          iterationTime: iterationTime, 
+          numTargets: numTargets,
+          targetDist: targetDist,
+          maxOp: maxOp);
+    }
+  }
+  
+  static int getInputValue(String id) {
+    return int.parse((query("#$id") as InputElement).value);
   }
   
   void onBodyClick(MouseEvent event) {

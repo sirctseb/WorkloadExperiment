@@ -105,3 +105,15 @@ body {
   -webkit-animation-duration: 0.4s;
   -webkit-animation-timing-function: ease-out
 }
+
+
+
+
+/* Settings div */
+.settings {
+  cursor: default;
+  margin: 15px;
+}
+.settings label {
+  margin-left: 15px;
+}
