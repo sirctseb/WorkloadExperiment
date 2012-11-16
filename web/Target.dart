@@ -68,7 +68,7 @@ class Target {
     _visible = true;
   }
   // remove the element from the DOM
-  void remove() {
+  void dismiss() {
     //element.remove();
     // TODO actually remove after transition
     element.classes.add("dismissed");
@@ -101,7 +101,7 @@ class Target {
       num distSq = pow(e.clientX - x, 2) + pow(e.clientY - y, 2);
       if(distSq <= width*width/4) {
         // dismiss the target
-        this.remove();
+        this.dismiss();
         
         // notify delegate
         delegate.TargetClicked(this, e);
