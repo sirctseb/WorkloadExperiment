@@ -32,8 +32,8 @@ class TaskController implements TargetDelegate {
   /// Web socket to communicate with data server
   WebSocket ws = new WebSocket("ws://localhost:8000/ws");
   
-  /// An element to show feedback when a click misses
-  DivElement missElement = new DivElement()..classes.add("miss");
+  /// An element to show feedback when a click occurs
+  DivElement shotElement = new DivElement()..classes.add("shot");
   
   /// Create a task controller
   TaskController() {
@@ -52,19 +52,19 @@ class TaskController implements TargetDelegate {
     
     // add handler to body for missed target clicks
     document.body.on.click.add(onBodyClick);
-    document.body.elements.add(missElement);
+    document.body.elements.add(shotElement);
   }
   
   void onBodyClick(MouseEvent event) {
     // show miss feedback
     // first remove from DOM so that animation will start again when it is added back
-    missElement.remove();
+    shotElement.remove();
     // set location
     // TODO magic numbers
-    missElement.style.left = "${event.clientX - 15}px";
-    missElement.style.top = "${event.clientY - 15}px";
+    shotElement.style.left = "${event.clientX - 15}px";
+    shotElement.style.top = "${event.clientY - 15}px";
     // add back to DOM
-    document.body.elements.add(missElement);
+    document.body.elements.add(shotElement);
   }
   
   void handleKeyPress(KeyboardEvent event) {
