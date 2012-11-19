@@ -239,7 +239,10 @@ abstract class TrialTask extends Task {
   // the number of targets to present
   int numTargets;
   
-  TrialTask(TaskController delegate, {int this.numTargets: 1, int this.iterations: 12, int this.maxOp: 15, int this.iterationTime: 5000})
+  TrialTask(TaskController delegate, {int this.numTargets: 1,
+                                      int this.iterations: 12,
+                                      int this.maxOp: 15,
+                                      int this.iterationTime: 5000})
       : super(delegate) {
         
     timerLength = iterationTime;
@@ -277,17 +280,19 @@ class TwoTargetSlowTrialTask extends SlowTrialTask {
 class ConfigurableTrialTask extends TrialTask {
   
   num targetDist;
+  int targetSize = 128;
   
   ConfigurableTrialTask(TaskController delegate,
       { int numTargets: 1,
         num this.targetDist: 0,
         int iterations: 12,
         int maxOp: 15,
-        int iterationTime: 5000})
+        int iterationTime: 5000,
+        int this.targetSize: 128})
       : super(delegate, numTargets: numTargets, iterations: iterations, maxOp: maxOp, iterationTime: iterationTime);
   
   TargetEvent buildTargetEvent(int index) {
-    return new MovingTargetEvent.eventWithLength(delegate, index * iterationTime, targetDist, iterationTime);
+    return new MovingTargetEvent.eventWithLength(delegate, index * iterationTime, targetDist, iterationTime)..target.resize(targetSize, targetSize);
   }
 }
 

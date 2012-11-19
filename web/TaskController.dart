@@ -54,11 +54,7 @@ class TaskController implements TargetDelegate {
     document.body.on.click.add(onBodyClick);
     document.body.elements.add(shotElement);
     
-    // add handler to watch for changes to settings
-    /*document.queryAll(".settings input").forEach((InputElement e) {
-      e.on.change.add(settingChanged);
-    })*/
-    // only add handler on button click
+    // add handler on button click
     document.query("#set-params").on.click.add(settingChanged);
     
     // show task on startup
@@ -74,13 +70,15 @@ class TaskController implements TargetDelegate {
       num numTargets = getInputValue("num-targets");
       num targetDist = getInputValue("target-dist");
       num maxOp = getInputValue("max-op");
+      int targetSize = getInputValue("target-size");
       
       task = new ConfigurableTrialTask(this,
           iterations: iterations,
           iterationTime: iterationTime, 
           numTargets: numTargets,
           targetDist: targetDist,
-          maxOp: maxOp);
+          maxOp: maxOp,
+          targetSize: targetSize);
     }
   }
   
