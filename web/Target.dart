@@ -8,6 +8,12 @@ abstract class TargetDelegate {
 class Target {
   TargetDelegate delegate;
   
+  // an ID to tell target apart from others
+  int _ID = _ID_counter++;
+  int get ID => _ID;
+  // ID counter
+  static int _ID_counter = 0;
+  
   /// The div element that shows the target
   DivElement element = new DivElement();
   
