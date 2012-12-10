@@ -184,9 +184,11 @@ class Task {
   /// The timer to control events
   // TODO should we use one global timer?
   Timer timer;
-  // how often the timer should fire
-  // TODO make a getNextEventTime() so we can schedule the timers on the fly
-  num timerLength = 100;
+  /// The time that the next event is scheduled for
+  int get nextEventTime {
+    if(eventIndex >= events.length) return -1;
+    return events[eventIndex].time;
+  }
   
   /// Stopwatch to keep track of progress
   Stopwatch stopwatch = new Stopwatch();
@@ -194,8 +196,8 @@ class Task {
   Task(this.delegate);
   
   void start() {
-    timer = new Timer.repeating(timerLength, onTimer);
     stopwatch.start();
+    
     // manually call first timer event
     onTimer(timer);
     
@@ -223,6 +225,12 @@ class Task {
     while(eventIndex < events.length && events[eventIndex].time <= stopwatch.elapsedMilliseconds) {
       events[eventIndex].execute();
       eventIndex++;
+    }
+    
+    // start timer for next event
+    print("$nextEventTime, ${stopwatch.elapsedMilliseconds}");
+    if(nextEventTime != -1) {
+      timer = new Timer(nextEventTime - stopwatch.elapsedMilliseconds, onTimer);
     }
   }
 }
@@ -257,8 +265,6 @@ abstract class TrialTask extends Task {
                                       int this.maxOp: 15,
                                       int this.iterationTime: 5000})
       : super(delegate) {
-        
-    timerLength = iterationTime;
     
     // generate task events
     for(int i = 0; i < iterations; i++) {
