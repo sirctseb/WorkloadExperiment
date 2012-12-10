@@ -54,6 +54,12 @@ class TaskController implements TargetDelegate {
     document.body.on.click.add(onBodyClick);
     document.body.elements.add(shotElement);
     
+    // TODO testing time stamps
+    // get time stamp of mouse down and not just mouse click
+    document.body.on.mouseDown.add((event) {
+      ws.send("mouse down at\t ${event.timeStamp}");
+    });
+    
     // add handler on button click
     document.query("#set-params").on.click.add(settingChanged);
     
@@ -96,6 +102,9 @@ class TaskController implements TargetDelegate {
     shotElement.style.top = "${event.clientY - 15}px";
     // add back to DOM
     document.body.elements.add(shotElement);
+    
+    // send click event to server
+    ws.send("click at ${event.timeStamp}");
   }
   
   void handleKeyPress(KeyboardEvent event) {
