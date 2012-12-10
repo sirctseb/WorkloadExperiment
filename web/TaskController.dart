@@ -31,6 +31,7 @@ class TaskController implements TargetDelegate {
   
   /// Web socket to communicate with data server
   WebSocket ws = new WebSocket("ws://localhost:8000/ws");
+  bool get wsReady => ws.readyState == WebSocket.OPEN;
   
   /// An element to show feedback when a click occurs
   DivElement shotElement = new DivElement()..classes.add("shot");
@@ -107,12 +108,16 @@ class TaskController implements TargetDelegate {
   }
   void logMouseDown(MouseEvent event, bool hit) {
     // send click event to server
-    ws.send("MouseDown, ${event.timeStamp}, ${event.clientX}, ${event.clientY}, ${hit?'HIT':'MISS'}");
+    if(wsReady) {
+      ws.send("MouseDown, ${event.timeStamp}, ${event.clientX}, ${event.clientY}, ${hit?'HIT':'MISS'}");
+    }
   }
   
   void onBodyMove(MouseEvent event) {
     // set info to data server
-    ws.send("MouseMove, ${event.timeStamp}, ${event.clientX}, ${event.clientY}");
+    if(wsReady) {
+      ws.send("MouseMove, ${event.timeStamp}, ${event.clientX}, ${event.clientY}");
+    }
   }
   
   void handleKeyPress(KeyboardEvent event) {
@@ -154,7 +159,9 @@ class TaskController implements TargetDelegate {
     logMouseDown(event, true);
     
     // notify data server
-    ws.send("TargetHit, ${event.timeStamp}, ${target.x}, ${target.y}, ${target.ID}");
+    if(wsReady) {
+      ws.send("TargetHit, ${event.timeStamp}, ${target.x}, ${target.y}, ${target.ID}");
+    }
     
     // update score
     num dist = sqrt(pow(target.x - event.clientX, 2) + pow(target.y - event.clientY, 2));
@@ -166,26 +173,36 @@ class TaskController implements TargetDelegate {
   
   void onTrialStart(num time) {
     // send trial start to data server
-    ws.send("TrialStart $time");
+    if(wsReady) {
+      ws.send("TrialStart $time");
+    }
   }
   void onTrialEnd(num time) {
     // send trial end to data server
-    ws.send("TrialEnd $time");
+    if(wsReady) {
+      ws.send("TrialEnd $time");
+    }
   }
   
   void onTaskStart(num time) {
     // send start to data server
     // TODO trial number?
-    ws.send("TaskStart, $time");
+    if(wsReady) {
+      ws.send("TaskStart, $time");
+    }
   }
   void onTaskEnd(num time) {
     // send end to data server
-    ws.send("TaskEnd, $time");
+    if(wsReady) {
+      ws.send("TaskEnd, $time");
+    }
   }
   
   void onTargetStart(MovingTargetEvent te, num time) {
     // send target start info to data server
-    ws.send("TargetStart, $time, ${te.target.x}, ${te.target.y}, ${te.target.ID}");
+    if(wsReady) {
+      ws.send("TargetStart, $time, ${te.target.x}, ${te.target.y}, ${te.target.ID}");
+    }
   }
   /*void onTargetMove(MovingTargetEvent te, num time) {
     // send target move info to data server
@@ -194,6 +211,8 @@ class TaskController implements TargetDelegate {
   void onTargetTimeout(MovingTargetEvent te, num time) {
     print("sending timeout to server");
     // send target timeout info to data server
-    ws.send("TargetTimeout, $time, ${te.target.x}, ${te.target.y}, ${te.target.ID}");
+    if(wsReady) {
+      ws.send("TargetTimeout, $time, ${te.target.x}, ${te.target.y}, ${te.target.ID}");
+    }
   }
 }
