@@ -51,14 +51,8 @@ class TaskController implements TargetDelegate {
     //task = new TwoTargetSlowTrialTask(this);
     
     // add handler to body for missed target clicks
-    document.body.on.click.add(onBodyClick);
+    document.body.on.mouseDown.add(onBodyDown);
     document.body.elements.add(shotElement);
-    
-    // TODO testing time stamps
-    // get time stamp of mouse down and not just mouse click
-    document.body.on.mouseDown.add((event) {
-      ws.send("mouse down at\t ${event.timeStamp}");
-    });
     
     // add handler on button click
     document.query("#set-params").on.click.add(settingChanged);
@@ -92,19 +86,21 @@ class TaskController implements TargetDelegate {
     return int.parse((query("#$id") as InputElement).value);
   }
   
-  void onBodyClick(MouseEvent event) {
+  void onBodyDown(MouseEvent event) {
     // show miss feedback
     // first remove from DOM so that animation will start again when it is added back
     shotElement.remove();
+    
     // set location
     // TODO magic numbers
     shotElement.style.left = "${event.clientX - 15}px";
     shotElement.style.top = "${event.clientY - 15}px";
+    
     // add back to DOM
     document.body.elements.add(shotElement);
     
     // send click event to server
-    ws.send("click at ${event.timeStamp}");
+    ws.send("body down at ${event.timeStamp}");
   }
   
   void handleKeyPress(KeyboardEvent event) {
