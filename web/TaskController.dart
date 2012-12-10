@@ -92,6 +92,9 @@ class TaskController implements TargetDelegate {
   }
   
   void onBodyDown(MouseEvent event) {
+    // ignore if on settings screen
+    if(settingsRoot.style.display == "block") return;
+    
     // show miss feedback
     // first remove from DOM so that animation will start again when it is added back
     shotElement.remove();
