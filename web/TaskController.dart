@@ -52,6 +52,10 @@ class TaskController implements TargetDelegate {
     
     // add handler to body for missed target clicks
     document.body.on.mouseDown.add(onBodyDown);
+    
+    // add handler to body for mouse moves
+    document.body.on.mouseMove.add(onBodyMove);
+    
     document.body.elements.add(shotElement);
     
     // add handler on button click
@@ -99,8 +103,16 @@ class TaskController implements TargetDelegate {
     // add back to DOM
     document.body.elements.add(shotElement);
     
+    logMouseDown(event, false);
+  }
+  void logMouseDown(MouseEvent event, bool hit) {
     // send click event to server
-    ws.send("body down at ${event.timeStamp}");
+    ws.send("MouseDown, ${event.timeStamp}, ${event.clientX}, ${event.clientY}, ${hit?'HIT':'MISS'}");
+  }
+  
+  void onBodyMove(MouseEvent event) {
+    // set info to data server
+    ws.send("MouseMove, ${event.timeStamp}, ${event.clientX}, ${event.clientY}");
   }
   
   void handleKeyPress(KeyboardEvent event) {
@@ -138,8 +150,11 @@ class TaskController implements TargetDelegate {
   
   /* TargetDelegate implementation */
   void TargetClicked(Target target, MouseEvent event) {
+    // log the mouse down so we also get the exact mouse location
+    logMouseDown(event, true);
+    
     // notify data server
-    ws.send("target hit: ${event.clientX}, ${event.clientY}");
+    ws.send("TargetHit, ${event.timeStamp}, ${target.x}, ${target.y}, ${target.ID}");
     
     // update score
     num dist = sqrt(pow(target.x - event.clientX, 2) + pow(target.y - event.clientY, 2));
@@ -147,5 +162,38 @@ class TaskController implements TargetDelegate {
     
     // don't propagate mouse down so body won't react to it
     event.stopPropagation();
+  }
+  
+  void onTrialStart(num time) {
+    // send trial start to data server
+    ws.send("TrialStart $time");
+  }
+  void onTrialEnd(num time) {
+    // send trial end to data server
+    ws.send("TrialEnd $time");
+  }
+  
+  void onTaskStart(num time) {
+    // send start to data server
+    // TODO trial number?
+    ws.send("TaskStart, $time");
+  }
+  void onTaskEnd(num time) {
+    // send end to data server
+    ws.send("TaskEnd, $time");
+  }
+  
+  void onTargetStart(MovingTargetEvent te, num time) {
+    // send target start info to data server
+    ws.send("TargetStart, $time, ${te.target.x}, ${te.target.y}, ${te.target.ID}");
+  }
+  /*void onTargetMove(MovingTargetEvent te, num time) {
+    // send target move info to data server
+    ws.send("TargetMove, $time, ${te.target.x}, ${te.target.y}, ${te.target.ID}");
+  }*/
+  void onTargetTimeout(MovingTargetEvent te, num time) {
+    print("sending timeout to server");
+    // send target timeout info to data server
+    ws.send("TargetTimeout, $time, ${te.target.x}, ${te.target.y}, ${te.target.ID}");
   }
 }

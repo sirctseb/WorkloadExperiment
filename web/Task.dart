@@ -102,8 +102,12 @@ class MovingTargetEvent extends TargetEvent {
     if(!running) {
       running = true;
       startTime = time;
+      
       // show target
       target.show();
+      
+      // notify delegate of target start
+      delegate.onTargetStart(this, time);
     }
     // if target has been dismissed, don't do anything
     if(target.visible) {
@@ -121,6 +125,8 @@ class MovingTargetEvent extends TargetEvent {
         //target.remove();
         target.timeout();
         delegate.score -= 100;
+        // notify delegate of target timeout
+        delegate.onTargetTimeout(this, time);
       }
     }
   }
@@ -179,6 +185,7 @@ class Task {
   // TODO should we use one global timer?
   Timer timer;
   // how often the timer should fire
+  // TODO make a getNextEventTime() so we can schedule the timers on the fly
   num timerLength = 100;
   
   /// Stopwatch to keep track of progress
@@ -191,10 +198,16 @@ class Task {
     stopwatch.start();
     // manually call first timer event
     onTimer(timer);
+    
+    // tell delegate that task started
+    delegate.onTrialStart(new Date.now().millisecondsSinceEpoch);
   }
   void stop() {
     timer.cancel();
     stopwatch.stop();
+    
+    // tell delegate that task ended
+    delegate.onTrialEnd(new Date.now().millisecondsSinceEpoch);
   }
   void reset() {
     stop();

@@ -15,7 +15,7 @@ void main() {
     print('new connection');
     
     conn.onMessage = (message) {
-      print("mouse click at: $message");
+      //print("mouse click at: $message");
       // write mouse click location to file
       stream.writeString("$message\n");
     };
