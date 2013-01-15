@@ -15,7 +15,7 @@ abstract class TaskEvent {
 }
 
 /// [TargetEvent] is an [Event] that shows a target
-class TargetEvent extends TaskEvent {
+abstract class TargetEvent extends TaskEvent {
   Target target;
   
   TargetEvent(TaskController delegate, num time) : super(delegate, time) {
