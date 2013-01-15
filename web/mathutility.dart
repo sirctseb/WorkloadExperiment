@@ -854,7 +854,7 @@ class Rectangle {
   }
 
   Rectangle expand(num hor, [num ver]) {
-    if (ver === null)
+    if (ver == null)
       ver = hor;
     return new Rectangle.create(this.x - hor / 2, this.y - ver / 2,
         this.width + hor, this.height + ver);
@@ -862,7 +862,7 @@ class Rectangle {
 
   Rectangle scale(num hor, [num ver]) {
     return this.expand(this.width * hor - this.width,
-        this.height * (ver === null ? hor : ver) - this.height);
+        this.height * (ver == null ? hor : ver) - this.height);
   }
 
   Rectangle.create(num x, num y, num width, num height) {
