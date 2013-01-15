@@ -70,7 +70,7 @@ class Target {
   
   // add the element to the task div
   void show() {
-    document.body.query("#task").elements.add(element);
+    document.body.query("#task").children.add(element);
     _visible = true;
   }
   // remove the element from the DOM

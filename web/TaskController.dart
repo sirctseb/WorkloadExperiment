@@ -57,7 +57,7 @@ class TaskController implements TargetDelegate {
     // add handler to body for mouse moves
     document.body.on.mouseMove.add(onBodyMove);
     
-    document.body.elements.add(shotElement);
+    document.body.children.add(shotElement);
     
     // add handler on button click
     document.query("#set-params").on.click.add(settingChanged);
@@ -105,7 +105,7 @@ class TaskController implements TargetDelegate {
     shotElement.style.top = "${event.clientY - 15}px";
     
     // add back to DOM
-    document.body.elements.add(shotElement);
+    document.body.children.add(shotElement);
     
     logMouseDown(event, false);
   }
