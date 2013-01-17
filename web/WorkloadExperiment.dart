@@ -15,7 +15,6 @@ void main() {
   Logger.root.on.record.add((LogRecord record) {
     print(record.message);
   });
-  Logger.root.level = Level.FINEST;
 
   // disable all selection
   document.on.selectStart.add((e) {

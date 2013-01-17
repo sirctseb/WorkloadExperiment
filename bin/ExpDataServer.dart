@@ -8,7 +8,6 @@ void main() {
   Logger.root.on.record.add((LogRecord record) {
     print(record.message);
   });
-  Logger.root.level = Level.FINEST;
 }
 
 class Server {
@@ -55,23 +54,22 @@ class Server {
           subjectNumber = int.parse(message.split(" ")[1]);
           
           Logger.root.info("data server got subject number: $subjectNumber");
+          
+          // reset trial number
+          trialNumber = 0;
         }
         
         if(message.startsWith("start trial")) {
           Logger.root.info("data server received start trial message");
           
           // set trial number
-          if(trialNumber == null) {
-            trialNumber = 0;
-          } else {
-            trialNumber++;
-          }
+          trialNumber++;
           
           // create data file object
-          dataFile = new File.fromPath(new Path("output/subject$subjectNumber/trial$trialNumber"));
+          dataFile = new File.fromPath(new Path("output/subject$subjectNumber/trial$trialNumber/data.txt"));
           
-          // make sure directory exists
-          dataFile.directorySync().createSync(recursive: true);
+          // create directory
+          new Directory("output/subject$subjectNumber/trial$trialNumber").createSync(recursive:true);
           
           // open file stream
           stream = dataFile.openOutputStream();
@@ -83,6 +81,7 @@ class Server {
       
       conn.onClosed = (int status, String reason) {
         print('closed with $status for $reason');
+        Logger.root.info(new Date.now().toString());
       };
     };
     

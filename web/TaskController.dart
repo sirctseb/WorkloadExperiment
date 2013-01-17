@@ -42,6 +42,9 @@ class TaskController implements TargetDelegate {
   
   /// Create a task controller
   TaskController() {
+    // connect to server
+    openWS();
+    
     // store task and settings root elements
     taskRoot = document.body.query("#task");
     settingsRoot = document.body.query("#settings");
@@ -74,16 +77,8 @@ class TaskController implements TargetDelegate {
   }
   
   void setSubjectNumber(Event event) {
-    Logger.root.info("opening ws to set subject number");
-    // connect to server
-    openWS();
-    Logger.root.info("adding open callback");
-    // register callback
-    ws.on.open.add((Event event) {
-      Logger.root.info("got open callback");
-      // send subject number message
-      ws.send("subject ${document.query('#subject-number').value}");
-    });
+    // send subject number message
+    ws.send("subject ${document.query('#subject-number').value}");
   }
   void settingChanged(Event event) {
     // if custom is enabled, create a new task
@@ -154,6 +149,7 @@ class TaskController implements TargetDelegate {
     } else if(event.which == "g".charCodeAt(0)) {
       // g for 'go', start the task
       // tell the data server we're starting
+
       notifyWSStart();
       task.start();
       ws.send("started task");
@@ -200,7 +196,6 @@ class TaskController implements TargetDelegate {
   void onTrialStart(num time) {
     // send trial start to data server
     if(wsReady) {
-      Logger.root.info("sending data server TrialStart event");
       ws.send("TrialStart $time");
     }
   }
@@ -236,7 +231,7 @@ class TaskController implements TargetDelegate {
     ws.send("TargetMove, $time, ${te.target.x}, ${te.target.y}, ${te.target.ID}");
   }*/
   void onTargetTimeout(MovingTargetEvent te, num time) {
-    print("sending timeout to server");
+    Logger.root.fine("sending timeout to server");
     // send target timeout info to data server
     if(wsReady) {
       ws.send("TargetTimeout, $time, ${te.target.x}, ${te.target.y}, ${te.target.ID}");
