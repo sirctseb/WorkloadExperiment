@@ -148,11 +148,32 @@ class TaskController implements TargetDelegate {
       showTask();
     } else if(event.which == "g".charCodeAt(0)) {
       // g for 'go', start the task
-      // tell the data server we're starting
-
-      notifyWSStart();
-      task.start();
-      ws.send("started task");
+      // play chirps and then start
+      int countdown = 2;
+      // get element
+      AudioElement beep = (query("#beep") as AudioElement);
+      // start trial at the start of the final beep
+      beep.on.play.add((Event) {
+        if(countdown == 0) {
+          // if countdown is done, start trial
+          // tell the data server we're starting
+          notifyWSStart();
+          task.start();
+          ws.send("started task");
+        }
+      });
+      // add end event
+      beep.on.ended.add((Event) {
+        // if countdown is not done, decrement and schedule another in 1 second
+        if(countdown > 0) {
+          countdown--;
+          new Timer(1000, (Timer) {
+            beep.play();
+          });
+        }
+      });
+      // play first tone
+      beep.play();
     } else if(event.which == "p".charCodeAt(0)) {
       // p for 'pause', stop the task
       task.stop();
