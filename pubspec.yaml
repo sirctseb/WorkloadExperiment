@@ -2,5 +2,7 @@ name:  WorkloadTask
 description:  A sample application
 dependencies:
    browser: any
+   unittest: { sdk: unittest }
+   logging: { sdk: logging }
 #dependencies:
 #  unittest: { sdk: unittest }

@@ -30,8 +30,12 @@ class TaskController implements TargetDelegate {
   Task task;
   
   /// Web socket to communicate with data server
-  WebSocket ws = new WebSocket("ws://localhost:8000/ws");
-  bool get wsReady => ws.readyState == WebSocket.OPEN;
+  String ws_url = "ws://localhost:8000/ws";
+  WebSocket ws;// = new WebSocket("ws://localhost:8000/ws");
+  bool get wsReady => ws != null ? ws.readyState == WebSocket.OPEN : false;
+  void openWS() { ws = new WebSocket(ws_url); }
+  void notifyWSStart() { ws.send("start trial"); }
+  void notifyWSEnd() { ws.send("end trial"); }
   
   /// An element to show feedback when a click occurs
   DivElement shotElement = new DivElement()..classes.add("shot");
@@ -62,10 +66,25 @@ class TaskController implements TargetDelegate {
     // add handler on button click
     document.query("#set-params").on.click.add(settingChanged);
     
+    // add handler for setting subject number
+    document.query("#set-subject-number").on.click.add(setSubjectNumber);
+    
     // show task on startup
     showTask();
   }
   
+  void setSubjectNumber(Event event) {
+    Logger.root.info("opening ws to set subject number");
+    // connect to server
+    openWS();
+    Logger.root.info("adding open callback");
+    // register callback
+    ws.on.open.add((Event event) {
+      Logger.root.info("got open callback");
+      // send subject number message
+      ws.send("subject ${document.query('#subject-number').value}");
+    });
+  }
   void settingChanged(Event event) {
     // if custom is enabled, create a new task
     if((query("#enable-custom") as InputElement).checked) {
@@ -112,6 +131,7 @@ class TaskController implements TargetDelegate {
   void logMouseDown(MouseEvent event, bool hit) {
     // send click event to server
     if(wsReady) {
+      Logger.root.finest("sending mouse down event");
       ws.send("MouseDown, ${event.timeStamp}, ${event.clientX}, ${event.clientY}, ${hit?'HIT':'MISS'}");
     }
   }
@@ -133,7 +153,10 @@ class TaskController implements TargetDelegate {
       showTask();
     } else if(event.which == "g".charCodeAt(0)) {
       // g for 'go', start the task
+      // tell the data server we're starting
+      notifyWSStart();
       task.start();
+      ws.send("started task");
     } else if(event.which == "p".charCodeAt(0)) {
       // p for 'pause', stop the task
       task.stop();
@@ -177,6 +200,7 @@ class TaskController implements TargetDelegate {
   void onTrialStart(num time) {
     // send trial start to data server
     if(wsReady) {
+      Logger.root.info("sending data server TrialStart event");
       ws.send("TrialStart $time");
     }
   }
