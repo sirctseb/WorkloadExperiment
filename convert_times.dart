@@ -24,9 +24,17 @@ void main() {
 	// get contents
 	String contents = logFile.readAsStringSync();
 	
-
 	// find trial start
 	String stamp_string = new RegExp(r"TrialStart (\d{13})", multiLine: true).firstMatch(contents).group(1);
 
-	print(contents.replaceAllMapped(new RegExp(r"\d{13}"), replaceMatch));
+	Date startDate = datetimeFromString(stamp_string);
+
+	var replaceFunc = (Match match) {
+	  //print(match.groupCount);
+	  Duration diff = datetimeFromString(match.group(0)).difference(startDate);
+	  num seconds = diff.inSeconds + (diff.inMilliseconds % 1000) / 1000; 
+		return seconds.toString();
+	};
+
+	print(contents.replaceAllMapped(new RegExp(r"\d{13}"), replaceFunc));
 }
