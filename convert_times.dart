@@ -18,8 +18,19 @@ String replaceMatch(match) {
 
 
 void main() {
+	int subject = 1, trial = 1;
+
+	// get subject and trial from command line if passed
+	var args = new Options().arguments;
+	if(args.length > 0) {
+		subject = args[0];
+	}
+	if(args.length > 1) {
+		trial = args[1];
+	}
+
 	// make file object
-	File logFile = new File.fromPath(new Path("output/subject1/trial1/data.txt"));
+	File logFile = new File.fromPath(new Path("output/subject${subject}/trial${trial}/data.txt"));
 
 	// get contents
 	String contents = logFile.readAsStringSync();
