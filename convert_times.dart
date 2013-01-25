@@ -1,3 +1,4 @@
+#!/usr/bin/env dart
 import "dart:io";
 //from datetime import datetime;
 //import time;
