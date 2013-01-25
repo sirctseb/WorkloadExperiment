@@ -199,12 +199,12 @@ class Task {
   
   void start() {
     stopwatch.start();
+
+    // tell delegate that task started
+    delegate.onTrialStart(new Date.now().millisecondsSinceEpoch);
     
     // manually call first timer event
     onTimer(timer);
-    
-    // tell delegate that task started
-    delegate.onTrialStart(new Date.now().millisecondsSinceEpoch);
   }
   void stop() {
     timer.cancel();
