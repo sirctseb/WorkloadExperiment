@@ -10,6 +10,8 @@ def datetimefromstring(stamp_string):
 
 	# build a datetime object from the stamp
 	return datetime.fromtimestamp(stamp)
+def replaceMatch(match):
+	return str(datetimefromstring(match.group(0)))
 
 # open file
 f = open('output/subject1/trial1/data.txt', 'r')
@@ -20,4 +22,5 @@ contents = f.read()
 # find trial start
 stamp_string = re.search('TrialStart (\d{13})', contents).group(1)
 
-print(datetimefromstring(stamp_string))
+print(re.subn("\d{13}", replaceMatch, contents))
+#print(datetimefromstring(stamp_string))
