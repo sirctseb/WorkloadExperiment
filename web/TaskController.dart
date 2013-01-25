@@ -241,7 +241,7 @@ class TaskController implements TargetDelegate {
     }
   }
   
-  void onTargetStart(MovingTargetEvent te, num time) {
+  void onTargetStart(TargetEvent te, num time) {
     // send target start info to data server
     if(wsReady) {
       ws.send("TargetStart, $time, ${te.target.x}, ${te.target.y}, ${te.target.ID}");
@@ -251,7 +251,7 @@ class TaskController implements TargetDelegate {
     // send target move info to data server
     ws.send("TargetMove, $time, ${te.target.x}, ${te.target.y}, ${te.target.ID}");
   }*/
-  void onTargetTimeout(MovingTargetEvent te, num time) {
+  void onTargetTimeout(TargetEvent te, num time) {
     Logger.root.fine("sending timeout to server");
     // send target timeout info to data server
     if(wsReady) {

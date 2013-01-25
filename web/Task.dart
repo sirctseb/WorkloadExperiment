@@ -41,13 +41,15 @@ class FixedTargetEvent extends TargetEvent {
   void execute() {
     // show the target
     target.show();
+    delegate.onTargetStart(this, new Date.now().millisecondsSinceEpoch);
     
     new Timer(timeOut, (timer) {
       // if the target is still visible, it hasn't been dismissed, so remove and update score
       if(target.visible) {
         // remove the target
-        //target.remove();
         target.timeout();
+        
+        delegate.onTargetTimeout(this, new Date.now().millisecondsSinceEpoch);
         
         // update the score
         delegate.score -= 100;
