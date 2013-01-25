@@ -107,7 +107,7 @@ class MovingTargetEvent extends TargetEvent {
       target.show();
       
       // notify delegate of target start
-      delegate.onTargetStart(this, time);
+      delegate.onTargetStart(this, new Date.now().millisecondsSinceEpoch);
     }
     // if target has been dismissed, don't do anything
     if(target.visible) {
@@ -126,7 +126,7 @@ class MovingTargetEvent extends TargetEvent {
         target.timeout();
         delegate.score -= 100;
         // notify delegate of target timeout
-        delegate.onTargetTimeout(this, time);
+        delegate.onTargetTimeout(this, new Date.now().millisecondsSinceEpoch);
       }
     }
   }
