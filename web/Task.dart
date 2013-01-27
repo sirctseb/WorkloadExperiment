@@ -20,12 +20,22 @@ abstract class TaskEvent {
   /// The time after the beginning of the task that the event occurs
   num time;
   
-  void execute();
+  /// The amount of time the event lasts
+  num duration;
   
-  TaskEvent(TaskController this.delegate, num this.time);
+  /// True iff the event is active
+  bool running = false;
+  
+  void start() { running = true; }
+  void stop() { running = false; }
+  void update(num sinceTaskStart) {
+    if(sinceTaskStart > time + duration) stop();
+  }
+  
+  TaskEvent(TaskController this.delegate, num this.time, num this.duration);
 
   Map toJson() {
-    return {"time": time};
+    return {"time": time, "duration": duration};
   }
 }
 
@@ -33,7 +43,7 @@ abstract class TaskEvent {
 abstract class TargetEvent extends TaskEvent {
   Target target;
   
-  TargetEvent(TaskController delegate, num time) : super(delegate, time) {
+  TargetEvent(TaskController delegate, num time, num duration) : super(delegate, time, duration) {
     target = new Target(delegate);
   }
   Map toJson() {
@@ -44,24 +54,27 @@ abstract class TargetEvent extends TaskEvent {
 /// [FixedTargetEvent] is a [TargetEvent] that shows a target in a fixed position
 class FixedTargetEvent extends TargetEvent {
   num x, y;
-  num timeOut;
   
-  FixedTargetEvent(TaskController delegate, num time, this.x, this.y, [this.timeOut = 1000]): super(delegate, time) {
+  FixedTargetEvent(TaskController delegate, num time, duration, this.x, this.y): super(delegate, time, duration) {
     target.move(x, y);
   }
   
-  FixedTargetEvent.atRandomPoint(TaskController delegate, num time, [this.timeOut = 1000]) : super(delegate, time) {
+  FixedTargetEvent.atRandomPoint(TaskController delegate, num time, duration) : super(delegate, time, duration) {
     Random rng = new Random();
     // put target at random place on screen
     target.move(rng.nextInt(document.body.clientWidth), rng.nextInt(document.body.clientHeight));
   }
   
-  void execute() {
+  void start() {
+    running = true;
     // show the target
     target.show();
     delegate.onTargetStart(this, new Date.now().millisecondsSinceEpoch);
-    
-    new Timer(timeOut, (timer) {
+  }
+  
+  void update(num sinceTaskStart) {
+    if(sinceTaskStart > time + duration) {
+
       // if the target is still visible, it hasn't been dismissed, so remove and update score
       if(target.visible) {
         // remove the target
@@ -72,11 +85,13 @@ class FixedTargetEvent extends TargetEvent {
         // update the score
         delegate.score -= 100;
       }
-    });
+      
+      stop();
+    }
   }
   
   Map toJson() {
-    return merge(super.toJson(), {"x": x, "y": y, "timeOut": timeOut});
+    return merge(super.toJson(), {"x": x, "y": y});
   }
 }
 
@@ -84,22 +99,20 @@ class FixedTargetEvent extends TargetEvent {
 class MovingTargetEvent extends TargetEvent {
   num startX, startY;
   num endX, endY;
-  num duration;
   
   Map toJson() {
     return merge(super.toJson(), {"startX": startX, "startY": startY, "endX": endX, "endY": endY, "duration": duration});
   }
   
-  MovingTargetEvent(TaskController delegate, num time,
+  MovingTargetEvent(TaskController delegate, num time, num duration,
                     this.startX, this.startY,
-                    this.endX, this.endY,
-                    [this.duration = 1000]) : super(delegate, time) {
+                    this.endX, this.endY) : super(delegate, time, duration) {
     target.move(startX, startY);
     //target.resize(64,64);
   }
   
-  MovingTargetEvent.eventWithLength(TaskController delegate, num time, num length, num this.duration) 
-      : super(delegate, time) {
+  MovingTargetEvent.eventWithLength(TaskController delegate, num time, num duration, num length) 
+      : super(delegate, time, duration) {
         
     Random rng = new Random();
     
@@ -117,45 +130,39 @@ class MovingTargetEvent extends TargetEvent {
     endY = end.y;
   }
   
-  void execute() {
-    window.requestAnimationFrame(update);
+  void start() {
+    //window.requestAnimationFrame(update);
+    running = true;
+    
+    // show target
+    target.show();
+    
+    // notify delegate of target start
+    delegate.onTargetStart(this, new Date.now().millisecondsSinceEpoch);
   }
   
-  bool running = false;
-  num startTime;
-  
-  void update(num time) {
-    
-    // check for first run and store start time
-    if(!running) {
-      running = true;
-      startTime = time;
-      
-      // show target
-      target.show();
-      
-      // notify delegate of target start
-      delegate.onTargetStart(this, new Date.now().millisecondsSinceEpoch);
-    }
-    // if target has been dismissed, don't do anything
+  void update(num sinceTaskStart) {
+    // if target has not been dismissed, move it
     if(target.visible) {
+      
       // find fraction of time elapsed
-      var fraction = (time - startTime) / duration;
+      var fraction = (sinceTaskStart - time) / duration;
       
       // position target
       target.move(startX + fraction * (endX - startX), startY + fraction * (endY - startY));
       
       // call for next frame if not done
-      if(fraction < 1) {
-        window.requestAnimationFrame(update);
-      } else {
+      if(fraction >=1 ) {
         // update score for missed target
-        //target.remove();
         target.timeout();
         delegate.score -= 100;
         // notify delegate of target timeout
         delegate.onTargetTimeout(this, new Date.now().millisecondsSinceEpoch);
+        stop();
       }
+    } else {
+      // stop if target was dismissed
+      stop();
     }
   }
 }
@@ -164,27 +171,26 @@ class MovingTargetEvent extends TargetEvent {
 class AdditionEvent extends TaskEvent {
   
   int op1, op2;
-  num duration;
   
   Map toJson() {
-    return merge(super.toJson(), {"op1": op1, "op2": op2, "duration": duration});
+    return merge(super.toJson(), {"op1": op1, "op2": op2});
   }
   
   static Timer outstanding;
   
-  AdditionEvent(TaskController delegate, num time, int this.op1, int this.op2, num this.duration)
-      : super(delegate, time) {
+  AdditionEvent(TaskController delegate, num time, num duration, int this.op1, int this.op2)
+      : super(delegate, time, duration) {
   }
   
-  AdditionEvent.withRandomOps(TaskController delegate, num time, int op1max, int op2max, num this.duration)
-      : super(delegate, time) {
+  AdditionEvent.withRandomOps(TaskController delegate, num time, num duration, int op1max, int op2max)
+      : super(delegate, time, duration) {
     // set ops randomly within max
     Random rng = new Random();
     op1 = rng.nextInt(op1max);
     op2 = rng.nextInt(op2max);
   }
   
-  void execute() {
+  void start() {
     // if there is an outstanding timer, cancel it so it doesn't clear after this starts
     if(outstanding != null) {
       outstanding.cancel();
@@ -203,12 +209,16 @@ class AdditionEvent extends TaskEvent {
 
 /// [Task] represents an experimental task
 class Task {
+  /// True iff the task is currently running
+  bool running = false;
   
   // the task controller
   TaskController delegate;
   
   /// A list of task events ordered by time
   List<TaskEvent> events = [];
+  /// The list of tasks currently executing
+  List<TaskEvent> currentEvents = [];
   
   Map toJson() {
     return {"events": events.mappedBy((event) => event.toJson()).toList()};
@@ -219,7 +229,7 @@ class Task {
   
   /// The timer to control events
   // TODO should we use one global timer?
-  Timer timer;
+  //Timer timer;
   /// The time that the next event is scheduled for
   int get nextEventTime {
     if(eventIndex >= events.length) return -1;
@@ -232,41 +242,66 @@ class Task {
   Task(this.delegate);
   
   void start() {
+    running = true;
+    
     stopwatch.start();
 
     // tell delegate that task started
     delegate.onTrialStart(new Date.now().millisecondsSinceEpoch);
     
     // manually call first timer event
-    onTimer(timer);
+    //onTimer(timer);
+    update(0);
   }
   void stop() {
-    timer.cancel();
+    //timer.cancel();
     stopwatch.stop();
     
     // tell delegate that task ended
     delegate.onTrialEnd(new Date.now().millisecondsSinceEpoch);
+    
+    running = false;
   }
   void reset() {
     stop();
     stopwatch.reset();
   }
-  void onTimer(Timer timer) {
+  void update(time) {
+  //void onTimer(Timer timer) {
     // if we are done processing all events, stop
-    if(eventIndex >= events.length) {
+    if(eventIndex >= events.length && currentEvents.length == 0) {
+      Logger.root.info("stopping because we are out of events and there are not more current events");
       stop();
     }
     
+    // check for new events to add to current events
     // process events that are scheduled at or before the current time
     while(eventIndex < events.length && events[eventIndex].time <= stopwatch.elapsedMilliseconds) {
-      events[eventIndex].execute();
+      Logger.root.info("starting event $eventIndex");
+      // start the task
+      events[eventIndex].start();
+      // add to current events
+      currentEvents.add(events[eventIndex]);
+      // increment index
       eventIndex++;
     }
+
+    // update current events
+    currentEvents.forEach((ce) => ce.update(stopwatch.elapsedMilliseconds));
     
-    // start timer for next event
-    print("$nextEventTime, ${stopwatch.elapsedMilliseconds}");
-    if(nextEventTime != -1) {
-      timer = new Timer(nextEventTime - stopwatch.elapsedMilliseconds, onTimer);
+    // remove finished events
+    //currentEvents.removeMatching((ce) => !ce.running);
+    // TODO workaround for removeMatching not working
+    var dupEvents = []..addAll(currentEvents);
+    dupEvents.forEach((event) {
+      if(!event.running) {
+        Logger.root.info("removing event $event because it is done");
+        currentEvents.removeAt(currentEvents.indexOf(event));
+      }
+    });
+    
+    if(running) {
+      window.requestAnimationFrame(update);
     }
   }
 }
@@ -274,11 +309,11 @@ class Task {
 class ExampleTask extends Task {
   
   ExampleTask(TaskController delegate) : super(delegate) {
-    events.addAll([new AdditionEvent(delegate, 0, 4, 9, 1000),
-                   new MovingTargetEvent(delegate, 0, 500, 200, 100, 600, 1000),
-                   new AdditionEvent(delegate, 1000, 11, 6, 1000),
-                   new FixedTargetEvent(delegate, 1000, 200, 300),
-                   new FixedTargetEvent(delegate, 2000, 500, 200),]);
+    events.addAll([new AdditionEvent(delegate, 0, 1000, 4, 9),
+                   new MovingTargetEvent(delegate, 0, 1000, 500, 200, 100, 600),
+                   new AdditionEvent(delegate, 1000, 1000, 11, 6),
+                   new FixedTargetEvent(delegate, 1000, 1000, 200, 300),
+                   new FixedTargetEvent(delegate, 2000, 1000, 500, 200),]);
   }
 }
 
@@ -319,7 +354,7 @@ abstract class TrialTask extends Task {
   
   TargetEvent buildTargetEvent(int index);
   AdditionEvent buildAdditionEvent(int index) {
-    return new AdditionEvent.withRandomOps(delegate, index * iterationTime, maxOp, maxOp, iterationTime);
+    return new AdditionEvent.withRandomOps(delegate, index * iterationTime, iterationTime, maxOp, maxOp);
   }
 }
 
@@ -328,7 +363,7 @@ class SlowTrialTask extends TrialTask {
   
   final double slowDist = 400.0;
   TargetEvent buildTargetEvent(int index) {
-    return new MovingTargetEvent.eventWithLength(delegate, index * iterationTime, slowDist, iterationTime);
+    return new MovingTargetEvent.eventWithLength(delegate, index * iterationTime, iterationTime, slowDist);
   }
 }
 class TwoTargetSlowTrialTask extends SlowTrialTask {
@@ -355,7 +390,7 @@ class ConfigurableTrialTask extends TrialTask {
       : super(delegate, numTargets: numTargets, iterations: iterations, maxOp: maxOp, iterationTime: iterationTime);
   
   TargetEvent buildTargetEvent(int index) {
-    return new MovingTargetEvent.eventWithLength(delegate, index * iterationTime, targetDist, iterationTime)..target.resize(targetSize, targetSize);
+    return new MovingTargetEvent.eventWithLength(delegate, index * iterationTime, iterationTime, targetDist)..target.resize(targetSize, targetSize);
   }
 }
 
