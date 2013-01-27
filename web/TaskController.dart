@@ -225,6 +225,8 @@ class TaskController implements TargetDelegate {
     if(wsReady) {
       ws.send("TrialEnd $time");
     }
+    // reset addition task placeholder text
+    query("#addition").text = "X + Y";
   }
   
   void onTaskStart(num time) {
