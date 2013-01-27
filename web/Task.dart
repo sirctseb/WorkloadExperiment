@@ -176,8 +176,6 @@ class AdditionEvent extends TaskEvent {
     return merge(super.toJson(), {"op1": op1, "op2": op2});
   }
   
-  static Timer outstanding;
-  
   AdditionEvent(TaskController delegate, num time, num duration, int this.op1, int this.op2)
       : super(delegate, time, duration) {
   }
@@ -191,19 +189,10 @@ class AdditionEvent extends TaskEvent {
   }
   
   void start() {
-    // if there is an outstanding timer, cancel it so it doesn't clear after this starts
-    if(outstanding != null) {
-      outstanding.cancel();
-      outstanding = null;
-    }
-    
     // display text in addition task problem
     query("#addition").text = "$op1 + $op2";
     
-    // set timeout to hide
-    outstanding = new Timer(duration, (timer) {
-      query("#addition").text = "";
-    });
+    running = true;
   }
 }
 
