@@ -66,13 +66,17 @@ class Server {
           trialNumber++;
           
           // create data file object
-          dataFile = new File.fromPath(new Path("output/subject$subjectNumber/trial$trialNumber/data.txt"));
+          Path dataFilePath = new Path("output/subject$subjectNumber/trial$trialNumber/data.txt");
+          dataFile = new File.fromPath(dataFilePath);
           
           // create directory
           new Directory("output/subject$subjectNumber/trial$trialNumber").createSync(recursive:true);
           
           // open file stream
           stream = dataFile.openOutputStream();
+          
+          // write task description to separate file
+          new File.fromPath(dataFilePath.directoryPath.append("task.txt")).writeAsString(message);
           
           // set log event flag
           logEvents = true;

@@ -34,7 +34,7 @@ class TaskController implements TargetDelegate {
   WebSocket ws;// = new WebSocket("ws://localhost:8000/ws");
   bool get wsReady => ws != null ? ws.readyState == WebSocket.OPEN : false;
   void openWS() { ws = new WebSocket(ws_url); }
-  void notifyWSStart() { ws.send("start trial"); }
+  void notifyWSStart() { ws.send("start trial: ${stringify(task)}"); }
   void notifyWSEnd() { ws.send("end trial"); }
   
   /// An element to show feedback when a click occurs
