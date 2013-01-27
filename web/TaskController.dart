@@ -39,6 +39,11 @@ class TaskController implements TargetDelegate {
   
   /// An element to show feedback when a click occurs
   DivElement shotElement = new DivElement()..classes.add("shot");
+
+  // the current beep countdown
+  int countdown = 2;
+  // get element
+  AudioElement beep = (query("#beep") as AudioElement);
   
   /// Create a task controller
   TaskController() {
@@ -71,6 +76,27 @@ class TaskController implements TargetDelegate {
     
     // add handler for setting subject number
     document.query("#set-subject-number").on.click.add(setSubjectNumber);
+    
+    // start trial at the start of the final beep
+    beep.on.play.add((Event) {
+      if(countdown == 0) {
+        // if countdown is done, start trial
+        // tell the data server we're starting
+        notifyWSStart();
+        task.start();
+        ws.send("started task");
+      }
+    });
+    // add end event
+    beep.on.ended.add((Event) {
+      // if countdown is not done, decrement and schedule another in 1 second
+      if(countdown > 0) {
+        countdown--;
+        new Timer(1000, (Timer) {
+          beep.play();
+        });
+      }
+    });
     
     // show task on startup
     showTask();
@@ -137,7 +163,6 @@ class TaskController implements TargetDelegate {
       ws.send("MouseMove, ${event.timeStamp}, ${event.clientX}, ${event.clientY}");
     }
   }
-  
   void handleKeyPress(KeyboardEvent event) {
     // receive keyboard input
     if(event.which == "s".charCodeAt(0)) {
@@ -149,29 +174,7 @@ class TaskController implements TargetDelegate {
     } else if(event.which == "g".charCodeAt(0)) {
       // g for 'go', start the task
       // play chirps and then start
-      int countdown = 2;
-      // get element
-      AudioElement beep = (query("#beep") as AudioElement);
-      // start trial at the start of the final beep
-      beep.on.play.add((Event) {
-        if(countdown == 0) {
-          // if countdown is done, start trial
-          // tell the data server we're starting
-          notifyWSStart();
-          task.start();
-          ws.send("started task");
-        }
-      });
-      // add end event
-      beep.on.ended.add((Event) {
-        // if countdown is not done, decrement and schedule another in 1 second
-        if(countdown > 0) {
-          countdown--;
-          new Timer(1000, (Timer) {
-            beep.play();
-          });
-        }
-      });
+      countdown = 2;
       // play first tone
       beep.play();
     } else if(event.which == "p".charCodeAt(0)) {
@@ -215,6 +218,8 @@ class TaskController implements TargetDelegate {
   }
   
   void onTrialStart(num time) {
+    // ensure score is at zero
+    //score = 0;
     // send trial start to data server
     if(wsReady) {
       ws.send("TrialStart $time");
@@ -223,6 +228,7 @@ class TaskController implements TargetDelegate {
   void onTrialEnd(num time) {
     // send trial end to data server
     if(wsReady) {
+      ws.send("FinalScore $score");
       ws.send("TrialEnd $time");
     }
     // reset addition task placeholder text
