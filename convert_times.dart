@@ -37,7 +37,7 @@ void main() {
 	String contents = logFile.readAsStringSync();
 	
 	// find trial start
-	String stamp_string = new RegExp(r"TrialStart (\d{13})", multiLine: true).firstMatch(contents).group(1);
+	String stamp_string = new RegExp(r"TrialStart, (\d{13})", multiLine: true).firstMatch(contents).group(1);
 
 	Date startDate = datetimeFromString(stamp_string);
 
