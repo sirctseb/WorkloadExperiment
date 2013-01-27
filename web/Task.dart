@@ -271,6 +271,20 @@ class Task {
       stop();
     }
     
+    // remove finished events
+    //currentEvents.removeMatching((ce) => !ce.running);
+    // TODO workaround for removeMatching not working
+    var dupEvents = []..addAll(currentEvents);
+    dupEvents.forEach((event) {
+      if(!event.running) {
+        Logger.root.info("removing event $event because it is done");
+        currentEvents.removeAt(currentEvents.indexOf(event));
+      }
+    });
+    
+    // update current events
+    currentEvents.forEach((ce) => ce.update(stopwatch.elapsedMilliseconds));
+    
     // check for new events to add to current events
     // process events that are scheduled at or before the current time
     while(eventIndex < events.length && events[eventIndex].time <= stopwatch.elapsedMilliseconds) {
@@ -282,20 +296,6 @@ class Task {
       // increment index
       eventIndex++;
     }
-
-    // update current events
-    currentEvents.forEach((ce) => ce.update(stopwatch.elapsedMilliseconds));
-    
-    // remove finished events
-    //currentEvents.removeMatching((ce) => !ce.running);
-    // TODO workaround for removeMatching not working
-    var dupEvents = []..addAll(currentEvents);
-    dupEvents.forEach((event) {
-      if(!event.running) {
-        Logger.root.info("removing event $event because it is done");
-        currentEvents.removeAt(currentEvents.indexOf(event));
-      }
-    });
     
     if(running) {
       window.requestAnimationFrame(update);
