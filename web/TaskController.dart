@@ -222,14 +222,16 @@ class TaskController implements TargetDelegate {
     score = 0;
     // send trial start to data server
     if(wsReady) {
-      ws.send("TrialStart $time");
+      ws.send("TrialStart, $time");
     }
   }
   void onTrialEnd(num time) {
     // send trial end to data server
     if(wsReady) {
-      ws.send("FinalScore $score");
-      ws.send("TrialEnd $time");
+      ws.send("FinalScore, $score");
+      ws.send("TrialEnd, $time");
+      // send non-log end command
+      notifyWSEnd();
     }
     // reset addition task placeholder text
     query("#addition").text = "X + Y";
