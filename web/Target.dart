@@ -64,6 +64,10 @@ class Target {
     this.y = y;
   }
   
+  Map toJson() {
+    return {"id": ID, "width": width, "height": height, "x": x, "y": y};
+  }
+  
   // whether the target is in the scene
   bool _visible = false;
   bool get visible => _visible;

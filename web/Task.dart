@@ -2,6 +2,17 @@ part of WorkloadExperiment;
 
 /// [TaskEvent] is an event that occurs during a task
 
+Map merge(Map m1, Map m2) {
+  Map result = {};
+  for(var key in m1.keys) {
+    result.putIfAbsent(key, () => m1[key]);
+  }
+  for(var key in m2.keys) {
+    result.putIfAbsent(key, () => m2[key]);
+  }
+  return result;
+}
+
 abstract class TaskEvent {
   /// The task controller
   TaskController delegate;
@@ -12,6 +23,10 @@ abstract class TaskEvent {
   void execute();
   
   TaskEvent(TaskController this.delegate, num this.time);
+
+  Map toJson() {
+    return {"time": time};
+  }
 }
 
 /// [TargetEvent] is an [Event] that shows a target
@@ -20,6 +35,9 @@ abstract class TargetEvent extends TaskEvent {
   
   TargetEvent(TaskController delegate, num time) : super(delegate, time) {
     target = new Target(delegate);
+  }
+  Map toJson() {
+    return merge(super.toJson(), {"target": target.toJson()});
   }
 }
 
@@ -56,6 +74,10 @@ class FixedTargetEvent extends TargetEvent {
       }
     });
   }
+  
+  Map toJson() {
+    return merge(super.toJson(), {"x": x, "y": y, "timeOut": timeOut});
+  }
 }
 
 /// [MovingTargetEvent] is a [TargetEvent] that displays a moving target
@@ -63,6 +85,10 @@ class MovingTargetEvent extends TargetEvent {
   num startX, startY;
   num endX, endY;
   num duration;
+  
+  Map toJson() {
+    return merge(super.toJson(), {"startX": startX, "startY": startY, "endX": endX, "endY": endY, "duration": duration});
+  }
   
   MovingTargetEvent(TaskController delegate, num time,
                     this.startX, this.startY,
@@ -140,6 +166,10 @@ class AdditionEvent extends TaskEvent {
   int op1, op2;
   num duration;
   
+  Map toJson() {
+    return merge(super.toJson(), {"op1": op1, "op2": op2, "duration": duration});
+  }
+  
   static Timer outstanding;
   
   AdditionEvent(TaskController delegate, num time, int this.op1, int this.op2, num this.duration)
@@ -179,6 +209,10 @@ class Task {
   
   /// A list of task events ordered by time
   List<TaskEvent> events = [];
+  
+  Map toJson() {
+    return {"events": events.mappedBy((event) => event.toJson()).toList()};
+  }
   
   /// The index in events that is next to process
   int eventIndex = 0;
@@ -262,6 +296,10 @@ abstract class TrialTask extends Task {
   // the number of targets to present
   int numTargets;
   
+  Map toJson() {
+    return merge(super.toJson(), {"iterations": iterations, "iterationTime": iterationTime, "maxOp": maxOp, "numTargets": numTargets});
+  }
+  
   TrialTask(TaskController delegate, {int this.numTargets: 1,
                                       int this.iterations: 12,
                                       int this.maxOp: 15,
@@ -302,6 +340,10 @@ class ConfigurableTrialTask extends TrialTask {
   
   num targetDist;
   int targetSize = 128;
+  
+  Map toJson() {
+    return merge(super.toJson(), {"targetDist": targetDist, "targetSize": targetSize});
+  }
   
   ConfigurableTrialTask(TaskController delegate,
       { int numTargets: 1,

@@ -3,6 +3,7 @@ import 'dart:html';
 import 'dart:isolate';
 import 'dart:math';
 import 'dart:async';
+import 'dart:json';
 import 'package:logging/logging.dart';
 part 'Target.dart';
 part 'TaskController.dart';
