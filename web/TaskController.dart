@@ -33,7 +33,13 @@ class TaskController implements TargetDelegate {
   String ws_url = "ws://localhost:8000/ws";
   WebSocket ws;// = new WebSocket("ws://localhost:8000/ws");
   bool get wsReady => ws != null ? ws.readyState == WebSocket.OPEN : false;
-  void openWS() { ws = new WebSocket(ws_url); }
+  void openWS() {
+    ws = new WebSocket(ws_url)
+    // update warning on state changes
+    ..onOpen.listen(WarnWS)
+    ..onError.listen(WarnWS)
+    ..onClose.listen(WarnWS);
+  }
   void notifyWSStart() { ws.send("start trial: ${stringify(task)}"); }
   void notifyWSEnd() { ws.send("end trial"); }
   
@@ -44,6 +50,11 @@ class TaskController implements TargetDelegate {
   int countdown = 2;
   // get element
   AudioElement beep = (query("#beep") as AudioElement);
+  
+  void WarnWS(Event event) {
+    if(wsReady) document.body.classes.remove("ws-error");
+    else document.body.classes.add("ws-error");
+  }
   
   /// Create a task controller
   TaskController() {

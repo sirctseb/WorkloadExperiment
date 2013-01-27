@@ -16,6 +16,9 @@ body {
   height: 100%;
   width: 100%;
 }
+body.ws-error {
+  background-color: #FFEEEE;
+}
 
 .addition {
   text-align:center;
