@@ -19,7 +19,7 @@ String replaceMatch(match) {
 
 
 void main() {
-	int subject = 1, trial = 1;
+	int subject = 3, trial = 1;
 
 	// get subject and trial from command line if passed
 	var args = new Options().arguments;
@@ -48,5 +48,40 @@ void main() {
 		return seconds.toString();
 	};
 
-	print(contents.replaceAllMapped(new RegExp(r"\d{13}"), replaceFunc));
+	var diffTimes = contents.replaceAllMapped(new RegExp(r"\d{13}"), replaceFunc);
+
+	// get individual lines
+	var lines = diffTimes.split("\n");
+	var state = "hit";
+	var match;
+	RegExp hitRE = new RegExp(r"TargetHit, ([\d.]+), ");
+	RegExp startRE = new RegExp(r"TargetStart, ([\d.]+), ");
+	List<num> hitTimes = [];
+	num lastHitTime;
+	// iterate over lines
+	lines.forEach((line) {
+//		print(line);
+		match = hitRE.firstMatch(line);
+		if(match != null) {
+			num time = double.parse(match.group(1));
+			//print(lastHitTime);
+			hitTimes.add(time - lastHitTime);
+			lastHitTime = time;
+		} else if(line.startsWith("TargetStart")) {
+			state = "firsthit";
+			// update last hit time on new target because the timer doesn't reset
+			lastHitTime = double.parse(startRE.firstMatch(line).group(1));
+		}
+	});
+
+	var min = hitTimes.min();
+	print("min: $min");
+	var max = hitTimes.max();
+	print("max: $max");
+	print("mean: ${hitTimes.reduce(0, (prev, el) => prev + el) / hitTimes.length}");
+	var bucketSize = 0.2;
+	for(num i = min; i <= max; i += bucketSize) {
+		int count = hitTimes.where((time) => i < time && time < i + bucketSize).length;
+		print("${i.toStringAsPrecision(2)}: ${new String.fromCharCodes([]..insertRange(0, count, "x".charCodeAt(0)))}");
+	}
 }
