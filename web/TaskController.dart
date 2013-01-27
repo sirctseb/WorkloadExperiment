@@ -219,7 +219,7 @@ class TaskController implements TargetDelegate {
   
   void onTrialStart(num time) {
     // ensure score is at zero
-    //score = 0;
+    score = 0;
     // send trial start to data server
     if(wsReady) {
       ws.send("TrialStart $time");
