@@ -193,6 +193,14 @@ class AdditionEvent extends TaskEvent {
     query("#addition").text = "$op1 + $op2";
     
     running = true;
+    
+    // notify delegate
+    delegate.onAdditionStart(this, new Date.now().millisecondsSinceEpoch);
+  }
+  
+  void stop() {
+    super.stop();
+    delegate.onAdditionEnd(this, new Date.now().millisecondsSinceEpoch);
   }
 }
 

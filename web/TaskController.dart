@@ -279,4 +279,17 @@ class TaskController implements TargetDelegate {
       ws.send("TargetTimeout, $time, ${te.target.x}, ${te.target.y}, ${te.target.ID}");
     }
   }
+  
+  void onAdditionStart(AdditionEvent ae, num time) {
+    // send info to the data server
+    if(wsReady) {
+      ws.send("AdditionStart, $time, ${ae.op1}, ${ae.op2}");
+    }
+  }
+  void onAdditionEnd(AdditionEvent ae, num time) {
+    // send info to the data server
+    if(wsReady) {
+      ws.send("AdditionEnd, $time");
+    }
+  }
 }
