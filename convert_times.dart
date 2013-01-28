@@ -19,7 +19,7 @@ String replaceMatch(match) {
 
 
 void main() {
-	int subject = 3, trial = 1;
+	int subject = 1, trial = 3;
 
 	// get subject and trial from command line if passed
 	var args = new Options().arguments;
@@ -58,11 +58,11 @@ void main() {
 	// get number of hits
 	int hits = new RegExp(r"TargetHit, ").allMatches(diffTimes).length;
 	// print hit / miss info
-	print("clicks: $clicks");
-	print("misses: $misses");
-	print("hits: $hits");
-	print("miss rate: ${misses / clicks}");
-	print("hit rate: ${hits / clicks}");
+	print("clicks, $clicks");
+	print("misses, $misses");
+	print("hits, $hits");
+//	print("miss rate: ${misses / clicks}");
+//	print("hit rate: ${hits / clicks}");
 
 	// get individual lines
 	var lines = diffTimes.split("\n");
@@ -87,8 +87,8 @@ void main() {
 			lastHitTime = double.parse(startRE.firstMatch(line).group(1));
 		}
 	});
-
-	var min = hitTimes.min();
+	print("hitTimes, ${hitTimes.join(",")}");
+	/*var min = hitTimes.min();
 	print("min: $min");
 	var max = hitTimes.max();
 	print("max: $max");
@@ -97,5 +97,5 @@ void main() {
 	for(num i = min; i <= max; i += bucketSize) {
 		int count = hitTimes.where((time) => i < time && time < i + bucketSize).length;
 		print("${i.toStringAsPrecision(2)}: ${new String.fromCharCodes([]..insertRange(0, count, "x".charCodeAt(0)))}");
-	}
+	}*/
 }
