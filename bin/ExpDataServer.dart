@@ -18,6 +18,7 @@ class Server {
   int subjectNumber = 0;
   bool logEvents = false;
   OutputStream stream;
+  Process recordingProcess;
   
   Server() {
     
@@ -38,6 +39,14 @@ class Server {
           
           // close stream
           stream.close();
+          
+          // stop recording
+          if(recordingProcess != null) {
+            Logger.root.info("killing recording");
+            recordingProcess.kill();
+            // TODO if not ^, send message to client
+            recordingProcess = null;
+          }
         }
         
         if(logEvents) {
@@ -77,6 +86,18 @@ class Server {
           
           // write task description to separate file
           new File.fromPath(dataFilePath.directoryPath.append("task.txt")).writeAsString(message);
+          
+          // start recording
+          Logger.root.info("starting recording");
+          Logger.root.info("cwd: ${new Directory.current().toString()}");
+          //Process.start("sox", ["-d", "output/subject$subjectNumber/trial$trialNumber/audio.mp3"])
+          Process.start("/opt/local/bin/sox", ["-d", "output/subject$subjectNumber/trial$trialNumber/audio.mp3"])
+          .then((Process process) {
+            Logger.root.info("recording started");
+            recordingProcess = process;
+            // TODO send message to client that recording started
+            // TODO on error send message that we're not recording
+          });
           
           // set log event flag
           logEvents = true;

@@ -92,10 +92,7 @@ class TaskController implements TargetDelegate {
     beep.on.play.add((Event) {
       if(countdown == 0) {
         // if countdown is done, start trial
-        // tell the data server we're starting
-        notifyWSStart();
         task.start();
-        ws.send("started task");
       }
     });
     // add end event
@@ -186,6 +183,10 @@ class TaskController implements TargetDelegate {
       // g for 'go', start the task
       // play chirps and then start
       countdown = 2;
+
+      // tell the data server we're starting so it can start recording
+      notifyWSStart();
+      
       // play first tone
       beep.play();
     } else if(event.which == "p".charCodeAt(0)) {
