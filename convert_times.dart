@@ -42,13 +42,27 @@ void main() {
 	Date startDate = datetimeFromString(stamp_string);
 
 	var replaceFunc = (Match match) {
-	  //print(match.groupCount);
-	  Duration diff = datetimeFromString(match.group(0)).difference(startDate);
-	  num seconds = diff.inSeconds + (diff.inMilliseconds % 1000) / 1000; 
+		//print(match.groupCount);
+		Duration diff = datetimeFromString(match.group(0)).difference(startDate);
+		num seconds = diff.inSeconds + (diff.inMilliseconds % 1000) / 1000; 
 		return seconds.toString();
 	};
 
 	var diffTimes = contents.replaceAllMapped(new RegExp(r"\d{13}"), replaceFunc);
+//	print(diffTimes);
+
+	// get number of clicks
+	int clicks = new RegExp(r"MouseDown, ").allMatches(diffTimes).length;
+	// get number of misses
+	int misses = new RegExp(r"MouseDown, [\d.]+, \d+, \d+, MISS").allMatches(diffTimes).length;
+	// get number of hits
+	int hits = new RegExp(r"TargetHit, ").allMatches(diffTimes).length;
+	// print hit / miss info
+	print("clicks: $clicks");
+	print("misses: $misses");
+	print("hits: $hits");
+	print("miss rate: ${misses / clicks}");
+	print("hit rate: ${hits / clicks}");
 
 	// get individual lines
 	var lines = diffTimes.split("\n");
