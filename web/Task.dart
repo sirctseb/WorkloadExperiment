@@ -148,6 +148,8 @@ class MovingTargetEvent extends TargetEvent {
     Point end = new Circle(new Point(startX, startY), length).randomPointInRect(
         new Rectangle(0,0, document.body.clientWidth, document.body.clientHeight));
     
+    target.move(startX, startY);
+    
     // store in member vars
     endX = end.x;
     endY = end.y;
