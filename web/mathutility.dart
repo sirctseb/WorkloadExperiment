@@ -894,4 +894,8 @@ class Circle {
     while(!rectangle.contains(ret = randomPoint()));
     return ret;
   }
+  
+  bool contains(Point point) {
+    return center.getDistance(point, true) <= radius*radius;
+  }
 }
