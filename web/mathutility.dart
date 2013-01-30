@@ -875,16 +875,16 @@ class Circle {
   Point _center;
   Point get center => _center;
   
-  double _length;
-  double get length => _length;
+  double _radius;
+  double get radius => _radius;
   
   Circle(Point center, num length) {
     _center = center;
-    _length = length.toDouble();
+    _radius = length.toDouble();
   }
   
   Point randomPoint() {
-    return new Point(center.x + length, center.y).rotate(360 * new Random().nextDouble(), center);
+    return new Point(center.x + radius, center.y).rotate(360 * new Random().nextDouble(), center);
   }
   Point randomPointInRect(Rectangle rectangle) {
     // TODO do this analytically
