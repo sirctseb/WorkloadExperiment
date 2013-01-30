@@ -113,15 +113,38 @@ class MovingTargetEvent extends TargetEvent {
   
   MovingTargetEvent.eventWithLength(TaskController delegate, num time, num duration, num length) 
       : super(delegate, time, duration) {
-        
+    
+    // check that movement length is possible
+    if(length*length > (document.body.clientWidth*document.body.clientWidth +
+                        document.body.clientHeight*document.body.clientHeight)) {
+      throw new Exception("Target movement length too long for window");
+    }
+    
     Random rng = new Random();
+    
+    // get circles with radius == length to use for making sure target locations are good
+    var c1 = new Circle(new Point(0, 0), length);
+    var c2 = new Circle(new Point(0, document.body.clientHeight), length);
+    var c3 = new Circle(new Point(document.body.clientWidth, 0), length);
+    var c4 = new Circle(new Point(document.body.clientWidth, document.body.clientHeight), length);
+    
+    // make function that determines if a point has no other points within the screen at the given distance
+    var ineligiblePoint = (x, y) {
+      var point = new Point(x,y);
+      return c1.contains(point) && c2.contains(point) && c3.contains(point) && c4.contains(point);
+    };
     
     // get random start point
     startX = rng.nextInt(document.body.clientWidth);
     startY = rng.nextInt(document.body.clientHeight);
     
+    // discard starting points that have no other points within the rect a the given distance
+    while(ineligiblePoint(startX, startY)) {
+      startX = rng.nextInt(document.body.clientWidth);
+      startY = rng.nextInt(document.body.clientHeight);
+    }
+    
     // compute random end point at a given distance
-    // TODO we have to be careful that there is a point on the circle that lies in the rect
     Point end = new Circle(new Point(startX, startY), length).randomPointInRect(
         new Rectangle(0,0, document.body.clientWidth, document.body.clientHeight));
     
