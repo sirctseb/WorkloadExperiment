@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -26,6 +27,83 @@ String replaceMatch(match) {
 	return datetimeFromString(match.group(0)).toString();
 }*/
 
+func listToString(list []float64) string {
+	stringslist := make([]string, len(list), len(list))
+	for index, val := range list {
+		stringslist[index] = fmt.Sprintf("%f", val)
+	}
+	return strings.Join(stringslist, ",")
+}
+
+func printResponseTimes(subject, trial int) {
+	// read oral response times if they exist
+	file, err := os.Open(fmt.Sprintf("output/subject%d/trial%d/responses.txt", subject, trial))
+	if err == nil {
+		// get the contents of the file
+		contents, _ := ioutil.ReadAll(bufio.NewReader(file))
+		responseTimeString := string(contents)
+		// split into lines
+		responseTimeStrings := strings.Split(responseTimeString, "\n")
+		// make array for numerical version
+		responseTimes := make([]float64, len(responseTimeStrings), len(responseTimeStrings))
+		// subtract starting times to get actual response times
+		for index, rts := range responseTimeStrings {
+			rt, _ := strconv.ParseFloat(rts, 64)
+			responseTimes[index] = rt - 5000.0*float64(index)
+		}
+		// print data
+		fmt.Printf("responseTimes, %s\n", listToString(responseTimes))
+		file.Close()
+	} else {
+		fmt.Printf("no responses file for subject %d, trial %d\n", subject, trial)
+	}
+
+}
+
+func printTaskData(subject, trial int) {
+	// read task description
+	file, _ := os.Open(fmt.Sprintf("output/subject%d/trial%d/task.txt", subject, trial))
+	contents, _ := ioutil.ReadAll(bufio.NewReader(file))
+	trialDesc := string(contents)
+
+	// discard "start trial: "
+	trialDesc = trialDesc[len("start trial: "):len(trialDesc)]
+
+	// parse json
+	decoder := json.NewDecoder(strings.NewReader(trialDesc))
+	var descObj map[string]interface{}
+	decoder.Decode(&descObj)
+
+	// print number of targets
+	if numTargets, ok := descObj["numTargets"]; ok {
+		fmt.Printf("number of targets, %d\n", int(numTargets.(float64)))
+	} else {
+		fmt.Printf("no number of targets found")
+	}
+	// print speed
+	if speed, ok := descObj["targetDist"]; ok {
+		fmt.Printf("speed, %d\n", int(speed.(float64)))
+	}
+
+	file.Close()
+}
+
+func printAccuracy(contents string) {
+	// get number of clicks
+	click_regex, _ := regexp.Compile(`MouseDown, `)
+	clicks := len(click_regex.FindAllString(contents, -1))
+		// get number of misses
+	miss_regex, _ := regexp.Compile(`MouseDown, [\d.]+, \d+, \d+, MISS`)
+	misses := len(miss_regex.FindAllString(contents, -1))
+		// get number of hits
+	hit_regex, _ := regexp.Compile(`TargetHit, `)
+	hits := len(hit_regex.FindAllString(contents, -1))
+		// print hit / miss info
+	fmt.Printf("clicks, %d\n", clicks)
+	fmt.Printf("misses, %d\n", misses)
+	fmt.Printf("hits, %d\n", hits)
+}
+
 func main() {
 
 	var subject, trial int
@@ -35,13 +113,12 @@ func main() {
 	flag.IntVar(&trial, "t", 1, "The trial number")
 	flag.Parse()
 
-	trials := []int{3,4,5,6,7,8,9,10,11,12}
+	trials := []int{1,2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
 
 	for _, trial := range trials {
 
 		// make file object
 		file, _ := os.Open(fmt.Sprintf("output/subject%d/trial%d/data.txt", subject, trial))
-
 
 		// get file contents
 		buffer, _ := ioutil.ReadAll(bufio.NewReader(file))
@@ -49,6 +126,9 @@ func main() {
 
 		// close file
 		file.Close()
+
+		// read and print task data
+		printTaskData(subject, trial)
 
 		// define rege for start of trial
 		trial_start_regex, _ := regexp.Compile(`TrialStart, (\d{13})`)
@@ -70,20 +150,11 @@ func main() {
 		// replace times stamps
 		diffTimes := date_regex.ReplaceAllStringFunc(contents, replaceFunc)
 
-		// get number of clicks
-		click_regex, _ := regexp.Compile(`MouseDown, `)
-		clicks := len(click_regex.FindAllString(diffTimes, -1))
-		// get number of misses
-		miss_regex, _ := regexp.Compile(`MouseDown, [\d.]+, \d+, \d+, MISS`)
-		misses := len(miss_regex.FindAllString(diffTimes, -1))
-		// get number of hits
-		hit_regex, _ := regexp.Compile(`TargetHit, `)
-		hits := len(hit_regex.FindAllString(diffTimes, -1))
-		// print hit / miss info
-		fmt.Printf("clicks, %d\n", clicks)
-		fmt.Printf("misses, %d\n", misses)
-		fmt.Printf("hits, %d\n", hits)
+		// print accuracy info
+		printAccuracy(diffTimes)
 
+		// read response time data and print
+		printResponseTimes(subject, trial)
 
 		// split contents into lines
 		lines := strings.Split(diffTimes, "\n")
@@ -106,12 +177,9 @@ func main() {
 			}
 		}
 
-		hitTimesStrings := make([]string, len(hitTimes), len(hitTimes))
-		for index, hT := range hitTimes {
-			hitTimesStrings[index] = fmt.Sprintf("%f", hT)
-		}
+		hitTimesString := listToString(hitTimes)
 
-		fmt.Printf("hitTimes, %s\n", strings.Join(hitTimesStrings, ","))
+		fmt.Printf("hitTimes, %s\n", hitTimesString)
 
 		// compute min max and mean
 		/*min, max, mean := hitTimes[0], hitTimes[0], 0.
@@ -132,6 +200,7 @@ func main() {
 		for i := min; i <= max; i += bucketSize {
 			fmt.Printf("%f: %s\n", i, strings.Repeat("x", CountBucket(hitTimes, i, i + bucketSize)))
 		}*/
+		fmt.Println()
 	}
 }
 func CountBucket(values []float64, min, max float64) int {
