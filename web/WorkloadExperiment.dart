@@ -19,7 +19,7 @@ void main() {
   });
 
   // disable all selection
-  document.on.selectStart.add((e) {
+  document.onSelectStart.listen((e) {
     e.preventDefault();
   });
   

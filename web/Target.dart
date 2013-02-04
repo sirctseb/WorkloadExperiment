@@ -113,7 +113,7 @@ class Target {
     }
     
     // register mouse down event
-    element.on.mouseDown.add((MouseEvent e) {
+    element.onMouseDown.listen((MouseEvent e) {
       // check that the click is within the target image and not just in the div
       num distSq = pow(e.clientX - x, 2) + pow(e.clientY - y, 2);
       if(distSq <= width*width/4) {

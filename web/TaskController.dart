@@ -66,7 +66,7 @@ class TaskController implements TargetDelegate {
     settingsRoot = document.body.query("#settings");
     
     // register for keyboard input
-    window.on.keyPress.add(handleKeyPress);
+    window.onKeyPress.listen(handleKeyPress);
     
     // create the task
     //task = new ExampleTask(this);
@@ -75,31 +75,31 @@ class TaskController implements TargetDelegate {
     //task = new TwoTargetSlowTrialTask(this);
     
     // add handler to body for missed target clicks
-    document.body.on.mouseDown.add(onBodyDown);
+    document.body.onMouseDown.listen(onBodyDown);
     
     // add handler to body for mouse moves
-    document.body.on.mouseMove.add(onBodyMove);
+    document.body.onMouseMove.listen(onBodyMove);
     
     document.body.children.add(shotElement);
     
     // add handler on button click
-    document.query("#set-params").on.click.add(settingChanged);
+    document.query("#set-params").onClick.listen(settingChanged);
     
     // add handler to block trial button click
-    document.query("#block-set-params").on.click.add(blockTrialSet);
+    document.query("#block-set-params").onClick.listen(blockTrialSet);
     
     // add handler for setting subject number
-    document.query("#set-subject-number").on.click.add(setSubjectNumber);
+    document.query("#set-subject-number").onClick.listen(setSubjectNumber);
     
     // start trial at the start of the final beep
-    beep.on.play.add((Event) {
+    beep.onPlay.listen((Event) {
       if(countdown == 0) {
         // if countdown is done, start trial
         task.start();
       }
     });
     // add end event
-    beep.on.ended.add((Event) {
+    beep.onEnded.listen((Event) {
       // if countdown is not done, decrement and schedule another in 1 second
       if(countdown > 0) {
         countdown--;
