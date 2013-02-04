@@ -250,8 +250,7 @@ class TaskController implements TargetDelegate {
     }
     
     // update score
-    num dist = sqrt(pow(target.x - event.clientX, 2) + pow(target.y - event.clientY, 2));
-    score += 100 - dist;
+    score += 100;
     
     // don't propagate mouse down so body won't react to it
     event.stopPropagation();
