@@ -292,12 +292,15 @@ abstract class Task {
     stopwatch.reset();
   }
   void update(time) {
-  //void onTimer(Timer timer) {
+    
     // if we are done processing all events, stop
     if(eventIndex >= events.length && currentEvents.length == 0) {
       Logger.root.info("stopping because we are out of events and there are not more current events");
       stop();
     }
+    
+    // save the number of current events so we can check if we finish the last one
+    int numCurrent = currentEvents.length;
     
     // remove finished events
     //currentEvents.removeMatching((ce) => !ce.running);
@@ -309,6 +312,12 @@ abstract class Task {
         currentEvents.removeAt(currentEvents.indexOf(event));
       }
     });
+    
+    // if there were some current events before cleaning them,
+    // and there are none now, then we just finished them all
+    if(numCurrent > 0 && currentEvents.length == 0) {
+      delegate.onCompleteTasks(new Date.now().millisecondsSinceEpoch, stopwatch.elapsedMilliseconds - iterationStartTime);
+    }
     
     // update current events
     currentEvents.forEach((ce) => ce.update(stopwatch.elapsedMilliseconds));
@@ -327,6 +336,18 @@ abstract class Task {
     
     if(running) {
       window.requestAnimationFrame(update);
+    }
+  }
+  
+  /// End the current addition task
+  void endAdditionEvent() {
+    // search current events
+    for(TaskEvent event in currentEvents) {
+      // look for addition event
+      if(event is AdditionEvent) {
+        // stop event
+        event.stop();
+      }
     }
   }
 }

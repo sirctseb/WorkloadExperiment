@@ -212,6 +212,9 @@ class TaskController implements TargetDelegate {
       // make sure addition is not already marked correct
       if(query(".addition").classes.contains("correct")) return;
       
+      // tell task that addition is over
+      task.endAdditionEvent();
+      
       // log response to server
       ws.send("AdditionCorrect, ${event.timeStamp}");
       
@@ -291,6 +294,18 @@ class TaskController implements TargetDelegate {
     // send target timeout info to data server
     if(wsReady) {
       ws.send("TargetTimeout, $time, ${te.target.x}, ${te.target.y}, ${te.target.ID}");
+    }
+  }
+  
+  void onCompleteTasks(num time, num duration) {
+    
+    Logger.root.fine("all task components completed for this iteration");
+    
+    // update score
+    score -= 100 * duration / 1000;
+    // log event to server
+    if(wsReady) {
+      ws.send("TasksComplete, $time, $duration");
     }
   }
   
