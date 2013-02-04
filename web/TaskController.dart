@@ -68,11 +68,11 @@ class TaskController implements TargetDelegate {
     // register for keyboard input
     window.onKeyPress.listen(handleKeyPress);
     
-    // create the task
-    //task = new ExampleTask(this);
-    //task = new SlowTrialTask(this);
-    task = new FixedTrialTask(this);
-    //task = new TwoTargetSlowTrialTask(this);
+    // create a task
+    task = new BlockTrialTask(this,
+        BlockTrialTask.LOW_SPEED,
+        BlockTrialTask.LOW_TARGET_NUMBER,
+        BlockTrialTask.LOW_OPERANDS);
     
     // add handler to body for missed target clicks
     document.body.onMouseDown.listen(onBodyDown);

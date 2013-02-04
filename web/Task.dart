@@ -332,17 +332,6 @@ abstract class Task {
   }
 }
 
-abstract class ExampleTask extends Task {
-  
-  ExampleTask(TaskController delegate) : super(delegate) {
-    events.addAll([new AdditionEvent(delegate, 0, 1000, 4, 9),
-                   new MovingTargetEvent(delegate, 0, 1000, 500, 200, 100, 600),
-                   new AdditionEvent(delegate, 1000, 1000, 11, 6),
-                   new FixedTargetEvent(delegate, 1000, 1000, 200, 300),
-                   new FixedTargetEvent(delegate, 2000, 1000, 500, 200),]);
-  }
-}
-
 abstract class TrialTask extends Task {
   
   // the number of iterations of the task to present
@@ -383,18 +372,6 @@ abstract class TrialTask extends Task {
   AdditionEvent buildAdditionEvent(int index) {
     return new AdditionEvent.withRandomOps(delegate, index * iterationTime, iterationTime, opRange[0], opRange[1]);
   }
-}
-
-class SlowTrialTask extends TrialTask { 
-  SlowTrialTask(TaskController delegate, [int numTargets = 1]) : super(delegate, numTargets: numTargets);
-  
-  final double slowDist = 400.0;
-  TargetEvent buildTargetEvent(int index) {
-    return new MovingTargetEvent.eventWithLength(delegate, index * iterationTime, iterationTime, slowDist);
-  }
-}
-class TwoTargetSlowTrialTask extends SlowTrialTask {
-  TwoTargetSlowTrialTask(TaskController delegate) : super(delegate, 2);
 }
 
 // TODO this just adds one parameter to the constructor and a buildTargetEvent method
@@ -443,16 +420,3 @@ class BlockTrialTask extends ConfigurableTrialTask {
       : super(delegate, numTargets: target_number, targetDist: speed * ITERATION_TIME_S, iterations: ITERATIONS, opRange: operand_range,
           iterationTime: ITERATION_TIME_MS, targetSize: TARGET_SIZE);
 }
-
-class FixedTrialTask extends TrialTask {
-  
-  FixedTrialTask(TaskController delegate) : super(delegate, numTargets: 1);
-  
-  TargetEvent buildTargetEvent(int index) {
-    return new FixedTargetEvent.atRandomPoint(delegate, index * iterationTime, iterationTime);
-  }
-}
-
-// TODO define constructor params in terms of actual experiment independent variables and levels
-// enum TargetCount = {1, 2, 3}
-// enum TargetSpeed = {fixed, slow, fast}
