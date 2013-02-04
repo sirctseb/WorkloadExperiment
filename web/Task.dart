@@ -359,15 +359,22 @@ abstract class TrialTask extends Task {
                                       List<int> this.opRange: const [1, 15],
                                       int this.iterationTime: 5000})
       : super(delegate) {
-    
-    // generate task events
-    for(int i = 0; i < iterations; i++) {
-      // generate target events
-      for(int j = 0; j < numTargets; j++) {
-        events.add(buildTargetEvent(i));
+    // generate the task events
+    buildEvents();
+  }
+  
+  void buildEvents() {
+    // generate the task events if they don't exist yet
+    if(events.length == 0) {
+      // generate task events
+      for(int i = 0; i < iterations; i++) {
+        // generate target events
+        for(int j = 0; j < numTargets; j++) {
+          events.add(buildTargetEvent(i));
+        }
+        // addition event
+        events.add(buildAdditionEvent(i));
       }
-      // addition event
-      events.add(buildAdditionEvent(i));
     }
   }
   
