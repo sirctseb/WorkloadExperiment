@@ -243,11 +243,18 @@ abstract class Task {
   /// The list of tasks currently executing
   List<TaskEvent> currentEvents = [];
   
+  /// the number of iterations of the task to present
+  int iterations = 12;
+  num iterationTime = 5000;
+  
+  /// The current iteration
+  int iteration = 0;
+  
   /// Generate the task events
   void buildEvents();
   
   Map toJson() {
-    return {"events": events.mappedBy((event) => event.toJson()).toList()};
+    return {"events": events.mappedBy((event) => event.toJson()).toList(), "iterations": iterations, "iterationTime": iterationTime};
   }
   
   /// The index in events that is next to process
@@ -256,7 +263,7 @@ abstract class Task {
   /// Stopwatch to keep track of progress
   Stopwatch stopwatch = new Stopwatch();
   
-  Task(this.delegate);
+  Task(this.delegate, {int this.iterations: 12, num this.iterationTime: 5000});
   
   void start() {
     running = true;
@@ -324,10 +331,6 @@ abstract class Task {
 }
 
 abstract class TrialTask extends Task {
-  
-  // the number of iterations of the task to present
-  int iterations = 12;
-  num iterationTime = 5000;
   List<int> opRange = [1,15];
   
   // the number of targets to present
@@ -338,10 +341,10 @@ abstract class TrialTask extends Task {
   }
   
   TrialTask(TaskController delegate, {int this.numTargets: 1,
-                                      int this.iterations: 12,
+                                      int iterations: 12,
                                       List<int> this.opRange: const [1, 15],
-                                      int this.iterationTime: 5000})
-      : super(delegate) {
+                                      int iterationTime: 5000})
+      : super(delegate, iterations: iterations, iterationTime: iterationTime) {
   }
   
   void buildEvents() {
