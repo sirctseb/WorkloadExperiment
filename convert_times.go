@@ -49,7 +49,7 @@ func printResponseTimes(subject, trial int) {
 		// subtract starting times to get actual response times
 		for index, rts := range responseTimeStrings {
 			rt, _ := strconv.ParseFloat(rts, 64)
-			responseTimes[index] = rt - 5000.0*float64(index)
+			responseTimes[index] = (rt - 5000.0*float64(index)) / 1000
 		}
 		// print data
 		fmt.Printf("responseTimes, %s\n", listToString(responseTimes))
