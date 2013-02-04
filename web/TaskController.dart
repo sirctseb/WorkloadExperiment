@@ -212,7 +212,8 @@ class TaskController implements TargetDelegate {
       // log response to server
       ws.send("AdditionCorrect, ${event.timeStamp}");
       
-      // TODO color operands green?
+      // color operands green?
+      query(".addition").classes.add("correct");
       
       // update score
       score += 100;
@@ -306,6 +307,9 @@ class TaskController implements TargetDelegate {
   }
   
   void onAdditionStart(AdditionEvent ae, num time) {
+    // reset addition correctness style
+    query(".addition").classes.remove("correct");
+    
     // send info to the data server
     if(wsReady) {
       ws.send("AdditionStart, $time, ${ae.op1}, ${ae.op2}");

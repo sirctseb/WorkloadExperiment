@@ -33,6 +33,9 @@ body.ws-error {
   /* Text */
   font-size: 100px;
 }
+.addition.correct {
+  color: #0f0;
+}
 
 .target {
   background-image: url('img/target.png');
