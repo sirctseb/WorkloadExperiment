@@ -231,7 +231,7 @@ class AdditionEvent extends TaskEvent {
 }
 
 /// [Task] represents an experimental task
-class Task {
+abstract class Task {
   /// True iff the task is currently running
   bool running = false;
   
@@ -242,6 +242,9 @@ class Task {
   List<TaskEvent> events = [];
   /// The list of tasks currently executing
   List<TaskEvent> currentEvents = [];
+  
+  /// Generate the task events
+  void buildEvents();
   
   Map toJson() {
     return {"events": events.mappedBy((event) => event.toJson()).toList()};
@@ -329,7 +332,7 @@ class Task {
   }
 }
 
-class ExampleTask extends Task {
+abstract class ExampleTask extends Task {
   
   ExampleTask(TaskController delegate) : super(delegate) {
     events.addAll([new AdditionEvent(delegate, 0, 1000, 4, 9),
@@ -359,8 +362,6 @@ abstract class TrialTask extends Task {
                                       List<int> this.opRange: const [1, 15],
                                       int this.iterationTime: 5000})
       : super(delegate) {
-    // generate the task events
-    buildEvents();
   }
   
   void buildEvents() {

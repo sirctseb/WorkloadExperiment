@@ -191,6 +191,9 @@ class TaskController implements TargetDelegate {
       // show task screen
       showTask();
     } else if(event.which == "g".charCodeAt(0)) {
+      // tell task to actually generate task events
+      task.buildEvents();
+      
       // g for 'go', start the task
       // play chirps and then start
       countdown = 2;
