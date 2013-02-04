@@ -274,20 +274,6 @@ class TaskController implements TargetDelegate {
     query("#addition").text = "X + Y";
   }
   
-  void onTaskStart(num time) {
-    // send start to data server
-    // TODO trial number?
-    if(wsReady) {
-      ws.send("TaskStart, $time");
-    }
-  }
-  void onTaskEnd(num time) {
-    // send end to data server
-    if(wsReady) {
-      ws.send("TaskEnd, $time");
-    }
-  }
-  
   void onTargetStart(TargetEvent te, num time) {
     // send target start info to data server
     if(wsReady) {
