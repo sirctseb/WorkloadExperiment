@@ -248,7 +248,8 @@ abstract class Task {
   num iterationTime = 5000;
   
   /// The current iteration
-  int iteration = 0;
+  int get iteration => stopwatch.elapsedMilliseconds ~/ iterationTime;
+  int get iterationStartTime => iteration * iterationTime;
   
   /// Generate the task events
   void buildEvents();
