@@ -117,6 +117,9 @@ func main() {
 
 	for _, trial := range trials {
 
+		// print subject and trial
+		fmt.Printf("subject, %d, trial, %d\n", subject, trial) 
+
 		// make file object
 		file, _ := os.Open(fmt.Sprintf("output/subject%d/trial%d/data.txt", subject, trial))
 
