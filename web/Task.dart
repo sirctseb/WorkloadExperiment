@@ -403,14 +403,37 @@ class ConfigurableTrialTask extends TrialTask {
       { int numTargets: 1,
         num this.targetDist: 0,
         int iterations: 12,
-        int maxOp: 15,
+        List<int> opRange: const [1, 15],
         int iterationTime: 5000,
         int this.targetSize: 128})
-      : super(delegate, numTargets: numTargets, iterations: iterations, maxOp: maxOp, iterationTime: iterationTime);
+      : super(delegate, numTargets: numTargets, iterations: iterations, opRange: opRange, iterationTime: iterationTime);
   
   TargetEvent buildTargetEvent(int index) {
     return new MovingTargetEvent.eventWithLength(delegate, index * iterationTime, iterationTime, targetDist)..target.resize(targetSize, targetSize);
   }
+}
+
+class BlockTrialTask extends ConfigurableTrialTask {
+  // The levels of the target speed independent variable in pixels per second
+  static const int LOW_SPEED = 80;
+  static const int HIGH_SPEED = 160;
+  // The levels of the target count indpendent variable
+  static const int LOW_TARGET_NUMBER = 2;
+  static const int HIGH_TARGET_NUMBER = 3;
+  // The levels of the addition operand ranges
+  static const List<int> LOW_OPERANDS = const [1,15];
+  static const List<int> HIGH_OPERANDS = const [11,25];
+  
+  // trial task constants
+  static const int ITERATION_TIME_S = 5;
+  static const int ITERATION_TIME_MS = 5000;
+  static const int ITERATIONS = 12;
+  static const int TARGET_SIZE = 128;
+  
+  BlockTrialTask(TaskController delegate,
+      int speed, int target_number, List<int> operand_range)
+      : super(delegate, numTargets: target_number, targetDist: speed * ITERATION_TIME_S, iterations: ITERATIONS, opRange: operand_range,
+          iterationTime: ITERATION_TIME_MS, targetSize: TARGET_SIZE);
 }
 
 class FixedTrialTask extends TrialTask {
