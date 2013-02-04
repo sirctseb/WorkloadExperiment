@@ -205,12 +205,13 @@ class AdditionEvent extends TaskEvent {
       : super(delegate, time, duration) {
   }
   
-  AdditionEvent.withRandomOps(TaskController delegate, num time, num duration, int op1max, int op2max)
+  AdditionEvent.withRandomOps(TaskController delegate, num time, num duration, int opMin, int opMax)
       : super(delegate, time, duration) {
     // set ops randomly within max
     Random rng = new Random();
-    op1 = rng.nextInt(op1max);
-    op2 = rng.nextInt(op2max);
+    int range = opMax - opMin;
+    op1 = rng.nextInt(range) + opMin;
+    op2 = rng.nextInt(range) + opMin;
   }
   
   void start() {
