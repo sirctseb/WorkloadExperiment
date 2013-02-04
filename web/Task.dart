@@ -250,6 +250,7 @@ abstract class Task {
   /// The current iteration
   int get iteration => stopwatch.elapsedMilliseconds ~/ iterationTime;
   int get iterationStartTime => iteration * iterationTime;
+  bool get iterationComplete => currentEvents.isEmpty;
   
   /// Generate the task events
   void buildEvents();
@@ -291,6 +292,7 @@ abstract class Task {
     stop();
     stopwatch.reset();
   }
+  num lastTime;
   void update(time) {
     
     // if we are done processing all events, stop
@@ -317,6 +319,14 @@ abstract class Task {
     // and there are none now, then we just finished them all
     if(numCurrent > 0 && currentEvents.length == 0) {
       delegate.onCompleteTasks(new Date.now().millisecondsSinceEpoch, stopwatch.elapsedMilliseconds - iterationStartTime);
+    }
+    
+    // notify controller if task is not complete yet
+    if(lastTime != null && !iterationComplete) {
+      delegate.onTaskStillGoing(time - lastTime);
+      lastTime = time;
+    } else {
+      lastTime = time;
     }
     
     // update current events

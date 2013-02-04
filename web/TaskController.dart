@@ -25,6 +25,14 @@ class TaskController implements TargetDelegate {
       query(".score").classes.removeAll(["increase", "decrease"]);
     });
   }
+  num get scoreNoStyle => _score;
+  // set the score without doing the green and red coloring
+  set scoreNoStyle(num s) {
+    // update backing field
+    _score = s;
+    // update html
+    taskRoot.query("#score-content").text = s.toStringAsFixed(0);
+  }
   
   /// Task properties
   Task task;
@@ -300,13 +308,15 @@ class TaskController implements TargetDelegate {
   void onCompleteTasks(num time, num duration) {
     
     Logger.root.fine("all task components completed for this iteration");
-    
-    // update score
-    score -= 100 * duration / 1000;
+
     // log event to server
     if(wsReady) {
       ws.send("TasksComplete, $time, $duration");
     }
+  }
+  void onTaskStillGoing(num duration) {
+    // decrease score
+    scoreNoStyle -= 100 * duration / 1000;
   }
   
   void onAdditionStart(AdditionEvent ae, num time) {
