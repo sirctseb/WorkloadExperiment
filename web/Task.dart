@@ -253,15 +253,6 @@ abstract class Task {
   /// The index in events that is next to process
   int eventIndex = 0;
   
-  /// The timer to control events
-  // TODO should we use one global timer?
-  //Timer timer;
-  /// The time that the next event is scheduled for
-  int get nextEventTime {
-    if(eventIndex >= events.length) return -1;
-    return events[eventIndex].time;
-  }
-  
   /// Stopwatch to keep track of progress
   Stopwatch stopwatch = new Stopwatch();
   
