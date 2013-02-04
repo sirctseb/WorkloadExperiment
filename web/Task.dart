@@ -321,9 +321,9 @@ abstract class Task {
       delegate.onCompleteTasks(new Date.now().millisecondsSinceEpoch, stopwatch.elapsedMilliseconds - iterationStartTime);
     }
     
-    // notify controller if task is not complete yet
-    if(lastTime != null && !iterationComplete) {
-      delegate.onTaskStillGoing(time - lastTime);
+    // notify controller during off-time
+    if(lastTime != null && iterationComplete) {
+      delegate.onTaskStillDone(time - lastTime);
     }
     lastTime = time;
     

@@ -318,6 +318,10 @@ class TaskController implements TargetDelegate {
     // decrease score
     scoreNoStyle -= 100 * duration / 1000;
   }
+  void onTaskStillDone(num duration) {
+    // increase score
+    scoreNoStyle += 100 * duration / 1000;
+  }
   
   void onAdditionStart(AdditionEvent ae, num time) {
     // reset addition correctness style
