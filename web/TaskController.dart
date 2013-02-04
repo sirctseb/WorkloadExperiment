@@ -209,6 +209,9 @@ class TaskController implements TargetDelegate {
     } else if(event.which == " ".charCodeAt(0)) {
       // mark correct addition response on space bar
       
+      // make sure addition is not already marked correct
+      if(query(".addition").classes.contains("correct")) return;
+      
       // log response to server
       ws.send("AdditionCorrect, ${event.timeStamp}");
       
