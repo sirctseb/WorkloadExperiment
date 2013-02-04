@@ -115,24 +115,23 @@ class TaskController implements TargetDelegate {
     ws.send("subject ${document.query('#subject-number').value}");
   }
   void settingChanged(Event event) {
-    // if custom is enabled, create a new task
-    if((query("#enable-custom") as InputElement).checked) {
-      // parse input elements
-      num iterations = getInputValue("iterations");
-      num iterationTime = getInputValue("iteration-time");
-      num numTargets = getInputValue("num-targets");
-      num targetDist = getInputValue("target-dist");
-      num maxOp = getInputValue("max-op");
-      int targetSize = getInputValue("target-size");
-      
-      task = new ConfigurableTrialTask(this,
-          iterations: iterations,
-          iterationTime: iterationTime, 
-          numTargets: numTargets,
-          targetDist: targetDist,
-          maxOp: maxOp,
-          targetSize: targetSize);
-    }
+  // if custom is enabled, create a new task
+    // parse input elements
+    num iterations = getInputValue("iterations");
+    num iterationTime = getInputValue("iteration-time");
+    num numTargets = getInputValue("num-targets");
+    num targetDist = getInputValue("target-dist");
+    num minOp = getInputValue("min-op");
+    num maxOp = getInputValue("max-op");
+    int targetSize = getInputValue("target-size");
+    
+    task = new ConfigurableTrialTask(this,
+        iterations: iterations,
+        iterationTime: iterationTime, 
+        numTargets: numTargets,
+        targetDist: targetDist,
+        opRange: [minOp, maxOp],
+        targetSize: targetSize);
   }
   
   static int getInputValue(String id) {
