@@ -277,7 +277,7 @@ abstract class Task {
     
     // manually call first timer event
     //onTimer(timer);
-    update(0);
+    update(null);
   }
   void stop() {
     //timer.cancel();
@@ -324,10 +324,8 @@ abstract class Task {
     // notify controller if task is not complete yet
     if(lastTime != null && !iterationComplete) {
       delegate.onTaskStillGoing(time - lastTime);
-      lastTime = time;
-    } else {
-      lastTime = time;
     }
+    lastTime = time;
     
     // update current events
     currentEvents.forEach((ce) => ce.update(stopwatch.elapsedMilliseconds));
