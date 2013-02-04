@@ -251,6 +251,7 @@ abstract class Task {
   int get iteration => stopwatch.elapsedMilliseconds ~/ iterationTime;
   int get iterationStartTime => iteration * iterationTime;
   bool get iterationComplete => currentEvents.isEmpty;
+  int lastIteration = 0;
   
   /// Generate the task events
   void buildEvents();
@@ -319,6 +320,12 @@ abstract class Task {
     if(numCurrent > 0 && currentEvents.length == 0) {
       delegate.onCompleteTasks(new Date.now().millisecondsSinceEpoch, stopwatch.elapsedMilliseconds - iterationStartTime);
     }
+    
+    // if we are changing iteration, notify delegate
+    if(lastIteration != iteration) {
+      delegate.onIterationComplete(new Date.now().millisecondsSinceEpoch);
+    }
+    lastIteration = iteration;
     
     // update current events
     currentEvents.forEach((ce) => ce.update(stopwatch.elapsedMilliseconds));

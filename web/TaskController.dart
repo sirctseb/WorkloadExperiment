@@ -305,17 +305,34 @@ class TaskController implements TargetDelegate {
     }
   }
   
+  /// The time it took to complete the tasks in the iteration
+  int executionDuration;
   void onCompleteTasks(num time, num duration) {
     
     Logger.root.fine("all task components completed for this iteration");
     
-    // increase the score by the amount of time they had left
-    score += 100 * (task.iterationTime - duration) / 1000;
+    // save the duration
+    executionDuration = duration;
 
     // log event to server
     if(wsReady) {
       ws.send("TasksComplete, $time, $duration");
     }
+  }
+  
+  void onIterationComplete(num time) {
+    // log iteration end to server
+    if(wsReady) {
+      ws.send("IterationEnd, $time");
+    }
+    
+    // update score based on how much time they took
+    if(executionDuration != null) {
+      score += 100 * (task.iterationTime - executionDuration) / 1000;
+    }
+    
+    // reset duration
+    executionDuration = null;
   }
   
   void onAdditionStart(AdditionEvent ae, num time) {
