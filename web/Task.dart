@@ -292,7 +292,6 @@ abstract class Task {
     stop();
     stopwatch.reset();
   }
-  num lastTime;
   void update(time) {
     
     // if we are done processing all events, stop
@@ -320,12 +319,6 @@ abstract class Task {
     if(numCurrent > 0 && currentEvents.length == 0) {
       delegate.onCompleteTasks(new Date.now().millisecondsSinceEpoch, stopwatch.elapsedMilliseconds - iterationStartTime);
     }
-    
-    // notify controller during off-time
-    if(lastTime != null && iterationComplete) {
-      delegate.onTaskStillDone(time - lastTime);
-    }
-    lastTime = time;
     
     // update current events
     currentEvents.forEach((ce) => ce.update(stopwatch.elapsedMilliseconds));

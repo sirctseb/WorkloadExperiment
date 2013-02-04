@@ -308,19 +308,14 @@ class TaskController implements TargetDelegate {
   void onCompleteTasks(num time, num duration) {
     
     Logger.root.fine("all task components completed for this iteration");
+    
+    // increase the score by the amount of time they had left
+    score += 100 * (task.iterationTime - duration) / 1000;
 
     // log event to server
     if(wsReady) {
       ws.send("TasksComplete, $time, $duration");
     }
-  }
-  void onTaskStillGoing(num duration) {
-    // decrease score
-    scoreNoStyle -= 100 * duration / 1000;
-  }
-  void onTaskStillDone(num duration) {
-    // increase score
-    scoreNoStyle += 100 * duration / 1000;
   }
   
   void onAdditionStart(AdditionEvent ae, num time) {
