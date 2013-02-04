@@ -85,6 +85,9 @@ class TaskController implements TargetDelegate {
     // add handler on button click
     document.query("#set-params").on.click.add(settingChanged);
     
+    // add handler to block trial button click
+    document.query("#block-set-params").on.click.add(blockTrialSet);
+    
     // add handler for setting subject number
     document.query("#set-subject-number").on.click.add(setSubjectNumber);
     
@@ -132,6 +135,15 @@ class TaskController implements TargetDelegate {
         targetDist: targetDist,
         opRange: [minOp, maxOp],
         targetSize: targetSize);
+  }
+  void blockTrialSet(Event event) {
+    task = new BlockTrialTask(this, 
+        lowSetting("block-target-dist") ? BlockTrialTask.LOW_SPEED : BlockTrialTask.HIGH_SPEED,
+        lowSetting("block-num-targets") ? BlockTrialTask.LOW_TARGET_NUMBER : BlockTrialTask.HIGH_TARGET_NUMBER,
+        lowSetting("block-operand-range") ? BlockTrialTask.LOW_OPERANDS : BlockTrialTask.HIGH_OPERANDS);
+  }
+  bool lowSetting(String name) {
+    return (query("[name=$name]:checked") as InputElement).value == "low";
   }
   
   static int getInputValue(String id) {

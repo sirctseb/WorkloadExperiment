@@ -25,6 +25,20 @@
       <label for="min-op">Minimum operand: </label><input type="text" id="min-op" value="1"></input><br />
       <label for="max-op">Maximum operand: </label><input type="text" id="max-op" value="15"></input><br />
       <button id="set-params">Set Parameters</button>
+      <h1>Block Trial</h1>
+      <div>Number of targets</div>
+      <label for="block-num-targets-low">2</label><input type="radio" name="block-num-targets" value="low" id="block-num-targets-low">
+      <label for="block-num-targets-high">3</label><input type="radio" name="block-num-targets" value="high" id="block-num-targets-high">
+      <br />
+      <div>Target speed</div>
+      <label for="block-target-dist-low">80 px / s</label><input type="radio" name="block-target-dist" value="low" id="block-target-dist-low">
+      <label for="block-target-dist-high">160 px / s</label><input type="radio" name="block-target-dist" value="high" id="block-target-dist-high">
+      <br />
+      <div>Addition operands</div>
+      <label for="block-operand-range-low">[1,15]</label><input type="radio" name="block-operand-range" value="low" id="block-operand-range-low">
+      <label for="block-operand-range-high">[11,25]</label><input type="radio" name="block-operand-range" value="high" id="block-operand-range-high">
+      <br />
+      <button id="block-set-params">Set block</button>
     </div>
 
     <script type="application/dart" src="web/WorkloadExperiment.dart"></script>
