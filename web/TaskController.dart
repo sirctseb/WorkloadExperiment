@@ -206,6 +206,16 @@ class TaskController implements TargetDelegate {
     } else if(event.which == "p".charCodeAt(0)) {
       // p for 'pause', stop the task
       task.stop();
+    } else if(event.which == " ".charCodeAt(0)) {
+      // mark correct addition response on space bar
+      
+      // log response to server
+      ws.send("AdditionCorrect, ${event.timeStamp}");
+      
+      // TODO color operands green?
+      
+      // update score
+      score += 100;
     }
   }
   
