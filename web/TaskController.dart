@@ -115,7 +115,7 @@ class TaskController implements TargetDelegate {
   
   void setSubjectNumber(Event event) {
     // send subject number message
-    ws.send("subject ${document.query('#subject-number').value}");
+    ws.send("subject ${(document.query('#subject-number') as InputElement).value}");
   }
   void settingChanged(Event event) {
   // if custom is enabled, create a new task
