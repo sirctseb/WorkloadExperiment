@@ -342,25 +342,21 @@ class ExampleTask extends Task {
 
 abstract class TrialTask extends Task {
   
-  //TrialTask(TaskController delegate) : super(delegate) {
-  //  timerLength = iterationTime;
-  //}
-  
   // the number of iterations of the task to present
   int iterations = 12;
   num iterationTime = 5000;
-  int maxOp = 15;
+  List<int> opRange = [1,15];
   
   // the number of targets to present
   int numTargets;
   
   Map toJson() {
-    return merge(super.toJson(), {"iterations": iterations, "iterationTime": iterationTime, "maxOp": maxOp, "numTargets": numTargets});
+    return merge(super.toJson(), {"iterations": iterations, "iterationTime": iterationTime, "opRange": opRange, "numTargets": numTargets});
   }
   
   TrialTask(TaskController delegate, {int this.numTargets: 1,
                                       int this.iterations: 12,
-                                      int this.maxOp: 15,
+                                      List<int> this.opRange: const [1, 15],
                                       int this.iterationTime: 5000})
       : super(delegate) {
     
@@ -377,7 +373,7 @@ abstract class TrialTask extends Task {
   
   TargetEvent buildTargetEvent(int index);
   AdditionEvent buildAdditionEvent(int index) {
-    return new AdditionEvent.withRandomOps(delegate, index * iterationTime, iterationTime, maxOp, maxOp);
+    return new AdditionEvent.withRandomOps(delegate, index * iterationTime, iterationTime, opRange[0], opRange[1]);
   }
 }
 
