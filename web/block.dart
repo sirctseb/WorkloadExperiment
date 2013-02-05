@@ -27,7 +27,7 @@ class BlockManager {
   /// Trial state
   int trialNumber = 0;
   
-  static const int TRIALS_PER_PRACTICE = 1;
+  static const int TRIALS_PER_PRACTICE = 5;
   static const int TRIALS_PER_BLOCK = 3;
   
   /// Retrieve the number of trials in a given block
