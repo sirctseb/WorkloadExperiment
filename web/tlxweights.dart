@@ -84,9 +84,13 @@ class TlxWeights {
     currentOptionPairIndex++;
   }
   
-  /// Reset counts to zero
+  /// Reset weights survey state
   void reset() {
+    // reset scale counts to 0
     Scale.resetScaleCounts();
+    
+    // set to first option pair
+    currentOptionPairIndex = 0;
   }
   
   /// Present the two current options on the screen

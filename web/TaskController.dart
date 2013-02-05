@@ -401,6 +401,12 @@ class TaskController implements TargetDelegate {
       }
       ws.send("weights: ${stringify(counts)}");
     }
+    
+    // reset weights
+    weights.reset();
+    
+    // show task view
+    showTask();
   }
   
   void onTrialStart(num time) {
