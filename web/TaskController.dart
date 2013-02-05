@@ -124,7 +124,7 @@ class TaskController implements TargetDelegate {
       var responses = {
         "mental": getInputValue("mental-demand"),
         "physical": getInputValue("physical-demand"),
-        "temporal": getInputValue("temporal"),
+        "temporal": getInputValue("temporal-demand"),
         "performance": getInputValue("performance"),
         "effort": getInputValue("effort"),
         "frustration": getInputValue("frustration")
