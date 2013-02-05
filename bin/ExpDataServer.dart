@@ -167,7 +167,7 @@ class Server {
       
       conn.onClosed = (int status, String reason) {
         print('closed with $status for $reason');
-        Logger.root.info(new Date.now().toString());
+        Logger.root.info(new DateTime.now().toString());
       };
     };
     

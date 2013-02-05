@@ -131,7 +131,7 @@ class Block {
     if(random) {
       Random rng;
       if(moreRandom) {
-        rng = new Random(new Date.now().millisecond);
+        rng = new Random(new DateTime.now().millisecond);
       } else {
         rng = new Random(0);
       }

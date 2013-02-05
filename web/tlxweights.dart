@@ -146,7 +146,7 @@ class TlxWeights {
       [Scale.FRUSTRATION, Scale.EFFORT]
     ];
     var retPairs = [];
-    Random rng = new Random(new Date.now().millisecond);
+    Random rng = new Random(new DateTime.now().millisecond);
     
     // randomize pairs
     while(pairs.length > 0) {

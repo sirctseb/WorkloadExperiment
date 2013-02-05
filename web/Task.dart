@@ -78,7 +78,7 @@ class FixedTargetEvent extends TargetEvent {
     running = true;
     // show the target
     target.show();
-    delegate.onTargetStart(this, new Date.now().millisecondsSinceEpoch);
+    delegate.onTargetStart(this, new DateTime.now().millisecondsSinceEpoch);
   }
   
   void update(num sinceTaskStart) {
@@ -89,7 +89,7 @@ class FixedTargetEvent extends TargetEvent {
         // remove the target
         target.timeout();
         
-        delegate.onTargetTimeout(this, new Date.now().millisecondsSinceEpoch);
+        delegate.onTargetTimeout(this, new DateTime.now().millisecondsSinceEpoch);
       }
       
       stop();
@@ -169,7 +169,7 @@ class MovingTargetEvent extends TargetEvent {
     target.show();
     
     // notify delegate of target start
-    delegate.onTargetStart(this, new Date.now().millisecondsSinceEpoch);
+    delegate.onTargetStart(this, new DateTime.now().millisecondsSinceEpoch);
   }
   
   void update(num sinceTaskStart) {
@@ -187,7 +187,7 @@ class MovingTargetEvent extends TargetEvent {
         // update score for missed target
         target.timeout();
         // notify delegate of target timeout
-        delegate.onTargetTimeout(this, new Date.now().millisecondsSinceEpoch);
+        delegate.onTargetTimeout(this, new DateTime.now().millisecondsSinceEpoch);
         stop();
       }
     } else {
@@ -226,12 +226,12 @@ class AdditionEvent extends TaskEvent {
     running = true;
     
     // notify delegate
-    delegate.onAdditionStart(this, new Date.now().millisecondsSinceEpoch);
+    delegate.onAdditionStart(this, new DateTime.now().millisecondsSinceEpoch);
   }
   
   void stop() {
     super.stop();
-    delegate.onAdditionEnd(this, new Date.now().millisecondsSinceEpoch);
+    delegate.onAdditionEnd(this, new DateTime.now().millisecondsSinceEpoch);
   }
 }
 
@@ -279,7 +279,7 @@ abstract class Task {
     stopwatch.start();
 
     // tell delegate that task started
-    delegate.onTrialStart(new Date.now().millisecondsSinceEpoch);
+    delegate.onTrialStart(new DateTime.now().millisecondsSinceEpoch);
     
     // manually call first timer event
     //onTimer(timer);
@@ -292,7 +292,7 @@ abstract class Task {
     // TODO I think this should never happen
     if(iteration < iterations) {
       Logger.root.info("got end task from end event, and still on $iteration; sending message");
-      delegate.onIterationComplete(new Date.now().millisecondsSinceEpoch);
+      delegate.onIterationComplete(new DateTime.now().millisecondsSinceEpoch);
     }
     stop();
   }
@@ -301,7 +301,7 @@ abstract class Task {
     stopwatch.stop();
     
     // tell delegate that task ended
-    delegate.onTrialEnd(new Date.now().millisecondsSinceEpoch);
+    delegate.onTrialEnd(new DateTime.now().millisecondsSinceEpoch);
     
     running = false;
   }
@@ -334,12 +334,12 @@ abstract class Task {
     // if there were some current events before cleaning them,
     // and there are none now, then we just finished them all
     if(numCurrent > 0 && currentEvents.length == 0) {
-      delegate.onCompleteTasks(new Date.now().millisecondsSinceEpoch, stopwatch.elapsedMilliseconds - iterationStartTime);
+      delegate.onCompleteTasks(new DateTime.now().millisecondsSinceEpoch, stopwatch.elapsedMilliseconds - iterationStartTime);
     }
     
     // if we are changing iteration, notify delegate
     if(lastIteration != iteration) {
-      delegate.onIterationComplete(new Date.now().millisecondsSinceEpoch);
+      delegate.onIterationComplete(new DateTime.now().millisecondsSinceEpoch);
     }
     lastIteration = iteration;
     

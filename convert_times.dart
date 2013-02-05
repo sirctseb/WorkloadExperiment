@@ -4,13 +4,13 @@ import "dart:io";
 //import time;
 
 
-Date datetimeFromString(stamp_string) {
+DateTime datetimeFromString(stamp_string) {
 
 	// get a float of epoch time in seconds. have to divide by 1000 because dart timestamps are in ms
 	var stamp = int.parse(stamp_string);
 
 	// build a datetime object from the stamp
-	return new Date.fromMillisecondsSinceEpoch(stamp);
+	return new DateTime.fromMillisecondsSinceEpoch(stamp);
 }
 	
 String replaceMatch(match) {
@@ -41,7 +41,7 @@ void main() {
   	// find trial start
   	String stamp_string = new RegExp(r"TrialStart, (\d{13})", multiLine: true).firstMatch(contents).group(1);
   
-  	Date startDate = datetimeFromString(stamp_string);
+  	DateTime startDate = datetimeFromString(stamp_string);
   
   	var replaceFunc = (Match match) {
   		//print(match.groupCount);
