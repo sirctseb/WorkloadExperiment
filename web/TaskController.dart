@@ -9,6 +9,9 @@ class TaskController implements TargetDelegate {
   /// The root view of the settings screen
   DivElement settingsRoot;
   
+  /// The root view of the survey screen
+  DivElement surveyRoot;
+  
   /// Task state
   bool taskRunning = false;
   num _score = 0;
@@ -79,6 +82,7 @@ class TaskController implements TargetDelegate {
     // store task and settings root elements
     taskRoot = document.body.query("#task");
     settingsRoot = document.body.query("#settings");
+    surveyRoot = document.body.query("#nasa-tlx");
     
     // register for keyboard input
     window.onKeyPress.listen(handleKeyPress);
@@ -264,12 +268,24 @@ class TaskController implements TargetDelegate {
       
       // update score
       score += 100;
+    } else if(event.which == "n".charCodeAt(0)) {
+      // n for nasa-tlx
+      
+      // TODO reset survey state
+      
+      // show the survey root
+      showSurvey();
+      
+      // TODO on button click, record responses
     }
   }
   
   void showSettings() {
     // hide task root
     taskRoot.style.display = "none";
+    
+    // hide survey root
+    surveyRoot.style.display = "none";
     
     // show settings root
     settingsRoot.style.display = "block";
@@ -279,8 +295,22 @@ class TaskController implements TargetDelegate {
     // hide settings root
     settingsRoot.style.display = "none";
     
+    // hide survey root
+    surveyRoot.style.display = "none";
+    
     // show task root
     taskRoot.style.display = "block";
+  }
+  
+  void showSurvey() {
+    // hide settings root
+    settingsRoot.style.display = "none";
+    
+    // hide task root
+    taskRoot.style.display = "none";
+    
+    // show survey root
+    surveyRoot.style.display = "block";
   }
   
   /* TargetDelegate implementation */
