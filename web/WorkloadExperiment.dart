@@ -8,6 +8,7 @@ import 'package:logging/logging.dart';
 part 'Target.dart';
 part 'TaskController.dart';
 part 'Task.dart';
+part 'block.dart';
 part 'mathutility.dart';
 
 
