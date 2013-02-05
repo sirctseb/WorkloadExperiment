@@ -123,3 +123,24 @@ body.ws-error {
 .settings label {
   margin-left: 15px;
 }
+
+
+/* NASA-TLX div */
+.nasa-tlx {
+  margin-left: auto;
+  margin-right: auto;
+  width: 800px;
+}
+.nasa-tlx .tlx-section {
+  margin-top: 40px;
+}
+.nasa-tlx .tlx-section-desc {
+  float: right;
+}
+.nasa-tlx input {
+  width: 100%;
+  margin-top:30px;
+}
+.nasa-tlx .tlx-high-label {
+  float: right;
+}
