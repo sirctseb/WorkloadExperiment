@@ -18,6 +18,9 @@ class Block {
         targetNumberLow ? BlockTrialTask.LOW_TARGET_NUMBER : BlockTrialTask.HIGH_TARGET_NUMBER,
         additionDiffLow ? BlockTrialTask.LOW_OPERANDS : BlockTrialTask.HIGH_OPERANDS);
   }
+  
+  /// The number of trials per block we will run
+  static const int trialsPerBlock = 3;
 
   static bool random = true;
   static bool moreRandom = true;
@@ -55,5 +58,4 @@ class Block {
       _allBlocks = blocks;
     }
   }
-  
 }

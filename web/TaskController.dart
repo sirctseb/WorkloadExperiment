@@ -64,6 +64,13 @@ class TaskController implements TargetDelegate {
     else document.body.classes.add("ws-error");
   }
   
+  /// The current block
+  int block = 0;
+  /// True iff we are using blocks from Block
+  bool useBlocks = false;
+  /// The number of trial we are on of a given block
+  int trial = 0;
+  
   /// Create a task controller
   TaskController() {
     // connect to server
@@ -95,6 +102,17 @@ class TaskController implements TargetDelegate {
     
     // add handler to block trial button click
     document.query("#block-set-params").onClick.listen(blockTrialSet);
+    
+    // add handler to start all blocks
+    document.query("#all-blocks").onClick.listen((event) {
+      Logger.root.fine("starting block sequence");
+      // flag to use blocks
+      useBlocks = true;
+      // set to first block
+      block = 0;
+      // get first task
+      task = Block.allBlocks[block].createTask(this);
+    });
     
     // add handler for setting subject number
     document.query("#set-subject-number").onClick.listen(setSubjectNumber);
@@ -285,6 +303,24 @@ class TaskController implements TargetDelegate {
     }
     // reset addition task placeholder text
     query("#addition").text = "X + Y";
+    
+    // if we are using all blocks, increment trial / block and create new task
+    if(useBlocks) {
+      Logger.root.fine("trial over, incrementing trial");
+      trial++;
+      if(trial >= Block.trialsPerBlock) {
+        trial = 0;
+        block++;
+        Logger.root.fine("that was last trial of block, going to task 0 of block $block");
+        // TODO do workload survey
+        // TODO send trial/block number to data server
+      }
+      if(block < Block.allBlocks.length) {
+        Logger.root.fine("creating new task in block");
+        // get new task
+        task = Block.allBlocks[block].createTask(this);
+      }
+    }
   }
   
   void onTargetStart(TargetEvent te, num time) {
