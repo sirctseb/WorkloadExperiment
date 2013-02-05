@@ -12,6 +12,9 @@ class TaskController implements TargetDelegate {
   /// The root view of the survey screen
   DivElement surveyRoot;
   
+  /// The root view of the weights screen
+  DivElement weightsRoot;
+  
   /// Task state
   bool taskRunning = false;
   num _score = 0;
@@ -83,6 +86,7 @@ class TaskController implements TargetDelegate {
     taskRoot = document.body.query("#task");
     settingsRoot = document.body.query("#settings");
     surveyRoot = document.body.query("#nasa-tlx");
+    weightsRoot = document.query("#weights");
     
     // register for keyboard input
     window.onKeyPress.listen(handleKeyPress);
@@ -307,6 +311,9 @@ class TaskController implements TargetDelegate {
   }
   
   void showSettings() {
+    // hide weights root
+    weightsRoot.style.display = "none";
+    
     // hide task root
     taskRoot.style.display = "none";
     
@@ -318,6 +325,9 @@ class TaskController implements TargetDelegate {
   }
   
   void showTask() {
+    // hide weights root
+    weightsRoot.style.display = "none";
+    
     // hide settings root
     settingsRoot.style.display = "none";
     
@@ -329,6 +339,9 @@ class TaskController implements TargetDelegate {
   }
   
   void showSurvey() {
+    // hide weights root
+    weightsRoot.style.display = "none";
+    
     // hide settings root
     settingsRoot.style.display = "none";
     
@@ -337,6 +350,20 @@ class TaskController implements TargetDelegate {
     
     // show survey root
     surveyRoot.style.display = "block";
+  }
+  
+  void showWeights() {
+    // hide settings root
+    settingsRoot.style.display = "none";
+    
+    // hide task root
+    taskRoot.style.display = "none";
+    
+    // hide survey root
+    surveyRoot.style.display = "none";
+    
+    // show weights root
+    weightsRoot.style.display = "block";
   }
   
   /* TargetDelegate implementation */
