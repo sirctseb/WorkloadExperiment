@@ -12,12 +12,17 @@ body {
   margin: 15px;*/
   font-family: 'Open Sans', sans-serif;
   margin:0;
-  cursor: url('img/crosshair.png') 25 25, default;
   height: 100%;
   width: 100%;
 }
 body.ws-error {
   background-color: #FFEEEE;
+}
+
+.task {
+  height:100%;
+  width:100%;
+  cursor: url('img/crosshair.png') 25 25, default;
 }
 
 .addition {
