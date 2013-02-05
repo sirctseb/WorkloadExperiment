@@ -28,6 +28,7 @@ class Server {
   String get trialDirStr => "$blockDirStr/trial$trialNumber";
   String get trialDescPathStr => "$trialDirStr/task.txt";
   String get dataFilePathStr => "$trialDirStr/data.txt";
+  String get surveyPathStr => "$blockDirStr/survey.txt";
   
   Server() {
     
@@ -103,6 +104,19 @@ class Server {
             trialNumber = info["trial"];
             Logger.root.info("data server got trial number $trialNumber");
           }
+        }
+        
+        if(message.startsWith("survey: ")) {
+          Logger.root.info("data server received survey results");
+          
+          // TODO make sure directory exists?
+          
+          // create file object
+          File surveyFile = new File.fromPath(new Path(surveyPathStr));
+          
+          // write survey to file
+          surveyFile.writeAsString(message);
+          
         }
         
         if(message.startsWith("start trial")) {
