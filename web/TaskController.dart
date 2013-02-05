@@ -201,12 +201,15 @@ class TaskController implements TargetDelegate {
         targetDist: targetDist,
         opRange: [minOp, maxOp],
         targetSize: targetSize);
+    useBlocks = false;
   }
   void blockTrialSet(Event event) {
     task = new BlockTrialTask(this, 
         lowSetting("block-target-dist") ? BlockTrialTask.LOW_SPEED : BlockTrialTask.HIGH_SPEED,
         lowSetting("block-num-targets") ? BlockTrialTask.LOW_TARGET_NUMBER : BlockTrialTask.HIGH_TARGET_NUMBER,
         lowSetting("block-operand-range") ? BlockTrialTask.LOW_OPERANDS : BlockTrialTask.HIGH_OPERANDS);
+    
+    useBlocks = false;
   }
   bool lowSetting(String name) {
     return (query("[name=$name]:checked") as InputElement).value == "low";
