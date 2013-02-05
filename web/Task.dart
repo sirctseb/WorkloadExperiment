@@ -39,6 +39,15 @@ abstract class TaskEvent {
   }
 }
 
+class TaskEndEvent extends TaskEvent {
+  TaskEndEvent(TaskController delegate, num time)
+      : super(delegate, time, 0);
+  
+  void start() {
+    delegate.endTrial();
+  }
+}
+
 /// [TargetEvent] is an [Event] that shows a target
 abstract class TargetEvent extends TaskEvent {
   Target target;
@@ -276,6 +285,17 @@ abstract class Task {
     //onTimer(timer);
     update(null);
   }
+  // the method an end task event calls when it starts
+  void endTask() {
+    // if we haven't passed the last iteration, we have to notify the controller
+    // of the end of the iteration
+    // TODO I think this should never happen
+    if(iteration < iterations) {
+      Logger.root.info("got end task from end event, and still on $iteration; sending message");
+      delegate.onIterationComplete(new Date.now().millisecondsSinceEpoch);
+    }
+    stop();
+  }
   void stop() {
     //timer.cancel();
     stopwatch.stop();
@@ -385,6 +405,8 @@ abstract class TrialTask extends Task {
         // addition event
         events.add(buildAdditionEvent(i));
       }
+      // add task end event
+      events.add(new TaskEndEvent(delegate, iterations * iterationTime));
     }
   }
   

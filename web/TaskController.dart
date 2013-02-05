@@ -398,6 +398,12 @@ class TaskController implements TargetDelegate {
       ws.send("AdditionStart, $time, ${ae.op1}, ${ae.op2}");
     }
   }
+  
+  // called by the end task even when it starts
+  void endTrial() {
+    task.endTask();
+  }
+  
   void onAdditionEnd(AdditionEvent ae, num time) {
     // send info to the data server
     if(wsReady) {
