@@ -301,12 +301,15 @@ class TaskController implements TargetDelegate {
     } else if(event.which == "n".charCodeAt(0)) {
       // n for nasa-tlx
       
-      // TODO reset survey state
-      
       // show the survey root
       showSurvey();
       
       // TODO on button click, record responses
+    } else if(event.which == "w".charCodeAt(0)) {
+      // w for weights
+      
+      // show the weights root
+      showWeights();
     }
   }
   
