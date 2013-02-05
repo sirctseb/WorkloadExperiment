@@ -130,20 +130,20 @@ class TlxWeights {
   static List<List<int>> _makeOptionPairs() {
     var pairs = [
       [Scale.MENTAL_DEMAND, Scale.PHYSICAL_DEMAND],
-      [Scale.MENTAL_DEMAND, Scale.TEMPORAL_DEMAND],
-      [Scale.MENTAL_DEMAND, Scale.PERFORMANCE],
+      [Scale.TEMPORAL_DEMAND, Scale.MENTAL_DEMAND],
+      [Scale.PERFORMANCE, Scale.MENTAL_DEMAND],
       [Scale.MENTAL_DEMAND, Scale.EFFORT],
-      [Scale.MENTAL_DEMAND, Scale.FRUSTRATION],
+      [Scale.FRUSTRATION, Scale.MENTAL_DEMAND],
       [Scale.PHYSICAL_DEMAND, Scale.TEMPORAL_DEMAND],
       [Scale.PHYSICAL_DEMAND, Scale.PERFORMANCE],
-      [Scale.PHYSICAL_DEMAND, Scale.EFFORT],
+      [Scale.EFFORT, Scale.PHYSICAL_DEMAND],
       [Scale.PHYSICAL_DEMAND, Scale.FRUSTRATION],
-      [Scale.TEMPORAL_DEMAND, Scale.PERFORMANCE],
+      [Scale.PERFORMANCE, Scale.TEMPORAL_DEMAND],
       [Scale.TEMPORAL_DEMAND, Scale.EFFORT],
       [Scale.TEMPORAL_DEMAND, Scale.FRUSTRATION],
-      [Scale.PERFORMANCE, Scale.EFFORT],
+      [Scale.EFFORT, Scale.PERFORMANCE],
       [Scale.PERFORMANCE, Scale.FRUSTRATION],
-      [Scale.EFFORT, Scale.FRUSTRATION]
+      [Scale.FRUSTRATION, Scale.EFFORT]
     ];
     var retPairs = [];
     Random rng = new Random(new Date.now().millisecond);
