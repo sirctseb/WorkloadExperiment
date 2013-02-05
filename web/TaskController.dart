@@ -118,6 +118,24 @@ class TaskController implements TargetDelegate {
       task = Block.allBlocks[block].createTask(this);
     });
     
+    // add handler to survey submission
+    query("#tlx-submit").onClick.listen((event) {
+      // get response values
+      var responses = {
+        "mental": getInputValue("mental-demand"),
+        "physical": getInputValue("physical-demand"),
+        "temporal": getInputValue("temporal"),
+        "performance": getInputValue("performance"),
+        "effort": getInputValue("effort"),
+        "frustration": getInputValue("frustration")
+      };
+      
+      // send values to data server
+      if(wsReady) {
+        ws.send("survey: ${stringify(responses)}");
+      }
+    });
+    
     // add handler for setting subject number
     document.query("#set-subject-number").onClick.listen(setSubjectNumber);
     
