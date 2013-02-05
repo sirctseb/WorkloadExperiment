@@ -402,8 +402,12 @@ abstract class TrialTask extends Task {
         for(int j = 0; j < numTargets; j++) {
           events.add(buildTargetEvent(i));
         }
-        // addition event
-        events.add(buildAdditionEvent(i));
+        // only add addition even if we have a valid range
+        // TODO hide addition ui if we don't have addition events
+        if(opRange != null) {
+          // addition event
+          events.add(buildAdditionEvent(i));
+        }
       }
       // add task end event
       events.add(new TaskEndEvent(delegate, iterations * iterationTime));
@@ -429,7 +433,7 @@ class ConfigurableTrialTask extends TrialTask {
   ConfigurableTrialTask(TaskController delegate,
       { int numTargets: 1,
         num this.targetDist: 0,
-        int iterations: 12,
+        int iterations: 1,
         List<int> opRange: const [1, 15],
         int iterationTime: 5000,
         int this.targetSize: 128})
@@ -454,7 +458,7 @@ class BlockTrialTask extends ConfigurableTrialTask {
   // trial task constants
   static const int ITERATION_TIME_S = 5;
   static const int ITERATION_TIME_MS = 5000;
-  static const int ITERATIONS = 12;
+  static const int ITERATIONS = 1;
   static const int TARGET_SIZE = 128;
   
   BlockTrialTask(TaskController delegate,

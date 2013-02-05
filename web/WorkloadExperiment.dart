@@ -19,6 +19,7 @@ void main() {
   Logger.root.on.record.add((LogRecord record) {
     print(record.message);
   });
+  Logger.root.level = Level.FINE;
 
   // disable all selection
   document.onSelectStart.listen((e) {

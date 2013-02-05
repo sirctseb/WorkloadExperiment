@@ -18,6 +18,9 @@ class TaskController implements TargetDelegate {
   /// The weights manager
   TlxWeights weights;
   
+  /// The block manager
+  BlockManager blockManager;
+  
   /// Task state
   bool taskRunning = false;
   num _score = 0;
@@ -72,12 +75,10 @@ class TaskController implements TargetDelegate {
     if(wsReady) document.body.classes.remove("ws-error");
     else document.body.classes.add("ws-error");
   }
-  
-  /// The current block
-  int block = 0;
+
   /// True iff we are using blocks from Block
-  bool useBlocks = false;
-  /// The number of trial we are on of a given block
+  bool useBlockManager = false;
+  /// The number of trial if not using a block manager
   int trial = 0;
   
   /// Create a task controller
@@ -93,6 +94,9 @@ class TaskController implements TargetDelegate {
     
     // make weights manager
     weights = new TlxWeights(this);
+    
+    // make block manager
+    blockManager = new BlockManager();
     
     // register for keyboard input
     window.onKeyPress.listen(handleKeyPress);
@@ -121,11 +125,9 @@ class TaskController implements TargetDelegate {
     document.query("#all-blocks").onClick.listen((event) {
       Logger.root.fine("starting block sequence");
       // flag to use blocks
-      useBlocks = true;
-      // set to first block
-      block = 0;
+      useBlockManager = true;
       // get first task
-      task = Block.allBlocks[block].createTask(this);
+      task = blockManager.getTask(this);
     });
     
     // add handler to survey submission
@@ -201,7 +203,7 @@ class TaskController implements TargetDelegate {
         targetDist: targetDist,
         opRange: [minOp, maxOp],
         targetSize: targetSize);
-    useBlocks = false;
+    useBlockManager = false;
   }
   void blockTrialSet(Event event) {
     task = new BlockTrialTask(this, 
@@ -209,7 +211,7 @@ class TaskController implements TargetDelegate {
         lowSetting("block-num-targets") ? BlockTrialTask.LOW_TARGET_NUMBER : BlockTrialTask.HIGH_TARGET_NUMBER,
         lowSetting("block-operand-range") ? BlockTrialTask.LOW_OPERANDS : BlockTrialTask.HIGH_OPERANDS);
     
-    useBlocks = false;
+    useBlockManager = false;
   }
   bool lowSetting(String name) {
     return (query("[name=$name]:checked") as InputElement).value == "low";
@@ -269,14 +271,14 @@ class TaskController implements TargetDelegate {
       
       // send trial number to server
       if(wsReady) {
-        ws.send("set: ${stringify({'trial': trial})}");
+        ws.send("set: ${stringify({'trial': useBlockManager ? blockManager.trialNumber : trial})}");
       }
       // if we're doing block sequence and we're on a new block, send block description
-      if(useBlocks) {
+      if(useBlockManager) {
         if(wsReady) {
-          if(trial == 0) {
+          if(blockManager.trialNumber == 0) {
             Logger.root.info("sending block info");
-            ws.send("set: ${stringify({'block': block, 'blockDesc': Block.allBlocks[block]})}");
+            ws.send("set: ${stringify({'block': blockManager.block, 'blockDesc': blockManager.blockDesc})}");
             Logger.root.info("sent block info");
           }
         }
@@ -432,21 +434,17 @@ class TaskController implements TargetDelegate {
     query("#addition").text = "X + Y";
     
     // if we are using all blocks, increment trial / block and create new task
-    if(useBlocks) {
+    if(useBlockManager) {
       Logger.root.fine("trial over, incrementing trial");
-      trial++;
-      if(trial >= Block.trialsPerBlock) {
-        trial = 0;
-        block++;
-        Logger.root.fine("that was last trial of block, going to task 0 of block $block");
-        
-        // show workload survey
+      
+      // tell manager to advance trial
+      if(blockManager.advance()) {
+        // if block advanced, show workload survey
         showSurvey();
       }
-      if(block < Block.allBlocks.length) {
-        Logger.root.fine("creating new task in block");
-        // get new task
-        task = Block.allBlocks[block].createTask(this);
+      if(!blockManager.finished) {
+        task = blockManager.getTask(this);
+        Logger.root.fine("got new task: $task from manager");
       }
     } else {
       // otherwise, just increment the trial number

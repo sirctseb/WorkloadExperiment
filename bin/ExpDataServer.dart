@@ -17,7 +17,7 @@ class Server {
   File dataFile = null;
   int trialNumber = 0;
   int subjectNumber = 0;
-  int blockNumber = 0;
+  var blockNumber = 0;
   bool logEvents = false;
   OutputStream stream;
   Process recordingProcess;
