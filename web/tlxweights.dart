@@ -58,7 +58,10 @@ class Scale {
 /// There should only be one instance of this
 class TlxWeights {
   
-  TlxWeights() {
+  /// The main task controller
+  TaskController controller;
+  
+  TlxWeights(TaskController this.controller) {
     // register click handlers on the option divs
     query("#scale-option-1").onClick.listen((event) {
       scaleClicked(0);

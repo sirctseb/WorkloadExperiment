@@ -15,6 +15,9 @@ class TaskController implements TargetDelegate {
   /// The root view of the weights screen
   DivElement weightsRoot;
   
+  /// The weights manager
+  TlxWeights weights;
+  
   /// Task state
   bool taskRunning = false;
   num _score = 0;
@@ -87,6 +90,9 @@ class TaskController implements TargetDelegate {
     settingsRoot = document.body.query("#settings");
     surveyRoot = document.body.query("#nasa-tlx");
     weightsRoot = document.query("#weights");
+    
+    // make weights manager
+    weights = new TlxWeights(this);
     
     // register for keyboard input
     window.onKeyPress.listen(handleKeyPress);
