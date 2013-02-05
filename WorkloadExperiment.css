@@ -144,3 +144,6 @@ body.ws-error {
 .nasa-tlx .tlx-high-label {
   float: right;
 }
+.nasa-tlx .tlx-button-div {
+  text-align:center;
+}
