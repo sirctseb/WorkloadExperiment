@@ -115,7 +115,7 @@ class TlxWeights {
   
   // option pair order
   List<List<int>> _optionPairs = _makeOptionPairs();
-  List<List<int>> _makeOptionPairs() {
+  static List<List<int>> _makeOptionPairs() {
     var pairs = [
       [Scale.MENTAL_DEMAND, Scale.PHYSICAL_DEMAND],
       [Scale.MENTAL_DEMAND, Scale.TEMPORAL_DEMAND],
