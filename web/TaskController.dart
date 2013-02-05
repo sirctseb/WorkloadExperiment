@@ -383,8 +383,9 @@ class TaskController implements TargetDelegate {
         trial = 0;
         block++;
         Logger.root.fine("that was last trial of block, going to task 0 of block $block");
-        // TODO do workload survey
-        // TODO send trial/block number to data server
+        
+        // show workload survey
+        showSurvey();
       }
       if(block < Block.allBlocks.length) {
         Logger.root.fine("creating new task in block");
