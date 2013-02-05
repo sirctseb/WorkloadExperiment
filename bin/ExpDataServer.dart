@@ -29,6 +29,7 @@ class Server {
   String get trialDescPathStr => "$trialDirStr/task.txt";
   String get dataFilePathStr => "$trialDirStr/data.txt";
   String get surveyPathStr => "$blockDirStr/survey.txt";
+  String get weightsPathStr => "$subjectDirStr/weights.txt";
   
   Server() {
     
@@ -117,6 +118,18 @@ class Server {
           // write survey to file
           surveyFile.writeAsString(message);
           
+        }
+        
+        if(message.startsWith("weights: ")) {
+          Logger.root.info("data serve received weights");
+          
+          // TODO make sure directory exists?
+          
+          // create file object
+          File weightsFile = new File.fromPath(new Path(weightsPathStr));
+          
+          // write weights to file
+          weightsFile.writeAsString(message);
         }
         
         if(message.startsWith("start trial")) {

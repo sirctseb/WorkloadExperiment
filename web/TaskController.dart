@@ -392,6 +392,17 @@ class TaskController implements TargetDelegate {
     event.stopPropagation();
   }
   
+  void weightsCollected(List<Scale> scales) {
+    // send weights to data server
+    if(wsReady) {
+      Map counts = {};
+      for(var scale in scales) {
+        counts[scale.title] = scale.count;
+      }
+      ws.send("weights: ${stringify(counts)}");
+    }
+  }
+  
   void onTrialStart(num time) {
     // ensure score is at zero
     score = 0;

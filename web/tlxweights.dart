@@ -20,6 +20,8 @@ class Scale {
   /// The display title of the scale
   String title;
   
+  
+  // TODO these really should just be normal instances and we shouldn't deal with this
   static resetScaleCounts() {
     Scales.forEach((index, scale) => scale.count = 0);
   }
@@ -101,7 +103,10 @@ class TlxWeights {
   set currentOptionPairIndex(int newIndex) {
     if(newIndex >= Scale.NUMBER_PAIRS) {
       // if we're going past the last one, notify controller that we're done
-      // TODO notify controller
+      controller.weightsCollected(
+          [Scale.MENTAL_DEMAND, Scale.PHYSICAL_DEMAND, Scale.TEMPORAL_DEMAND, Scale.PERFORMANCE, Scale.EFFORT, Scale.FRUSTRATION]
+          .mappedBy((scale) => new Scale.named(scale))
+      );
     } else {
       // update backing field
       _currentOptionPairIndex = newIndex;
