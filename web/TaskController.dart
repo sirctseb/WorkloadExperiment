@@ -498,11 +498,12 @@ class TaskController implements TargetDelegate {
     
     // reset duration
     executionDuration = null;
+    
+    // reset addition correctness style
+    query(".addition").classes.remove("correct");
   }
   
   void onAdditionStart(AdditionEvent ae, num time) {
-    // reset addition correctness style
-    query(".addition").classes.remove("correct");
     
     // send info to the data server
     if(wsReady) {
