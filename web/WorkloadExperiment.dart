@@ -9,6 +9,7 @@ part 'Target.dart';
 part 'TaskController.dart';
 part 'Task.dart';
 part 'block.dart';
+part 'tlxweights.dart';
 part 'mathutility.dart';
 
 
