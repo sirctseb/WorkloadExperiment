@@ -2,6 +2,13 @@ part of WorkloadExperiment;
 
 /// A block of trials in the experiment
 class Block {
+  Map toJson() {
+    return {
+      "targetNumber": targetNumberLow ? "low" : "high",
+      "targetSpeed": targetSpeedLow ? "low" : "high",
+      "additionDifficulty": additionDiffLow ? "low" : "high"
+    };
+  }
   
   /// The target number level
   bool targetNumberLow;

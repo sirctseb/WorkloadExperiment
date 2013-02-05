@@ -1,5 +1,6 @@
 library DataServer;
 import "dart:io";
+import "dart:json";
 import "package:logging/logging.dart";
 
 void main() {
@@ -16,9 +17,17 @@ class Server {
   File dataFile = null;
   int trialNumber = 0;
   int subjectNumber = 0;
+  int blockNumber = 0;
   bool logEvents = false;
   OutputStream stream;
   Process recordingProcess;
+  
+  String get subjectDirStr => "output/subject$subjectNumber";
+  String get blockDirStr => "$subjectDirStr/block$blockNumber";
+  String get blockDescPathStr => "$blockDirStr/block.txt";
+  String get trialDirStr => "$blockDirStr/trial$trialNumber";
+  String get trialDescPathStr => "$trialDirStr/task.txt";
+  String get dataFilePathStr => "$trialDirStr/data.txt";
   
   Server() {
     
@@ -57,29 +66,54 @@ class Server {
         }
         
         // check for subject number command
-        if(message.startsWith("subject")) {
+        if(message.startsWith("set: ")) {
           
           // get subject number
-          subjectNumber = int.parse(message.split(" ")[1]);
-          
-          Logger.root.info("data server got subject number: $subjectNumber");
-          
-          // reset trial number
-          trialNumber = 0;
+          Map info = parse(message.substring("set: ".length));
+          // read subject if it was sent
+          if(info.containsKey("subject")) {
+            subjectNumber = info["subject"];
+            Logger.root.info("data server got subject number: $subjectNumber");
+          }
+          // read block if it was sent
+          if(info.containsKey("block")) {
+            blockNumber = info["block"];
+            Logger.root.info("data server got block number: $blockNumber");
+            // write block description if it was sent
+            if(info.containsKey("blockDesc")) {
+              Logger.root.info("data server got block description");
+              
+              // make file object
+              File blockDescFile = new File.fromPath(new Path(blockDescPathStr));
+              
+              Logger.root.info("made block desc file object; ensuring dir exists");
+              
+              // make sure directory exists
+              new Directory(blockDirStr).createSync(recursive:true);
+              
+              Logger.root.info("ensured dir exists, writing file contents");
+              
+              // write block description to file
+              blockDescFile.writeAsStringSync(stringify(info["blockDesc"]));
+              Logger.root.info("data server wrote block description to file");
+            }
+          }
+          // read trial if it was sent
+          if(info.containsKey("trial")) {
+            trialNumber = info["trial"];
+            Logger.root.info("data server got trial number $trialNumber");
+          }
         }
         
         if(message.startsWith("start trial")) {
           Logger.root.info("data server received start trial message");
           
-          // set trial number
-          trialNumber++;
-          
           // create data file object
-          Path dataFilePath = new Path("output/subject$subjectNumber/trial$trialNumber/data.txt");
+          Path dataFilePath = new Path(dataFilePathStr);
           dataFile = new File.fromPath(dataFilePath);
           
           // create directory
-          new Directory("output/subject$subjectNumber/trial$trialNumber").createSync(recursive:true);
+          new Directory(trialDirStr).createSync(recursive:true);
           
           // open file stream
           stream = dataFile.openOutputStream();
@@ -91,7 +125,7 @@ class Server {
           Logger.root.info("starting recording");
           Logger.root.info("cwd: ${new Directory.current().toString()}");
           //Process.start("sox", ["-d", "output/subject$subjectNumber/trial$trialNumber/audio.mp3"])
-          Process.start("/opt/local/bin/sox", ["-d", "output/subject$subjectNumber/trial$trialNumber/audio.mp3"])
+          Process.start("/opt/local/bin/sox", ["-d", "$trialDirStr/audio.mp3"])
           .then((Process process) {
             Logger.root.info("recording started");
             recordingProcess = process;

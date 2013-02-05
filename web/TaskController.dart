@@ -141,7 +141,7 @@ class TaskController implements TargetDelegate {
   
   void setSubjectNumber(Event event) {
     // send subject number message
-    ws.send("subject ${(document.query('#subject-number') as InputElement).value}");
+    ws.send("set: ${stringify({'subject': int.parse((document.query('#subject-number') as InputElement).value)})}");
   }
   void settingChanged(Event event) {
   // if custom is enabled, create a new task
@@ -223,6 +223,21 @@ class TaskController implements TargetDelegate {
       // g for 'go', start the task
       // play chirps and then start
       countdown = 2;
+      
+      // send trial number to server
+      if(wsReady) {
+        ws.send("set: ${stringify({'trial': trial})}");
+      }
+      // if we're doing block sequence and we're on a new block, send block description
+      if(useBlocks) {
+        if(wsReady) {
+          if(trial == 0) {
+            Logger.root.info("sending block info");
+            ws.send("set: ${stringify({'block': block, 'blockDesc': Block.allBlocks[block]})}");
+            Logger.root.info("sent block info");
+          }
+        }
+      }
 
       // tell the data server we're starting so it can start recording
       notifyWSStart();
@@ -320,6 +335,9 @@ class TaskController implements TargetDelegate {
         // get new task
         task = Block.allBlocks[block].createTask(this);
       }
+    } else {
+      // otherwise, just increment the trial number
+      trial++;
     }
   }
   
