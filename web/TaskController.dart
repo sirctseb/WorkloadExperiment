@@ -445,6 +445,10 @@ class TaskController implements TargetDelegate {
       if(!blockManager.finished) {
         task = blockManager.getTask(this);
         Logger.root.fine("got new task: $task from manager");
+      } else {
+        // TODO show message that we are finished?
+        // show settings
+        showSettings();
       }
     } else {
       // otherwise, just increment the trial number
