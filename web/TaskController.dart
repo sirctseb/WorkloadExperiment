@@ -134,6 +134,14 @@ class TaskController implements TargetDelegate {
       if(wsReady) {
         ws.send("survey: ${stringify(responses)}");
       }
+      
+      // reset slider states
+      for(InputElement slider in surveyRoot.queryAll("input")) {
+        slider.value = "0";
+      }
+      
+      // go to task view
+      showTask();
     });
     
     // add handler for setting subject number
