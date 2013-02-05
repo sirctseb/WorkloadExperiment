@@ -81,9 +81,6 @@ class FixedTargetEvent extends TargetEvent {
         target.timeout();
         
         delegate.onTargetTimeout(this, new Date.now().millisecondsSinceEpoch);
-        
-        // update the score
-        delegate.score -= 100;
       }
       
       stop();
@@ -180,7 +177,6 @@ class MovingTargetEvent extends TargetEvent {
       if(fraction >=1 ) {
         // update score for missed target
         target.timeout();
-        delegate.score -= 100;
         // notify delegate of target timeout
         delegate.onTargetTimeout(this, new Date.now().millisecondsSinceEpoch);
         stop();
