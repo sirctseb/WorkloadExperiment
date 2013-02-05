@@ -45,34 +45,57 @@
     <div id="nasa-tlx" class="nasa-tlx">
       <div id="mental-demand-section" class="tlx-section">
         Mental Demand<span class="tlx-section-desc">How mentally demanding was the task?</span><br />
-        <input type="range" min="0" max="100" step="5" value="0" name="mental-demand"><br />
+        <input type="range" min="0" max="100" step="5" value="0" name="mental-demand" list="notches"><br />
         <span class="tlx-low-label">Very Low</span><span class="tlx-high-label">Very High</span>
       </div>
       <div id="physical-demand-section" class="tlx-section">
         Physical Demand<span class="tlx-section-desc">How physically demanding was the task?</span><br />
-        <input type="range" min="0" max="100" step="5" value="0" name="physical-demand"><br />
+        <input type="range" min="0" max="100" step="5" value="0" name="physical-demand" list="notches"><br />
         <span class="tlx-low-label">Very Low</span><span class="tlx-high-label">Very High</span>
       </div>
       <div id="temporal-demand-section" class="tlx-section">
         Temporal Demand<span class="tlx-section-desc">How hurried or rushed was the pace of the task?</span><br />
-        <input type="range" min="0" max="100" step="5" value="0" name="temporal-demand"><br />
+        <input type="range" min="0" max="100" step="5" value="0" name="temporal-demand" list="notches"><br />
         <span class="tlx-low-label">Very Low</span><span class="tlx-high-label">Very High</span>
       </div>
       <div id="performance-section" class="tlx-section">
         Performance<span class="tlx-section-desc">How successful were you in accomplishing what you were asked to do?</span><br />
-        <input type="range" min="0" max="100" step="5" value="0" name="performance"><br />
+        <input type="range" min="0" max="100" step="5" value="0" name="performance" list="notches"><br />
         <span class="tlx-low-label">Perfect</span><span class="tlx-high-label">Failure</span>
       </div>
       <div id="effort-section" class="tlx-section">
         Effort<span class="tlx-section-desc">How hard did you have to work to accomplish your level of performance?</span><br />
-        <input type="range" min="0" max="100" step="5" value="0" name="effort"><br />
+        <input type="range" min="0" max="100" step="5" value="0" name="effort" list="notches"><br />
         <span class="tlx-low-label">Very Low</span><span class="tlx-high-label">Very High</span>
       </div>
       <div id="frustration-section" class="tlx-section">
         Frustration<span class="tlx-section-desc">How insecure, discouraged, irritated, stressed, and annoyed were you?</span><br />
-        <input type="range" min="0" max="100" step="5" value="0" name="frustration"><br />
+        <input type="range" min="0" max="100" step="5" value="0" name="frustration" list="notches"><br />
         <span class="tlx-low-label">Very Low</span><span class="tlx-high-label">Very High</span>
       </div>
+      <datalist id="notches">
+        <option value="0">
+        <option value="5">
+        <option value="10">
+        <option value="15">
+        <option value="20">
+        <option value="25">
+        <option value="30">
+        <option value="35">
+        <option value="40">
+        <option value="45">
+        <option value="50">
+        <option value="55">
+        <option value="60">
+        <option value="65">
+        <option value="70">
+        <option value="75">
+        <option value="80">
+        <option value="85">
+        <option value="90">
+        <option value="95">
+        <option value="100">
+      </datalist>
     </div>
 
     <script type="application/dart" src="web/WorkloadExperiment.dart"></script>
