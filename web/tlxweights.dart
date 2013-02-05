@@ -69,6 +69,9 @@ class TlxWeights {
     query("#scale-option-2").onClick.listen((event) {
       scaleClicked(1);
     });
+    
+    // show initial options
+    presentOptions();
   }
   
   void scaleClicked(int which) {
