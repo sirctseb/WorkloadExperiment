@@ -94,7 +94,7 @@ class TaskController implements TargetDelegate {
         BlockTrialTask.LOW_OPERANDS);
     
     // add handler to body for missed target clicks
-    document.body.onMouseDown.listen(onBodyDown);
+    document.query(".task").onMouseDown.listen(onBodyDown);
     
     // add handler to body for mouse moves
     document.body.onMouseMove.listen(onBodyMove);
