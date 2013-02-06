@@ -72,8 +72,13 @@ class TaskController implements TargetDelegate {
   AudioElement beep = (query("#beep") as AudioElement);
   
   void WarnWS(Event event) {
-    if(wsReady) document.body.classes.remove("ws-error");
-    else document.body.classes.add("ws-error");
+    if(wsReady) {
+      Logger.root.info("ws ready");
+      document.body.classes.remove("ws-error");
+    } else {
+      Logger.root.info("error: ws not ready");
+      document.body.classes.add("ws-error");
+    }
   }
 
   /// True iff we are using blocks from Block
