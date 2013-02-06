@@ -16,7 +16,7 @@ body {
   width: 100%;
 }
 body.ws-error {
-  background-color: #FFEEEE;
+  background-color: #FFDDDD;
 }
 
 .task {
