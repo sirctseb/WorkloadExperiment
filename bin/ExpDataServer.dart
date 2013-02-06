@@ -54,7 +54,11 @@ class Server {
           // stop recording
           if(recordingProcess != null) {
             Logger.root.info("killing recording");
-            recordingProcess.kill();
+            if(recordingProcess.kill()) {
+              Logger.root.info("recording process succsssfully killed");
+            } else {
+              Logger.root.info("killing recording failed. already dead?");
+            }
             // TODO if not ^, send message to client
             recordingProcess = null;
           }
@@ -156,6 +160,14 @@ class Server {
           .then((Process process) {
             Logger.root.info("recording started");
             recordingProcess = process;
+            // read all stdout and stderr data so it doesn't break the recording
+            // TODO log to an invisible div?
+            recordingProcess.stdout.onData = () {
+              process.stdout.read();
+            };
+            recordingProcess.stderr.onData = () {
+              process.stderr.read();
+            };
             // TODO send message to client that recording started
             // TODO on error send message that we're not recording
           });
