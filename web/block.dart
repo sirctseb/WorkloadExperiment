@@ -55,13 +55,27 @@ class BlockManager {
     if(practicing) {
       if(_blockNumber == 0) {
         // return addition only task
-        // TODO make operand range variable
-        return new ConfigurableTrialTask(controller, numTargets: 0, opRange: [1, 15]);
+        // alternate low and high operand range
+        if(trialNumber % 2 == 0) {
+          return new ConfigurableTrialTask(controller, numTargets: 0, opRange: BlockTrialTask.LOW_OPERANDS);
+        } else {
+          return new ConfigurableTrialTask(controller, numTargets: 0, opRange: BlockTrialTask.HIGH_OPERANDS);
+        }
       } else {
         // return target only task
         // TODO magic number to produce target distance
-        // TODO make speed & number variable
-        return new ConfigurableTrialTask(controller, opRange: null, numTargets: 3, targetDist: BlockTrialTask.HIGH_SPEED * 5);
+        // do all four target level combinations plus a bonus low,low
+        if(trialNumber == 0) {
+          return new ConfigurableTrialTask(controller, opRange: null, numTargets: BlockTrialTask.LOW_TARGET_NUMBER, targetDist: BlockTrialTask.LOW_SPEED * 5);
+        } else if(trialNumber == 1) {
+          return new ConfigurableTrialTask(controller, opRange: null, numTargets: BlockTrialTask.HIGH_TARGET_NUMBER, targetDist: BlockTrialTask.LOW_SPEED * 5);
+        } else if(trialNumber == 2) {
+          return new ConfigurableTrialTask(controller, opRange: null, numTargets: BlockTrialTask.LOW_TARGET_NUMBER, targetDist: BlockTrialTask.HIGH_SPEED * 5);
+        } else if(trialNumber == 3) {
+          return new ConfigurableTrialTask(controller, opRange: null, numTargets: BlockTrialTask.HIGH_TARGET_NUMBER, targetDist: BlockTrialTask.HIGH_SPEED * 5);
+        } else {
+          return new ConfigurableTrialTask(controller, opRange: null, numTargets: BlockTrialTask.LOW_TARGET_NUMBER, targetDist: BlockTrialTask.LOW_SPEED * 5);
+        }
       }
     } else {
       // return a block from the current block
