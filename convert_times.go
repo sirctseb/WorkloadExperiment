@@ -65,10 +65,13 @@ func printHitAndAdditionTimes(lines []string) {
 	hitRE, _ := regexp.Compile(`TargetHit, ([\d\.]+), `)
 	startRE, _ := regexp.Compile(`TargetStart, ([\d\.]+), `)
 	additionRE, _ := regexp.Compile(`AdditionEnd, ([\d\.]+)`)
+	taskCompleteRE, _ := regexp.Compile(`TasksComplete, ([\d\.]+), `)
 	// make slice for hit times
 	hitTimes := make([]float64, 0, 100)
 	// make slice for additiont imes
 	additionTimes := make([]float64, 0, 100)
+	// make slice for task completion times
+	taskCompleteTimes := make([]float64, 0, 100)
 	iterationStartTime := 0.
 	lastHitTime := 0.
 
@@ -97,14 +100,23 @@ func printHitAndAdditionTimes(lines []string) {
 			time, _ := strconv.ParseFloat(match[1], 64)
 			// compute and store time since iteration start
 			additionTimes = append(additionTimes, time-iterationStartTime)
+		} else if match = taskCompleteRE.FindStringSubmatch(line); len(match) > 0 {
+			// check for tasks complete
+
+			// get time of event
+			time, _ := strconv.ParseFloat(match[1], 64)
+			// compute and store time since iteration start
+			taskCompleteTimes = append(taskCompleteTimes, time-iterationStartTime)
 		}
 	}
 
 	hitTimesString := listToString(hitTimes)
 	additionTimesString := listToString(additionTimes)
+	taskCompleteTimesString := listToString(taskCompleteTimes)
 
 	fmt.Printf("hitTimes, %s\n", hitTimesString)
 	fmt.Printf("additionTimes, %s\n", additionTimesString)
+	fmt.Printf("completeTimes, %s\n", taskCompleteTimesString)
 
 	// compute min max and mean
 	/*min, max, mean := hitTimes[0], hitTimes[0], 0.
