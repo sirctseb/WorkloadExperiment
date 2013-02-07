@@ -60,6 +60,74 @@ func printResponseTimes(subject int, block, trial string) {
 
 }
 
+func printHitAndAdditionTimes(lines []string) {
+	// define regexes for target hits and starts
+	hitRE, _ := regexp.Compile(`TargetHit, ([\d\.]+), `)
+	startRE, _ := regexp.Compile(`TargetStart, ([\d\.]+), `)
+	additionRE, _ := regexp.Compile(`AdditionEnd, ([\d\.]+)`)
+	// make slice for hit times
+	hitTimes := make([]float64, 0, 100)
+	// make slice for additiont imes
+	additionTimes := make([]float64, 0, 100)
+	iterationStartTime := 0.
+	lastHitTime := 0.
+
+	// compute hit times
+	for _, line := range lines {
+		// check for target hit match
+		match := hitRE.FindStringSubmatch(line)
+		if len(match) > 0 {
+			// find the time of the hit
+			time, _ := strconv.ParseFloat(match[1], 64)
+			// compute and store the target hit time from the start or last hit time
+			hitTimes = append(hitTimes, time-lastHitTime)
+			// update the last hit time
+			lastHitTime = time
+		} else if strings.HasPrefix(line, "TargetStart") {
+			// check for target start event
+
+			// get time of event and set lastHitTime
+			lastHitTime, _ = strconv.ParseFloat(startRE.FindStringSubmatch(line)[1], 64)
+			// update the iteration start time when we find a new target start
+			iterationStartTime = lastHitTime
+		} else if match = additionRE.FindStringSubmatch(line); len(match) > 0 {
+			// check for addition task end
+
+			// get time of event
+			time, _ := strconv.ParseFloat(match[1], 64)
+			// compute and store time since iteration start
+			additionTimes = append(additionTimes, time-iterationStartTime)
+		}
+	}
+
+	hitTimesString := listToString(hitTimes)
+	additionTimesString := listToString(additionTimes)
+
+	fmt.Printf("hitTimes, %s\n", hitTimesString)
+	fmt.Printf("additionTimes, %s\n", additionTimesString)
+
+	// compute min max and mean
+	/*min, max, mean := hitTimes[0], hitTimes[0], 0.
+	for _, hitTime := range hitTimes {
+		if hitTime < min {
+			min = hitTime
+		}
+		if hitTime > max {
+			max = hitTime
+		}
+		mean += hitTime
+	}
+	mean /= float64(len(hitTimes))
+	fmt.Printf("%f, %f, %f\n", min, max, mean)
+
+	// print historgram
+	bucketSize := 0.2;
+	for i := min; i <= max; i += bucketSize {
+		fmt.Printf("%f: %s\n", i, strings.Repeat("x", CountBucket(hitTimes, i, i + bucketSize)))
+	}*/
+	fmt.Println()
+}
+
 func printTaskData(subject int, block, trial string) {
 	// read task description
 	file, _ := os.Open(fmt.Sprintf("output/subject%d/%s/%s/task.txt", subject, block, trial))
@@ -165,7 +233,7 @@ func main() {
 
 			// define rege for start of trial
 			trial_start_regex, _ := regexp.Compile(`TrialStart, (\d{13})`)
-	
+
 			// get string of trial start time
 			stamp_string := trial_start_regex.FindStringSubmatch(contents)[1]
 
@@ -192,48 +260,10 @@ func main() {
 			// split contents into lines
 			lines := strings.Split(diffTimes, "\n")
 
-			// define regexes for target hits and starts
-			hitRE, _ := regexp.Compile(`TargetHit, ([\d\.]+), `)
-			startRE, _ := regexp.Compile(`TargetStart, ([\d\.]+), `)
-			// make slice for hit times
-			hitTimes := make([]float64, 0, 100)
-			lastHitTime := 0.
-			// compute hit times
-			for _, line := range lines {
-				match := hitRE.FindStringSubmatch(line)
-				if len(match) > 0 {
-					time, _ := strconv.ParseFloat(match[1], 64)
-					hitTimes = append(hitTimes, time-lastHitTime)
-					lastHitTime = time
-					} else if strings.HasPrefix(line, "TargetStart") {
-						lastHitTime, _ = strconv.ParseFloat(startRE.FindStringSubmatch(line)[1], 64)
-					}
-				}
+			fmt.Println("split strings, about to to hits and additions")
 
-				hitTimesString := listToString(hitTimes)
+			printHitAndAdditionTimes(lines)
 
-				fmt.Printf("hitTimes, %s\n", hitTimesString)
-
-			// compute min max and mean
-			/*min, max, mean := hitTimes[0], hitTimes[0], 0.
-			for _, hitTime := range hitTimes {
-				if hitTime < min {
-					min = hitTime
-				}
-				if hitTime > max {
-					max = hitTime
-				}
-				mean += hitTime
-			}
-			mean /= float64(len(hitTimes))
-			fmt.Printf("%f, %f, %f\n", min, max, mean)
-
-			// print historgram
-			bucketSize := 0.2;
-			for i := min; i <= max; i += bucketSize {
-				fmt.Printf("%f: %s\n", i, strings.Repeat("x", CountBucket(hitTimes, i, i + bucketSize)))
-			}*/
-			fmt.Println()
 		}
 	}
 }
