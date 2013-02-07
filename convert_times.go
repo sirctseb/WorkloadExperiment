@@ -164,6 +164,10 @@ func printTaskData(subject int, block, trial string) {
 	if speed, ok := descObj["targetDist"]; ok {
 		fmt.Printf("speed, %d\n", int(speed.(float64)))
 	}
+	// print operand range
+	if opRange, ok := descObj["opRange"]; ok {
+		fmt.Printf("op range, %v\n", opRange)
+	}
 
 	file.Close()
 }
