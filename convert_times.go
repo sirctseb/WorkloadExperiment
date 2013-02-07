@@ -116,7 +116,7 @@ func printHitAndAdditionTimes(lines []string) {
 
 	//fmt.Printf("hitTimes, %s\n", hitTimesString)
 	//fmt.Printf("additionTimes, %s\n", additionTimesString)
-	fmt.Printf("completeTimes, %s\n", taskCompleteTimesString)
+	fmt.Printf("%s", taskCompleteTimesString)
 
 	// compute min max and mean
 	/*min, max, mean := hitTimes[0], hitTimes[0], 0.
@@ -140,10 +140,11 @@ func printHitAndAdditionTimes(lines []string) {
 	fmt.Println()
 }
 
-func printTaskData(subject int, block, trial string) {
+func getTaskDataObject(subject int, block, trial string) map[string]interface{} {
 	// read task description
 	file, _ := os.Open(fmt.Sprintf("output/subject%d/%s/%s/task.txt", subject, block, trial))
 	contents, _ := ioutil.ReadAll(bufio.NewReader(file))
+	file.Close()
 	trialDesc := string(contents)
 
 	// discard "start trial: "
@@ -153,6 +154,11 @@ func printTaskData(subject int, block, trial string) {
 	decoder := json.NewDecoder(strings.NewReader(trialDesc))
 	var descObj map[string]interface{}
 	decoder.Decode(&descObj)
+
+	return descObj
+}
+func printTaskData(subject int, block, trial string) {
+	descObj := getTaskDataObject(subject, block, trial)
 
 	// print number of targets
 	if numTargets, ok := descObj["numTargets"]; ok {
@@ -169,7 +175,11 @@ func printTaskData(subject int, block, trial string) {
 		fmt.Printf("op range, %v\n", opRange)
 	}
 
-	file.Close()
+}
+
+func printRHeader() {
+	// TODO we should really read this from the file in case any of the parameters change
+	fmt.Println("targets, speed, oprange, et1, et2, et3, et4, et5, et6, et7, et8, et9, et10, et11, et12")
 }
 
 func printAccuracy(contents string) {
@@ -213,6 +223,31 @@ func getDirsInDirWithPrefix(dirname, prefix string) []string {
 	return names
 }
 
+type IVLevels struct {
+	TargetNumber       string
+	TargetSpeed        string
+	AdditionDifficulty string
+}
+
+func getBlockIVLevels(subject int, block string) *IVLevels {
+	// get file object
+	if fi, err := os.Open(fmt.Sprintf("output/subject%d/%s/block.txt", subject, block)); err == nil {
+		//decoder := json.NewDecoder(bufio.NewReader(fi))
+		bytes, _ := ioutil.ReadAll(bufio.NewReader(fi))
+
+		var levels *IVLevels = new(IVLevels)
+		//if decoder.Decode(&levels) == nil {
+		if json.Unmarshal(bytes, levels) == nil {
+			return levels
+		} else {
+			fmt.Printf("could not decode levels from %s", string(bytes))
+		}
+	} else {
+		fmt.Printf("could not open block desc file output/subject%d/%s/block.txt", subject, block)
+	}
+	return nil
+}
+
 func main() {
 
 	var subject int
@@ -224,12 +259,25 @@ func main() {
 
 	blocks := blocksInDir(fmt.Sprintf("output/subject%d", subject))
 
+	// print header
+	printRHeader()
+
 	for _, block := range blocks {
+
+		// get block IV levels
+		// TODO this doesn't work for practice blocks
+		levels := getBlockIVLevels(subject, block)
 
 		//	trials := []int{1,2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
 		trials := trialsInDir(fmt.Sprintf("output/subject%d/%s", subject, block))
 
 		for _, trial := range trials {
+
+			if levels != nil {
+				fmt.Printf("%s, %s, %s, ", levels.TargetNumber, levels.TargetSpeed, levels.AdditionDifficulty)
+			} else {
+				fmt.Printf("no block desc")
+			}
 
 			// print subject and trial
 			//fmt.Printf("subject, %d, block %s, trial, %s\n", subject, block, trial)
