@@ -250,6 +250,9 @@ class TaskController implements TargetDelegate {
       Logger.root.finest("sending mouse down event");
       ws.send("MouseDown, ${event.timeStamp}, ${event.clientX}, ${event.clientY}, ${hit?'HIT':'MISS'}");
     }
+    if(!hit) {
+      score -= 20;
+    }
   }
   
   void onBodyMove(MouseEvent event) {
