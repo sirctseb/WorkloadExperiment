@@ -343,6 +343,8 @@ abstract class Task {
     }
     lastIteration = iteration;
     
+    // TODO should this go above the loop that removes finished events so that
+    // TODO they will be removed as soon as they are done?
     // update current events
     currentEvents.forEach((ce) => ce.update(stopwatch.elapsedMilliseconds));
     
