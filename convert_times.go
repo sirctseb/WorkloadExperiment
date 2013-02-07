@@ -35,9 +35,9 @@ func listToString(list []float64) string {
 	return strings.Join(stringslist, ",")
 }
 
-func printResponseTimes(subject, trial int) {
+func printResponseTimes(subject int, block, trial string) {
 	// read oral response times if they exist
-	file, err := os.Open(fmt.Sprintf("output/subject%d/trial%d/responses.txt", subject, trial))
+	file, err := os.Open(fmt.Sprintf("output/subject%d/%s/%s/responses.txt", subject, block, trial))
 	if err == nil {
 		// get the contents of the file
 		contents, _ := ioutil.ReadAll(bufio.NewReader(file))
@@ -55,14 +55,14 @@ func printResponseTimes(subject, trial int) {
 		fmt.Printf("responseTimes, %s\n", listToString(responseTimes))
 		file.Close()
 	} else {
-		fmt.Printf("no responses file for subject %d, trial %d\n", subject, trial)
+		fmt.Printf("no responses file for subject %d, block %s, trial %s\n", subject, block, trial)
 	}
 
 }
 
-func printTaskData(subject, trial int) {
+func printTaskData(subject int, block, trial string) {
 	// read task description
-	file, _ := os.Open(fmt.Sprintf("output/subject%d/trial%d/task.txt", subject, trial))
+	file, _ := os.Open(fmt.Sprintf("output/subject%d/%s/%s/task.txt", subject, block, trial))
 	contents, _ := ioutil.ReadAll(bufio.NewReader(file))
 	trialDesc := string(contents)
 
@@ -92,118 +92,149 @@ func printAccuracy(contents string) {
 	// get number of clicks
 	click_regex, _ := regexp.Compile(`MouseDown, `)
 	clicks := len(click_regex.FindAllString(contents, -1))
-		// get number of misses
+	// get number of misses
 	miss_regex, _ := regexp.Compile(`MouseDown, [\d.]+, \d+, \d+, MISS`)
 	misses := len(miss_regex.FindAllString(contents, -1))
-		// get number of hits
+	// get number of hits
 	hit_regex, _ := regexp.Compile(`TargetHit, `)
 	hits := len(hit_regex.FindAllString(contents, -1))
-		// print hit / miss info
+	// print hit / miss info
 	fmt.Printf("clicks, %d\n", clicks)
 	fmt.Printf("misses, %d\n", misses)
 	fmt.Printf("hits, %d\n", hits)
 }
 
+func trialsInDir(dirname string) []string {
+	return getDirsInDirWithPrefix(dirname, "trial")
+}
+
+func blocksInDir(dirname string) []string {
+	return getDirsInDirWithPrefix(dirname, "block")
+}
+func getDirsInDirWithPrefix(dirname, prefix string) []string {
+	// get file info slice
+	fileInfos, err := ioutil.ReadDir(dirname)
+	if err != nil {
+		fmt.Errorf("Could not read contents of %s", dirname)
+		return nil
+	}
+	// make name slice
+	names := make([]string, 0, len(fileInfos))
+	// fill name slice
+	for _, fi := range fileInfos {
+		if strings.HasPrefix(fi.Name(), prefix) {
+			names = append(names, fi.Name())
+		}
+	}
+	return names
+}
+
 func main() {
 
-	var subject, trial int
+	var subject int
 
 	// get subject and trial from command line ifassed
 	flag.IntVar(&subject, "s", 5, "The number of the subject")
-	flag.IntVar(&trial, "t", 1, "The trial number")
+	//	flag.IntVar(&trial, "t", 1, "The trial number")
 	flag.Parse()
 
-	trials := []int{1,2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
+	blocks := blocksInDir(fmt.Sprintf("output/subject%d", subject))
 
-	for _, trial := range trials {
+	for _, block := range blocks {
 
-		// print subject and trial
-		fmt.Printf("subject, %d, trial, %d\n", subject, trial) 
+		//	trials := []int{1,2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
+		trials := trialsInDir(fmt.Sprintf("output/subject%d/%s", subject, block))
 
-		// make file object
-		file, _ := os.Open(fmt.Sprintf("output/subject%d/trial%d/data.txt", subject, trial))
+		for _, trial := range trials {
 
-		// get file contents
-		buffer, _ := ioutil.ReadAll(bufio.NewReader(file))
-		contents := string(buffer)
+			// print subject and trial
+			fmt.Printf("subject, %d, block %s, trial, %s\n", subject, block, trial)
 
-		// close file
-		file.Close()
+			// make file object
+			file, _ := os.Open(fmt.Sprintf("output/subject%d/%s/%s/data.txt", subject, block, trial))
 
-		// read and print task data
-		printTaskData(subject, trial)
+			// get file contents
+			buffer, _ := ioutil.ReadAll(bufio.NewReader(file))
+			contents := string(buffer)
 
-		// define rege for start of trial
-		trial_start_regex, _ := regexp.Compile(`TrialStart, (\d{13})`)
+			// close file
+			file.Close()
 
-		// get string of trial start time
-		stamp_string := trial_start_regex.FindStringSubmatch(contents)[1]
+			// read and print task data
+			printTaskData(subject, block, trial)
 
-		// get time object for start time
-		startDate := datetimeFromString(stamp_string)
+			// define rege for start of trial
+			trial_start_regex, _ := regexp.Compile(`TrialStart, (\d{13})`)
+	
+			// get string of trial start time
+			stamp_string := trial_start_regex.FindStringSubmatch(contents)[1]
 
-		// define function for replacing time stamps
-		replaceFunc := func(match string) string {
-			diff := datetimeFromString(match).Sub(startDate)
-			return fmt.Sprintf("%f", diff.Seconds())
-		}
+			// get time object for start time
+			startDate := datetimeFromString(stamp_string)
 
-		// define regex for time stamp
-		date_regex, _ := regexp.Compile(`\d{13}`)
-		// replace times stamps
-		diffTimes := date_regex.ReplaceAllStringFunc(contents, replaceFunc)
-
-		// print accuracy info
-		printAccuracy(diffTimes)
-
-		// read response time data and print
-		printResponseTimes(subject, trial)
-
-		// split contents into lines
-		lines := strings.Split(diffTimes, "\n")
-
-		// define regexes for target hits and starts
-		hitRE, _ := regexp.Compile(`TargetHit, ([\d\.]+), `)
-		startRE, _ := regexp.Compile(`TargetStart, ([\d\.]+), `)
-		// make slice for hit times
-		hitTimes := make([]float64, 0, 100)
-		lastHitTime := 0.
-		// compute hit times
-		for _, line := range lines {
-			match := hitRE.FindStringSubmatch(line)
-			if len(match) > 0 {
-				time, _ := strconv.ParseFloat(match[1], 64)
-				hitTimes = append(hitTimes, time-lastHitTime)
-				lastHitTime = time
-			} else if strings.HasPrefix(line, "TargetStart") {
-				lastHitTime, _ = strconv.ParseFloat(startRE.FindStringSubmatch(line)[1], 64)
+			// define function for replacing time stamps
+			replaceFunc := func(match string) string {
+				diff := datetimeFromString(match).Sub(startDate)
+				return fmt.Sprintf("%f", diff.Seconds())
 			}
-		}
 
-		hitTimesString := listToString(hitTimes)
+			// define regex for time stamp
+			date_regex, _ := regexp.Compile(`\d{13}`)
+			// replace times stamps
+			diffTimes := date_regex.ReplaceAllStringFunc(contents, replaceFunc)
 
-		fmt.Printf("hitTimes, %s\n", hitTimesString)
+			// print accuracy info
+			printAccuracy(diffTimes)
 
-		// compute min max and mean
-		/*min, max, mean := hitTimes[0], hitTimes[0], 0.
-		for _, hitTime := range hitTimes {
-			if hitTime < min {
-				min = hitTime
+			// read response time data and print
+			printResponseTimes(subject, block, trial)
+
+			// split contents into lines
+			lines := strings.Split(diffTimes, "\n")
+
+			// define regexes for target hits and starts
+			hitRE, _ := regexp.Compile(`TargetHit, ([\d\.]+), `)
+			startRE, _ := regexp.Compile(`TargetStart, ([\d\.]+), `)
+			// make slice for hit times
+			hitTimes := make([]float64, 0, 100)
+			lastHitTime := 0.
+			// compute hit times
+			for _, line := range lines {
+				match := hitRE.FindStringSubmatch(line)
+				if len(match) > 0 {
+					time, _ := strconv.ParseFloat(match[1], 64)
+					hitTimes = append(hitTimes, time-lastHitTime)
+					lastHitTime = time
+					} else if strings.HasPrefix(line, "TargetStart") {
+						lastHitTime, _ = strconv.ParseFloat(startRE.FindStringSubmatch(line)[1], 64)
+					}
+				}
+
+				hitTimesString := listToString(hitTimes)
+
+				fmt.Printf("hitTimes, %s\n", hitTimesString)
+
+			// compute min max and mean
+			/*min, max, mean := hitTimes[0], hitTimes[0], 0.
+			for _, hitTime := range hitTimes {
+				if hitTime < min {
+					min = hitTime
+				}
+				if hitTime > max {
+					max = hitTime
+				}
+				mean += hitTime
 			}
-			if hitTime > max {
-				max = hitTime
-			}
-			mean += hitTime
-		}
-		mean /= float64(len(hitTimes))
-		fmt.Printf("%f, %f, %f\n", min, max, mean)
+			mean /= float64(len(hitTimes))
+			fmt.Printf("%f, %f, %f\n", min, max, mean)
 
-		// print historgram
-		bucketSize := 0.2;
-		for i := min; i <= max; i += bucketSize {
-			fmt.Printf("%f: %s\n", i, strings.Repeat("x", CountBucket(hitTimes, i, i + bucketSize)))
-		}*/
-		fmt.Println()
+			// print historgram
+			bucketSize := 0.2;
+			for i := min; i <= max; i += bucketSize {
+				fmt.Printf("%f: %s\n", i, strings.Repeat("x", CountBucket(hitTimes, i, i + bucketSize)))
+			}*/
+			fmt.Println()
+		}
 	}
 }
 func CountBucket(values []float64, min, max float64) int {
