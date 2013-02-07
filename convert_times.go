@@ -110,12 +110,12 @@ func printHitAndAdditionTimes(lines []string) {
 		}
 	}
 
-	hitTimesString := listToString(hitTimes)
-	additionTimesString := listToString(additionTimes)
+	//hitTimesString := listToString(hitTimes)
+	//additionTimesString := listToString(additionTimes)
 	taskCompleteTimesString := listToString(taskCompleteTimes)
 
-	fmt.Printf("hitTimes, %s\n", hitTimesString)
-	fmt.Printf("additionTimes, %s\n", additionTimesString)
+	//fmt.Printf("hitTimes, %s\n", hitTimesString)
+	//fmt.Printf("additionTimes, %s\n", additionTimesString)
 	fmt.Printf("completeTimes, %s\n", taskCompleteTimesString)
 
 	// compute min max and mean
@@ -232,7 +232,7 @@ func main() {
 		for _, trial := range trials {
 
 			// print subject and trial
-			fmt.Printf("subject, %d, block %s, trial, %s\n", subject, block, trial)
+			//fmt.Printf("subject, %d, block %s, trial, %s\n", subject, block, trial)
 
 			// make file object
 			file, _ := os.Open(fmt.Sprintf("output/subject%d/%s/%s/data.txt", subject, block, trial))
@@ -245,7 +245,7 @@ func main() {
 			file.Close()
 
 			// read and print task data
-			printTaskData(subject, block, trial)
+			//printTaskData(subject, block, trial)
 
 			// define rege for start of trial
 			trial_start_regex, _ := regexp.Compile(`TrialStart, (\d{13})`)
@@ -268,15 +268,15 @@ func main() {
 			diffTimes := date_regex.ReplaceAllStringFunc(contents, replaceFunc)
 
 			// print accuracy info
-			printAccuracy(diffTimes)
+			//printAccuracy(diffTimes)
 
 			// read response time data and print
-			printResponseTimes(subject, block, trial)
+			//printResponseTimes(subject, block, trial)
 
 			// split contents into lines
 			lines := strings.Split(diffTimes, "\n")
 
-			fmt.Println("split strings, about to to hits and additions")
+			//fmt.Println("split strings, about to to hits and additions")
 
 			printHitAndAdditionTimes(lines)
 
