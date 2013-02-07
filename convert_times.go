@@ -59,8 +59,7 @@ func printResponseTimes(subject int, block, trial string) {
 	}
 
 }
-
-func printHitAndAdditionTimes(lines []string) {
+func getResultTimes(lines []string) map[string][]float64 {
 	// define regexes for target hits and starts
 	hitRE, _ := regexp.Compile(`TargetHit, ([\d\.]+), `)
 	startRE, _ := regexp.Compile(`TargetStart, ([\d\.]+), `)
@@ -109,6 +108,14 @@ func printHitAndAdditionTimes(lines []string) {
 			taskCompleteTimes = append(taskCompleteTimes, time-iterationStartTime)
 		}
 	}
+	return map[string][]float64{"hit": hitTimes, "addition": additionTimes, "complete": taskCompleteTimes}
+}
+
+func printHitAndAdditionTimes(lines []string) {
+	results := getResultTimes(lines)
+	//hitTimes := results["hit"]
+	//additionTimes := results["addition"]
+	taskCompleteTimes := results["complete"]
 
 	//hitTimesString := listToString(hitTimes)
 	//additionTimesString := listToString(additionTimes)
