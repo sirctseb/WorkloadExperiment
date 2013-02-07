@@ -65,6 +65,8 @@ func getResultTimes(lines []string) map[string][]float64 {
 	startRE, _ := regexp.Compile(`TargetStart, ([\d\.]+), `)
 	additionRE, _ := regexp.Compile(`AdditionEnd, ([\d\.]+)`)
 	taskCompleteRE, _ := regexp.Compile(`TasksComplete, ([\d\.]+), `)
+	iterationEndRE, _ := regexp.Compile(`IterationEnd, ([\d\.]+)`)
+	//trialStartRE, _ := regexp.Compile(`TrialStart, ([\d\.]+)`)
 	// make slice for hit times
 	hitTimes := make([]float64, 0, 100)
 	// make slice for additiont imes
@@ -73,6 +75,7 @@ func getResultTimes(lines []string) map[string][]float64 {
 	taskCompleteTimes := make([]float64, 0, 100)
 	iterationStartTime := 0.
 	lastHitTime := 0.
+	tasksComplete := false
 
 	// compute hit times
 	for _, line := range lines {
@@ -106,6 +109,19 @@ func getResultTimes(lines []string) map[string][]float64 {
 			time, _ := strconv.ParseFloat(match[1], 64)
 			// compute and store time since iteration start
 			taskCompleteTimes = append(taskCompleteTimes, time-iterationStartTime)
+			// set flag that tasks are complete
+			tasksComplete = true
+		} else if match = iterationEndRE.FindStringSubmatch(line); len(match) > 0 {
+			// check for iteration end
+
+			// if tasks are not complete by the time we hit iteration end, set completion time
+			// to 5
+			// TODO this depends on 5 second iterations. we should make this look it up
+			if !tasksComplete {
+				taskCompleteTimes = append(taskCompleteTimes, 5.)
+			}
+			// reset tasks Complete
+			tasksComplete = false
 		}
 	}
 	return map[string][]float64{"hit": hitTimes, "addition": additionTimes, "complete": taskCompleteTimes}
