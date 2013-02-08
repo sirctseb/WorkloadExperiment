@@ -138,6 +138,7 @@ func getResultTimes(lines []string, targets int) map[string][]float64 {
 			if !additionComplete {
 				additionTimes = append(additionTimes, 5.)
 			}
+			// TODO should also fill 5s for incomplete target tasks
 			// reset tasks Complete
 			tasksComplete = false
 			// reset addition complete flag
