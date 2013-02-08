@@ -59,7 +59,7 @@ func printResponseTimes(subject int, block, trial string) {
 	}
 
 }
-func getResultTimes(lines []string) map[string][]float64 {
+func getResultTimes(lines []string, targets int) map[string][]float64 {
 	// define regexes for target hits and starts
 	hitRE, _ := regexp.Compile(`TargetHit, ([\d\.]+), `)
 	startRE, _ := regexp.Compile(`TargetStart, ([\d\.]+), `)
@@ -73,9 +73,13 @@ func getResultTimes(lines []string) map[string][]float64 {
 	additionTimes := make([]float64, 0, 100)
 	// make slice for task completion times
 	taskCompleteTimes := make([]float64, 0, 100)
+	// make slice for final hit times
+	finalHitTimes := make([]float64, 0, 100)
 	iterationStartTime := 0.
 	lastHitTime := 0.
 	tasksComplete := false
+	additionComplete := false
+	targetsHit := 0
 
 	// compute hit times
 	for _, line := range lines {
@@ -88,6 +92,12 @@ func getResultTimes(lines []string) map[string][]float64 {
 			hitTimes = append(hitTimes, time-lastHitTime)
 			// update the last hit time
 			lastHitTime = time
+			// increment number of targets hit
+			targetsHit++
+			// if this is the last hit of the iteration, append it to last hit array
+			if targetsHit == targets {
+				finalHitTimes = append(finalHitTimes, time-iterationStartTime)
+			}
 		} else if strings.HasPrefix(line, "TargetStart") {
 			// check for target start event
 
@@ -102,6 +112,8 @@ func getResultTimes(lines []string) map[string][]float64 {
 			time, _ := strconv.ParseFloat(match[1], 64)
 			// compute and store time since iteration start
 			additionTimes = append(additionTimes, time-iterationStartTime)
+			// set addition complete flag
+			additionComplete = true
 		} else if match = taskCompleteRE.FindStringSubmatch(line); len(match) > 0 {
 			// check for tasks complete
 
@@ -120,15 +132,25 @@ func getResultTimes(lines []string) map[string][]float64 {
 			if !tasksComplete {
 				taskCompleteTimes = append(taskCompleteTimes, 5.)
 			}
+			// if addition not complete by the time we hit iteration end, set addiion time
+			// to 5
+			// TODO this depends on 5 second iterations. we should make this look it up
+			if !additionComplete {
+				additionTimes = append(additionTimes, 5.)
+			}
 			// reset tasks Complete
 			tasksComplete = false
+			// reset addition complete flag
+			additionComplete = false
+			// reset number of targets hit
+			targetsHit = 0
 		}
 	}
-	return map[string][]float64{"hit": hitTimes, "addition": additionTimes, "complete": taskCompleteTimes}
+	return map[string][]float64{"hit": hitTimes, "addition": additionTimes, "complete": taskCompleteTimes, "finalHit": finalHitTimes}
 }
 
-func printHitAndAdditionTimes(lines []string) {
-	results := getResultTimes(lines)
+func printHitAndAdditionTimes(lines []string, targets int) {
+	results := getResultTimes(lines, targets)
 	//hitTimes := results["hit"]
 	//additionTimes := results["addition"]
 	taskCompleteTimes := results["complete"]
@@ -202,7 +224,8 @@ func printTaskData(subject int, block, trial string) {
 
 func printRHeader() {
 	// TODO we should really read this from the file in case any of the parameters change
-	fmt.Println("targets, speed, oprange, et1, et2, et3, et4, et5, et6, et7, et8, et9, et10, et11, et12")
+	//fmt.Println("targets, speed, oprange, et1, et2, et3, et4, et5, et6, et7, et8, et9, et10, et11, et12")
+	fmt.Println("targets, speed, oprange, addition, target, complete")
 }
 
 func printAccuracy(contents string) {
@@ -296,11 +319,11 @@ func main() {
 
 		for _, trial := range trials {
 
-			if levels != nil {
+			/*if levels != nil {
 				fmt.Printf("%s, %s, %s, ", levels.TargetNumber, levels.TargetSpeed, levels.AdditionDifficulty)
 			} else {
 				fmt.Printf("no block desc")
-			}
+			}*/
 
 			// print subject and trial
 			//fmt.Printf("subject, %d, block %s, trial, %s\n", subject, block, trial)
@@ -349,8 +372,24 @@ func main() {
 
 			//fmt.Println("split strings, about to to hits and additions")
 
-			printHitAndAdditionTimes(lines)
+			// TODO get this to work with practice blocks
+			if levels != nil {
+				var targets int
+				// TODO this is hard coded and could be grabbed from the task info directly
+				if levels.TargetNumber == "low" {
+					targets = 2
+				} else {
+					targets = 3
+				}
+				//printHitAndAdditionTimes(lines, targets)
+				times := getResultTimes(lines, targets)
 
+				// TODO magic number 12 iterations should be looked up
+				for index := 0; index < 12; index++ {
+					fmt.Printf("%s, %s, %s, %f, %f, %f\n", levels.TargetNumber, levels.TargetSpeed, levels.AdditionDifficulty,
+						times["addition"][index], times["finalHit"][index], times["complete"][index])
+				}
+			}
 		}
 	}
 }
