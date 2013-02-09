@@ -112,10 +112,10 @@ class TaskController implements TargetDelegate {
     
     // create a task
     task = new BlockTrialTask(this,
-        BlockTrialTask.LOW_SPEED,
-        BlockTrialTask.LOW_TARGET_NUMBER,
-        BlockTrialTask.LOW_OPERANDS,
-        BlockTrialTask.HIGH_DIFFICULTY);
+        Block.LOW_SPEED,
+        Block.LOW_TARGET_NUMBER,
+        Block.LOW_OPERANDS,
+        Block.HIGH_DIFFICULTY);
     
     // add handler to body for missed target clicks
     document.query(".task").onMouseDown.listen(onBodyDown);
@@ -224,7 +224,7 @@ class TaskController implements TargetDelegate {
     trial = 0;
     
     // create block
-    block = new Block(lowSetting("block-num-targets"),
+    block = new Block.flags(lowSetting("block-num-targets"),
         lowSetting("block-target-dist"),
         lowSetting("block-operand-range"),
         lowSetting("block-target-difficulty"));

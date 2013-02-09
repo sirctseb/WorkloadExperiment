@@ -480,7 +480,7 @@ class ConfigurableTrialTask extends TrialTask {
   
   void start() {
     // set css based on target difficulty
-    if(targetDifficulty == BlockTrialTask.HIGH_DIFFICULTY) {
+    if(targetDifficulty == Block.HIGH_DIFFICULTY) {
       document.body.classes.add("high-targeting-difficulty");
     } else {
       document.body.classes.remove("high-targeting-difficulty");
@@ -491,18 +491,6 @@ class ConfigurableTrialTask extends TrialTask {
 }
 
 class BlockTrialTask extends ConfigurableTrialTask {
-  // The levels of the target speed independent variable in pixels per second
-  static const int LOW_SPEED = 80;
-  static const int HIGH_SPEED = 160;
-  // The levels of the target count indpendent variable
-  static const int LOW_TARGET_NUMBER = 2;
-  static const int HIGH_TARGET_NUMBER = 3;
-  // The levels of the addition operand ranges
-  static const List<int> LOW_OPERANDS = const [1,15];
-  static const List<int> HIGH_OPERANDS = const [11,25];
-  // The levels of the targeting difficulty
-  static const int LOW_DIFFICULTY = 0;
-  static const int HIGH_DIFFICULTY = 1;
   
   // trial task constants
   static const int ITERATION_TIME_S = 5;
