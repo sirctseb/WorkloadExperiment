@@ -71,7 +71,7 @@ class Target {
   }
   
   Map toJson() {
-    return {"id": ID, "width": width, "height": height, "x": x, "y": y};
+    return {"id": ID, "width": width, "height": height, "x": x, "y": y, "enemy": enemy};
   }
   
   // whether the target is in the scene
