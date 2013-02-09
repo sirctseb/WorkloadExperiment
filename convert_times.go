@@ -145,6 +145,9 @@ func getResultTimes(lines []string, targets int) map[string][]float64 {
 			additionComplete = false
 			// reset number of targets hit
 			targetsHit = 0
+
+			// reset iteration start time
+			iterationStartTime, _ = strconv.ParseFloat(match[1], 64)
 		}
 	}
 	return map[string][]float64{"hit": hitTimes, "addition": additionTimes, "complete": taskCompleteTimes, "finalHit": finalHitTimes}
@@ -275,6 +278,11 @@ type IVLevels struct {
 	TargetSpeed        string
 	AdditionDifficulty string
 }
+type TrialIVLevels struct {
+	NumTargets int
+	TargetDist int
+	OpRange    []int
+}
 
 func getBlockIVLevels(subject int, block string) *IVLevels {
 	// get file object
@@ -286,11 +294,34 @@ func getBlockIVLevels(subject int, block string) *IVLevels {
 		//if decoder.Decode(&levels) == nil {
 		if json.Unmarshal(bytes, levels) == nil {
 			return levels
-		} else {
+		} /* else {
 			fmt.Printf("could not decode levels from %s", string(bytes))
-		}
+		}*/
 	} else {
 		fmt.Printf("could not open block desc file output/subject%d/%s/block.txt", subject, block)
+	}
+	return nil
+}
+func getTrialIVLevels(subject int, block, trial string) *IVLevels {
+	// get file object
+	if fi, err := os.Open(fmt.Sprintf("output/subject%d/%s/%s/task.txt", subject, block, trial)); err == nil {
+		// get contents of file
+		bytes, _ := ioutil.ReadAll(bufio.NewReader(fi))
+		// take off non-json prefix
+		contents := string(bytes)[len("start trial: "):]
+		var levels *TrialIVLevels = new(TrialIVLevels)
+		var ivlevels *IVLevels = new(IVLevels)
+		// read into object
+		if json.Unmarshal([]byte(contents), &levels) == nil {
+			ivlevels.TargetNumber = fmt.Sprintf("%d", levels.NumTargets)
+			ivlevels.TargetSpeed = fmt.Sprintf("%d", levels.TargetDist)
+			ivlevels.AdditionDifficulty = fmt.Sprintf("%v", levels.OpRange)
+			return ivlevels
+		} else {
+			fmt.Printf("could not decode levels from task description file\n")
+		}
+	} else {
+		fmt.Printf("could not open trial desc file output/subject%d/%s/%s/task.txt", subject, block, trial)
 	}
 	return nil
 }
@@ -298,25 +329,48 @@ func getBlockIVLevels(subject int, block string) *IVLevels {
 func main() {
 
 	var subject int
+	var practice bool
+	var blockName string
+	var trialNum int
 
 	// get subject and trial from command line ifassed
 	flag.IntVar(&subject, "s", 5, "The number of the subject")
 	//	flag.IntVar(&trial, "t", 1, "The trial number")
+	//flag.BoolVar(&practice, "practice", false, "Set to produce variables for practice blocks")
+	flag.BoolVar(&practice, "practice", false, "set to practice")
+	flag.StringVar(&blockName, "block", "", "Specify a block to output")
+	flag.IntVar(&trialNum, "trial", -1, "Specify a trial to output")
 	flag.Parse()
 
-	blocks := blocksInDir(fmt.Sprintf("output/subject%d", subject))
+	var blocks []string
+	if blockName == "" {
+		blocks = blocksInDir(fmt.Sprintf("output/subject%d", subject))
+	} else {
+		blocks = []string{blockName}
+	}
 
 	// print header
 	printRHeader()
 
+	var levels *IVLevels
+
 	for _, block := range blocks {
 
-		// get block IV levels
-		// TODO this doesn't work for practice blocks
-		levels := getBlockIVLevels(subject, block)
+		// if we're practicing, skip non-practice blocks, and vice versa
+		if practice != strings.Contains(block, "practice") {
+			continue
+		}
+
+		// get block IV levels now if we're not in practice block
+		levels = getBlockIVLevels(subject, block)
 
 		//	trials := []int{1,2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
-		trials := trialsInDir(fmt.Sprintf("output/subject%d/%s", subject, block))
+		var trials []string
+		if trialNum == -1 {
+			trials = trialsInDir(fmt.Sprintf("output/subject%d/%s", subject, block))
+		} else {
+			trials = []string{fmt.Sprintf("trial%d", trialNum)}
+		}
 
 		for _, trial := range trials {
 
@@ -325,6 +379,10 @@ func main() {
 			} else {
 				fmt.Printf("no block desc")
 			}*/
+			// if we couldn't get levels, grab the data from the trial spec
+			if practice {
+				levels = getTrialIVLevels(subject, block, trial)
+			}
 
 			// print subject and trial
 			//fmt.Printf("subject, %d, block %s, trial, %s\n", subject, block, trial)
@@ -377,13 +435,20 @@ func main() {
 			if levels != nil {
 				var targets int
 				// TODO this is hard coded and could be grabbed from the task info directly
-				if levels.TargetNumber == "low" {
+				if levels.TargetNumber == "low" || levels.TargetNumber == "2" {
 					targets = 2
 				} else {
 					targets = 3
 				}
 				//printHitAndAdditionTimes(lines, targets)
 				times := getResultTimes(lines, targets)
+				// fill with zeros if data not present
+				if len(times["addition"]) == 0 {
+					times["addition"] = []float64{0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.}
+				}
+				if len(times["finalHit"]) == 0 {
+					times["finalHit"] = []float64{0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.}
+				}
 
 				// TODO magic number 12 iterations should be looked up
 				for index := 0; index < 12; index++ {
