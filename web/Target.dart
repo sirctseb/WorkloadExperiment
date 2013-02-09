@@ -8,6 +8,12 @@ abstract class TargetDelegate {
 class Target {
   TargetDelegate delegate;
   
+  static const bool ENEMY = true;
+  static const bool FRIEND = false;
+  
+  /// The target is an enemy
+  bool enemy;
+  
   // an ID to tell target apart from others
   int _ID = _ID_counter++;
   int get ID => _ID;
@@ -99,10 +105,17 @@ class Target {
   }
   
   /// Create a new [Target]
-  Target(this.delegate, {show: false}) {
+  Target(this.delegate, bool this.enemy, {show: false}) {
     
     // add target class
     element.classes.add("target");
+    
+    // add enemy or friend class
+    if(enemy) {
+      element.classes.add("enemy");
+    } else {
+      element.classes.add("friend");
+    }
     
     // set default location 
     move(200,200);

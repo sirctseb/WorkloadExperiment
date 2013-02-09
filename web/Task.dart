@@ -52,8 +52,8 @@ class TaskEndEvent extends TaskEvent {
 abstract class TargetEvent extends TaskEvent {
   Target target;
   
-  TargetEvent(TaskController delegate, num time, num duration) : super(delegate, time, duration) {
-    target = new Target(delegate);
+  TargetEvent(TaskController delegate, num time, num duration, bool enemy) : super(delegate, time, duration) {
+    target = new Target(delegate, enemy);
   }
   Map toJson() {
     return merge(super.toJson(), {"target": target.toJson()});
@@ -64,11 +64,11 @@ abstract class TargetEvent extends TaskEvent {
 class FixedTargetEvent extends TargetEvent {
   num x, y;
   
-  FixedTargetEvent(TaskController delegate, num time, duration, this.x, this.y): super(delegate, time, duration) {
+  FixedTargetEvent(TaskController delegate, num time, duration, this.x, this.y, bool enemy): super(delegate, time, duration, enemy) {
     target.move(x, y);
   }
   
-  FixedTargetEvent.atRandomPoint(TaskController delegate, num time, duration) : super(delegate, time, duration) {
+  FixedTargetEvent.atRandomPoint(TaskController delegate, num time, duration, bool enemy) : super(delegate, time, duration, enemy) {
     Random rng = new Random();
     // put target at random place on screen
     target.move(rng.nextInt(document.body.clientWidth), rng.nextInt(document.body.clientHeight));
@@ -110,15 +110,15 @@ class MovingTargetEvent extends TargetEvent {
     return merge(super.toJson(), {"startX": startX, "startY": startY, "endX": endX, "endY": endY, "duration": duration});
   }
   
-  MovingTargetEvent(TaskController delegate, num time, num duration,
+  MovingTargetEvent(TaskController delegate, num time, num duration, bool enemy,
                     this.startX, this.startY,
-                    this.endX, this.endY) : super(delegate, time, duration) {
+                    this.endX, this.endY) : super(delegate, time, duration, enemy) {
     target.move(startX, startY);
     //target.resize(64,64);
   }
   
-  MovingTargetEvent.eventWithLength(TaskController delegate, num time, num duration, num length) 
-      : super(delegate, time, duration) {
+  MovingTargetEvent.eventWithLength(TaskController delegate, num time, num duration, bool enemy, num length) 
+      : super(delegate, time, duration, enemy) {
     
     // check that movement length is possible
     if(length*length > (document.body.clientWidth*document.body.clientWidth +
@@ -402,7 +402,7 @@ abstract class TrialTask extends Task {
       for(int i = 0; i < iterations; i++) {
         // generate target events
         for(int j = 0; j < numTargets; j++) {
-          events.add(buildTargetEvent(i));
+          events.add(buildTargetEvent(i, j));
         }
         // only add addition even if we have a valid range
         // TODO hide addition ui if we don't have addition events
@@ -416,7 +416,7 @@ abstract class TrialTask extends Task {
     }
   }
   
-  TargetEvent buildTargetEvent(int index);
+  TargetEvent buildTargetEvent(int index, int targetNum);
   AdditionEvent buildAdditionEvent(int index) {
     return new AdditionEvent.withRandomOps(delegate, index * iterationTime, iterationTime, opRange[0], opRange[1]);
   }
@@ -441,8 +441,10 @@ class ConfigurableTrialTask extends TrialTask {
         int this.targetSize: 128})
       : super(delegate, numTargets: numTargets, iterations: iterations, opRange: opRange, iterationTime: iterationTime);
   
-  TargetEvent buildTargetEvent(int index) {
-    return new MovingTargetEvent.eventWithLength(delegate, index * iterationTime, iterationTime, targetDist)..target.resize(targetSize, targetSize);
+  TargetEvent buildTargetEvent(int index, int targetNum) {
+    // make ceil(n/2) targets enemies
+    bool enemy = ((targetNum % 2) == 0) ? Target.ENEMY : Target.FRIEND;
+    return new MovingTargetEvent.eventWithLength(delegate, index * iterationTime, iterationTime, enemy, targetDist)..target.resize(targetSize, targetSize);
   }
 }
 

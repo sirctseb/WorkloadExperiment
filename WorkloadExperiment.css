@@ -50,6 +50,15 @@ body.ws-error {
   position:absolute;
 }
 
+/* show green target when hovering over friend target*/ 
+.target.friend:hover {
+  background-image: url('img/target-friend.png');
+}
+/* show red target when hovering over enemy target */
+.target.enemy:hover {
+  background-image: url('img/target-enemy.png');
+}
+
 @-webkit-keyframes target-dismissal {
   0% { -webkit-transform: scale(1,1); }
   10% { -webkit-transform: scale(1.2, 1.2); }
