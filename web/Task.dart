@@ -258,6 +258,14 @@ abstract class Task {
   bool get iterationComplete => currentEvents.isEmpty;
   int lastIteration = 0;
   
+  /// True if an iteration is currently active; i.e. not complete
+  // TODO we should have a better notion of iterations in this class
+  // this is set to true whenever an event starts because we assume
+  // all events start at the beginning of an iteration.
+  // this is set to false when it is true and any remaining tasks are friendly targets
+  // TODO that test should be a method on events
+  bool iterationActive = false;
+  
   /// Generate the task events
   void buildEvents();
   
@@ -309,6 +317,22 @@ abstract class Task {
     stop();
     stopwatch.reset();
   }
+  // true if there are events in currentEvents that are not friendly target events
+  bool activeEvents() {
+    // look at each current event
+    for(TaskEvent event in currentEvents) {
+      // check if it is a target event
+      if(event is TargetEvent) {
+        // if it is, and it is enemy, return true
+        if(event.target.enemy) return true;
+      } else {
+        // if it is not, return true
+        return true;
+      }
+    }
+    // if nothing found, return false
+    return false;
+  }
   void update(time) {
     
     // if we are done processing all events, stop
@@ -331,11 +355,13 @@ abstract class Task {
       }
     });
     
-    // if there were some current events before cleaning them,
-    // and there are none now, then we just finished them all
-    // TODO have to check only if there are friend targets left
-    if(numCurrent > 0 && currentEvents.length == 0) {
+    // if the iteration was active, but now there are no active events,
+    // then it was just completed
+    if(iterationActive && !activeEvents()) {
+      // notify delegate
       delegate.onCompleteTasks(new DateTime.now().millisecondsSinceEpoch, stopwatch.elapsedMilliseconds - iterationStartTime);
+      // set not active
+      iterationActive = false;
     }
     
     // if we are changing iteration, notify delegate
@@ -359,6 +385,8 @@ abstract class Task {
       currentEvents.add(events[eventIndex]);
       // increment index
       eventIndex++;
+      // if events are starting, then an iteration is starting
+      iterationActive = true;
     }
     
     if(running) {
