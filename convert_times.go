@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"os"
 	"regexp"
 	"strconv"
@@ -229,7 +230,7 @@ func printTaskData(subject int, block, trial string) {
 func printRHeader() {
 	// TODO we should really read this from the file in case any of the parameters change
 	//fmt.Println("targets, speed, oprange, et1, et2, et3, et4, et5, et6, et7, et8, et9, et10, et11, et12")
-	fmt.Println("targets, speed, oprange, addition, target, complete")
+	fmt.Println("targets, speed, oprange, difficulty, addition, target, complete")
 }
 
 func printAccuracy(contents string) {
@@ -274,9 +275,10 @@ func getDirsInDirWithPrefix(dirname, prefix string) []string {
 }
 
 type IVLevels struct {
-	TargetNumber       string
-	TargetSpeed        string
-	AdditionDifficulty string
+	TargetNumber       int
+	TargetSpeed        int
+	AdditionDifficulty []int
+	TargetDifficulty   int
 }
 type TrialIVLevels struct {
 	NumTargets int
@@ -313,9 +315,12 @@ func getTrialIVLevels(subject int, block, trial string) *IVLevels {
 		var ivlevels *IVLevels = new(IVLevels)
 		// read into object
 		if json.Unmarshal([]byte(contents), &levels) == nil {
-			ivlevels.TargetNumber = fmt.Sprintf("%d", levels.NumTargets)
-			ivlevels.TargetSpeed = fmt.Sprintf("%d", levels.TargetDist)
-			ivlevels.AdditionDifficulty = fmt.Sprintf("%v", levels.OpRange)
+			//ivlevels.TargetNumber = fmt.Sprintf("%d", levels.NumTargets)
+			//ivlevels.TargetSpeed = fmt.Sprintf("%d", levels.TargetDist)
+			//ivlevels.AdditionDifficulty = fmt.Sprintf("%v", levels.OpRange)
+			ivlevels.TargetNumber = levels.NumTargets
+			ivlevels.TargetSpeed = levels.TargetDist
+			ivlevels.AdditionDifficulty = levels.OpRange
 			return ivlevels
 		} else {
 			fmt.Printf("could not decode levels from task description file\n")
@@ -433,15 +438,9 @@ func main() {
 
 			// TODO get this to work with practice blocks
 			if levels != nil {
-				var targets int
-				// TODO this is hard coded and could be grabbed from the task info directly
-				if levels.TargetNumber == "low" || levels.TargetNumber == "2" {
-					targets = 2
-				} else {
-					targets = 3
-				}
+				var enemyTargets int = int(math.Ceil(float64(levels.TargetNumber) / 2))
 				//printHitAndAdditionTimes(lines, targets)
-				times := getResultTimes(lines, targets)
+				times := getResultTimes(lines, enemyTargets)
 				// fill with zeros if data not present
 				if len(times["addition"]) == 0 {
 					times["addition"] = []float64{0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.}
@@ -452,8 +451,7 @@ func main() {
 
 				// TODO magic number 12 iterations should be looked up
 				for index := 0; index < 12; index++ {
-					fmt.Printf("%s, %s, %s, %f, %f, %f\n", levels.TargetNumber, levels.TargetSpeed, levels.AdditionDifficulty,
-						times["addition"][index], times["finalHit"][index], times["complete"][index])
+					fmt.Printf("%d, %d, %v, %d, %f, %f, %f\n", levels.TargetNumber, levels.TargetSpeed, levels.AdditionDifficulty, levels.TargetDifficulty, times["addition"][index], times["finalHit"][index], times["complete"][index])
 				}
 			}
 		}
