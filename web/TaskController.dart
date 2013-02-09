@@ -85,6 +85,10 @@ class TaskController implements TargetDelegate {
   bool useBlockManager = false;
   /// The number of trial if not using a block manager
   int trial = 0;
+  /// The block number if not using a block manager
+  int blockNumber = 0;
+  /// The block created when setting block parameters in UI
+  Block block;
   
   /// Create a task controller
   TaskController() {
@@ -212,12 +216,29 @@ class TaskController implements TargetDelegate {
     useBlockManager = false;
   }
   void blockTrialSet(Event event) {
-    task = new BlockTrialTask(this, 
-        lowSetting("block-target-dist") ? BlockTrialTask.LOW_SPEED : BlockTrialTask.HIGH_SPEED,
-        lowSetting("block-num-targets") ? BlockTrialTask.LOW_TARGET_NUMBER : BlockTrialTask.HIGH_TARGET_NUMBER,
-        lowSetting("block-operand-range") ? BlockTrialTask.LOW_OPERANDS : BlockTrialTask.HIGH_OPERANDS,
-        // TODO put target difficulty setting in UI
-        BlockTrialTask.HIGH_DIFFICULTY);
+    
+    // increment block number
+    blockNumber++;
+    
+    // set trial to 0
+    trial = 0;
+    
+    // create block
+    block = new Block(lowSetting("block-num-targets"),
+        lowSetting("block-target-dist"),
+        lowSetting("block-operand-range"),
+        lowSetting("block-target-difficulty"));
+    
+    // notify server of block number and description
+    if(wsReady) {
+      ws.send("set: ${stringify({'block': blockNumber, 'blockDesc': block})}");
+    }
+    
+    // create a task in the block
+    setTaskByBlockSettings();
+  }
+  void setTaskByBlockSettings() {
+    task = block.createTask(this);
     
     useBlockManager = false;
   }
@@ -470,8 +491,11 @@ class TaskController implements TargetDelegate {
         showSettings();
       }
     } else {
-      // otherwise, just increment the trial number
+      // otherwise, increment the trial number
       trial++;
+      // get a new task according to the block settings
+      // TODO this assumes we did block settings and not all settings
+      setTaskByBlockSettings();
     }
   }
   
