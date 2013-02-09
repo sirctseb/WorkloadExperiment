@@ -456,9 +456,10 @@ class ConfigurableTrialTask extends TrialTask {
   
   num targetDist;
   int targetSize = 128;
+  int targetDifficulty;
   
   Map toJson() {
-    return merge(super.toJson(), {"targetDist": targetDist, "targetSize": targetSize});
+    return merge(super.toJson(), {"targetDist": targetDist, "targetSize": targetSize, "targetDifficulty": targetDifficulty});
   }
   
   ConfigurableTrialTask(TaskController delegate,
@@ -467,13 +468,25 @@ class ConfigurableTrialTask extends TrialTask {
         int iterations: 12,
         List<int> opRange: const [1, 15],
         int iterationTime: 5000,
-        int this.targetSize: 128})
+        int this.targetSize: 128,
+        int this.targetDifficulty: 1})
       : super(delegate, numTargets: numTargets, iterations: iterations, opRange: opRange, iterationTime: iterationTime);
   
   TargetEvent buildTargetEvent(int index, int targetNum) {
     // make ceil(n/2) targets enemies
     bool enemy = ((targetNum % 2) == 0) ? Target.ENEMY : Target.FRIEND;
     return new MovingTargetEvent.eventWithLength(delegate, index * iterationTime, iterationTime, enemy, targetDist)..target.resize(targetSize, targetSize);
+  }
+  
+  void start() {
+    // set css based on target difficulty
+    if(targetDifficulty == BlockTrialTask.HIGH_DIFFICULTY) {
+      document.body.classes.add("high-targeting-difficulty");
+    } else {
+      document.body.classes.remove("high-targeting-difficulty");
+    }
+    // do normal start
+    super.start();
   }
 }
 
@@ -487,6 +500,9 @@ class BlockTrialTask extends ConfigurableTrialTask {
   // The levels of the addition operand ranges
   static const List<int> LOW_OPERANDS = const [1,15];
   static const List<int> HIGH_OPERANDS = const [11,25];
+  // The levels of the targeting difficulty
+  static const int LOW_DIFFICULTY = 0;
+  static const int HIGH_DIFFICULTY = 1;
   
   // trial task constants
   static const int ITERATION_TIME_S = 5;
@@ -495,7 +511,7 @@ class BlockTrialTask extends ConfigurableTrialTask {
   static const int TARGET_SIZE = 128;
   
   BlockTrialTask(TaskController delegate,
-      int speed, int target_number, List<int> operand_range)
+      int speed, int target_number, List<int> operand_range, int target_difficulty)
       : super(delegate, numTargets: target_number, targetDist: speed * ITERATION_TIME_S, iterations: ITERATIONS, opRange: operand_range,
-          iterationTime: ITERATION_TIME_MS, targetSize: TARGET_SIZE);
+          iterationTime: ITERATION_TIME_MS, targetSize: TARGET_SIZE, targetDifficulty: target_difficulty);
 }

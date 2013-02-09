@@ -98,9 +98,10 @@ class BlockManager {
 class Block {
   Map toJson() {
     return {
-      "targetNumber": targetNumberLow ? "low" : "high",
-      "targetSpeed": targetSpeedLow ? "low" : "high",
-      "additionDifficulty": additionDiffLow ? "low" : "high"
+      "targetNumber": targetNumberLow ? BlockTrialTask.LOW_TARGET_NUMBER : BlockTrialTask.HIGH_TARGET_NUMBER,
+      "targetSpeed": targetSpeedLow ? BlockTrialTask.LOW_SPEED : BlockTrialTask.HIGH_SPEED,
+      "additionDifficulty": additionDiffLow ? BlockTrialTask.LOW_OPERANDS : BlockTrialTask.HIGH_OPERANDS,
+      "targetDifficulty": targetDiffLow ? BlockTrialTask.LOW_DIFFICULTY : BlockTrialTask.HIGH_DIFFICULTY
     };
   }
   
@@ -110,14 +111,17 @@ class Block {
   bool targetSpeedLow;
   /// The addition difficulty level
   bool additionDiffLow;
+  /// The target difficulty level
+  bool targetDiffLow;
   
-  Block(bool this.targetNumberLow, bool this.targetSpeedLow, bool this.additionDiffLow);
+  Block(bool this.targetNumberLow, bool this.targetSpeedLow, bool this.additionDiffLow, this.targetDiffLow);
   
   Task createTask(TaskController controller) {
     return new BlockTrialTask(controller,
         targetSpeedLow ? BlockTrialTask.LOW_SPEED : BlockTrialTask.HIGH_SPEED,
         targetNumberLow ? BlockTrialTask.LOW_TARGET_NUMBER : BlockTrialTask.HIGH_TARGET_NUMBER,
-        additionDiffLow ? BlockTrialTask.LOW_OPERANDS : BlockTrialTask.HIGH_OPERANDS);
+        additionDiffLow ? BlockTrialTask.LOW_OPERANDS : BlockTrialTask.HIGH_OPERANDS,
+        targetDiffLow ? BlockTrialTask.LOW_DIFFICULTY : BlockTrialTask.HIGH_DIFFICULTY);
   }
 
   static bool random = true;
@@ -133,14 +137,14 @@ class Block {
   static void _generateAllBlocks() {
     _allBlocks = [];
     var blocks = [
-      new Block(false, false, false),
-      new Block(false, false, true),
-      new Block(false, true, false),
-      new Block(false, true, true),
-      new Block(true, false, false),
-      new Block(true, false, true),
-      new Block(true, true, false),
-      new Block(true, true, true)
+      new Block(true, false, false, false),
+      new Block(true, false, false, true),
+      new Block(true, false, true, false),
+      new Block(true, false, true, true),
+      new Block(true, true, false, false),
+      new Block(true, true, false, true),
+      new Block(true, true, true, false),
+      new Block(true, true, true, true)
     ];
     if(random) {
       Random rng;

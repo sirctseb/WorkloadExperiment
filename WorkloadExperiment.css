@@ -43,15 +43,26 @@ body.ws-error {
 }
 
 .target {
-  background-image: url('img/target.png');
   background-size: contain;
   width:128px;
   height:128px;
   position:absolute;
 }
 
+/* show targets as black by default in high difficulty*/
+body.high-targeting-difficulty .target {
+  background-image: url('img/target.png');
+}
+/* show targets as their normal colors in non-high-difficulty */
+body:not(.high-targeting-difficulty) .target.friend {
+  background-image: url('img/target-friend.png');
+}
+body:not(.high-targeting-difficulty) .target.enemy {
+  background-image: url('img/target-enemy.png');
+}
+
 /* show green target when hovering over friend target*/ 
-.target.friend:hover {
+body.high-targeting-difficulty .target.friend:hover {
   background-image: url('img/target-friend.png');
 }
 /* show red target when hovering over enemy target */

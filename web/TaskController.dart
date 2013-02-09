@@ -110,7 +110,8 @@ class TaskController implements TargetDelegate {
     task = new BlockTrialTask(this,
         BlockTrialTask.LOW_SPEED,
         BlockTrialTask.LOW_TARGET_NUMBER,
-        BlockTrialTask.LOW_OPERANDS);
+        BlockTrialTask.LOW_OPERANDS,
+        BlockTrialTask.HIGH_DIFFICULTY);
     
     // add handler to body for missed target clicks
     document.query(".task").onMouseDown.listen(onBodyDown);
@@ -214,7 +215,9 @@ class TaskController implements TargetDelegate {
     task = new BlockTrialTask(this, 
         lowSetting("block-target-dist") ? BlockTrialTask.LOW_SPEED : BlockTrialTask.HIGH_SPEED,
         lowSetting("block-num-targets") ? BlockTrialTask.LOW_TARGET_NUMBER : BlockTrialTask.HIGH_TARGET_NUMBER,
-        lowSetting("block-operand-range") ? BlockTrialTask.LOW_OPERANDS : BlockTrialTask.HIGH_OPERANDS);
+        lowSetting("block-operand-range") ? BlockTrialTask.LOW_OPERANDS : BlockTrialTask.HIGH_OPERANDS,
+        // TODO put target difficulty setting in UI
+        BlockTrialTask.HIGH_DIFFICULTY);
     
     useBlockManager = false;
   }
