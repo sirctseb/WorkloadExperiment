@@ -486,7 +486,7 @@ class TaskController implements TargetDelegate {
     Logger.root.fine("sending timeout to server");
     // send target timeout info to data server
     if(wsReady) {
-      ws.send("TargetTimeout, $time, ${te.target.x}, ${te.target.y}, ${te.target.ID}");
+      ws.send("TargetTimeout, $time, ${te.target.x}, ${te.target.y}, ${te.target.ID}, ${te.target.enemy ? 'enemy' : 'friend'}");
     }
   }
   
