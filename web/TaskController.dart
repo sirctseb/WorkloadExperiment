@@ -395,11 +395,19 @@ class TaskController implements TargetDelegate {
     
     // notify data server
     if(wsReady) {
-      ws.send("TargetHit, ${event.timeStamp}, ${target.x}, ${target.y}, ${target.ID}");
+      if(target.enemy) {
+        ws.send("TargetHit, ${event.timeStamp}, ${target.x}, ${target.y}, ${target.ID}");
+      } else {
+        ws.send("FriendHit, ${event.timeStamp}, ${target.x}, ${target.y}, ${target.ID}");
+      }
     }
     
     // update score
-    score += 100;
+    if(target.enemy) {
+      score += 100;
+    } else {
+      score -= 100;
+    }
     
     // don't propagate mouse down so body won't react to it
     event.stopPropagation();

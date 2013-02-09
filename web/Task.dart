@@ -333,6 +333,7 @@ abstract class Task {
     
     // if there were some current events before cleaning them,
     // and there are none now, then we just finished them all
+    // TODO have to check only if there are friend targets left
     if(numCurrent > 0 && currentEvents.length == 0) {
       delegate.onCompleteTasks(new DateTime.now().millisecondsSinceEpoch, stopwatch.elapsedMilliseconds - iterationStartTime);
     }
