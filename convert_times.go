@@ -139,6 +139,12 @@ func getResultTimes(lines []string, targets int) map[string][]float64 {
 			if !additionComplete {
 				additionTimes = append(additionTimes, 5.)
 			}
+			// if targeting not complete by the time we hit iteration end, set final hit time
+			// to 5
+			// TODO this depends on 5 second iterations. we should make this look it up
+			if targetsHit < targets {
+				finalHitTimes = append(finalHitTimes, 5.)
+			}
 			// TODO should also fill 5s for incomplete target tasks
 			// reset tasks Complete
 			tasksComplete = false
