@@ -1,67 +1,77 @@
 assembleData <- function(subject) {
 	# get the filename for the main file
-	mainfile <- sprintf("dart/WorkloadExperiment/output/subject%d/r1.txt", subject)
+	mainfile <- sprintf("output/subject%d/r1.txt", subject)
 	# read in the data
 	mainData <<- read.table(mainfile, header=TRUE, sep=",", strip.white=TRUE)
-	# prepare the separated data
-	mainDatasss <<- split(mainData, list(mainData$targets, mainData$speed, mainData$oprange))
 	
-	# get the filename for the first practice file
-	practiceFile1 <- sprintf("dart/WorkloadExperiment/output/subject%d/p1.txt", subject)
-	# read in the data
- 	practice1Data <<- read.table(practiceFile1, header=TRUE, sep=",", strip.white=TRUE)
-	# remove the empty columns
-	practice1Data$targets <<- NULL
-	practice1Data$speed <<- NULL
-	practice1Data$target <<- NULL
-	# prepare the separated data
-	practice1Datas <<- split(practice1Data, practice1Data$oprange)
+	# force factor columns
+	mainData$speed <<- as.factor(mainData$speed)
+	mainData$difficulty <<- as.factor(mainData$difficulty)
 	
-	# get the filename for the second practice file
-	practiceFile2 <- sprintf("dart/WorkloadExperiment/output/subject%d/p2.txt", subject)
-	# read in the data
-	practice2Data <<- read.table(practiceFile2, header=TRUE, sep=",", strip.white=TRUE)
-	# remove the empty columns
-	practice2Data$oprange <<- NULL
-	practice2Data$addition <<- NULL
+	# separate the addition-only trials
+	additionData <<- mainData[mainData$targets == 0, ]
+	mainData <<- mainData[mainData$targets != 0, ]
+	
+	# get rid of targets columns as it is all 3 or 0
+	mainData$targets <<- NULL
+	additionData$targets <<- NULL
+	
+	# get rid of speed, difficulty, and target columns from addition data
+	additionData$speed <<- NULL
+	additionData$difficulty <<- NULL
+	additionData$target <<- NULL
+	# remove empty levels
+	additionData$oprange <<- factor(additionData$oprange)
+	
+	# separate targeting-only trials
+	targetingData <<- mainData[mainData$oprange == "[]", ]
+	mainData <<- mainData[mainData$oprange != "[]", ]
+
+	# remove empty factors
+	mainData$oprange <<- factor(mainData$oprange)
+	
 	# prepare the separated data
-	practice2Datass <<- split(practice2Data, practice2Data$targets, practice2Data$speed)
+	mainDatasss <<- split(mainData, list(mainData$speed, mainData$oprange, mainData$difficulty))
 	
 	# show boxplot of main data
 	#boxplot(complete~targets*speed*oprange, mainData, notch=TRUE)
-	
+	oprangeLow = levels(additionData$oprange)[1]
+	oprangeHigh = levels(additionData$oprange)[2]
 	# get the mean of the low addition only tasks
-	additionLowMean <<- mean(practice1Data[practice1Data$oprange=="low", ]$complete)
+	additionLowMean <<- mean(additionData[additionData$oprange==levels(additionData$oprange)[1], ]$complete)
 	# get the mean of the high addition only tasks
-	additionHighMean <<- mean(practice1Data[practice1Data$oprange=="high", ]$complete)
+	additionHighMean <<- mean(additionData[additionData$oprange==levels(additionData$oprange)[2], ]$complete)
 	
 	# get the mean of the low, low targeting only tasks
-	# TODO levels are hard coded and need to change if we change the values
-	targetLowLowMean <<- mean(practice2Data[practice2Data$targets == 2 & practice2Data$speed == 400, ]$complete)
+	speedLow = levels(targetingData$speed)[1]
+	speedHigh = levels(targetingData$speed)[2]
+	difficultyLow = levels(targetingData$difficulty)[1]
+	difficultyHigh = levels(targetingData$difficulty)[2]
+	targetLowLowMean <<- mean(targetingData[targetingData$speed == speedLow & targetingData$difficulty == difficultyLow, ]$complete)
 	# get the mean of the low, high targeting only tasks
-	targetLowHighMean <<- mean(practice2Data[practice2Data$targets == 2 & practice2Data$speed == 800, ]$complete)
+	targetLowHighMean <<- mean(targetingData[targetingData$speed == speedLow & targetingData$difficulty == difficultyHigh, ]$complete)
 	# get the mean of the high, low targeting only tasks
-	targetHighLowMean <<- mean(practice2Data[practice2Data$targets == 3 & practice2Data$speed == 400, ]$complete)
+	targetHighLowMean <<- mean(targetingData[targetingData$speed == speedHigh & targetingData$difficulty == difficultyLow, ]$complete)
 	# get the mean of the low, low targeting only tasks
-	targetHighHighMean <<- mean(practice2Data[practice2Data$targets == 3 & practice2Data$speed == 800, ]$complete)
-	
-	# compute concurrency for lll
-	mainData$concurrency[mainData$targets=="low" & mainData$speed=="low" & mainData$oprange=="low"] <<-
-		getConcurrencyVec(mainData$complete[mainData$targets=="low" & mainData$speed=="low" & mainData$oprange=="low"], additionLowMean, targetLowLowMean)
-	mainData$concurrency[mainData$targets=="high" & mainData$speed=="low" & mainData$oprange=="low"] <<-
-		getConcurrencyVec(mainData$complete[mainData$targets=="high" & mainData$speed=="low" & mainData$oprange=="low"], additionLowMean, targetHighLowMean)
-	mainData$concurrency[mainData$targets=="low" & mainData$speed=="high" & mainData$oprange=="low"] <<-
-		getConcurrencyVec(mainData$complete[mainData$targets=="low" & mainData$speed=="high" & mainData$oprange=="low"], additionLowMean, targetLowHighMean)
-	mainData$concurrency[mainData$targets=="high" & mainData$speed=="high" & mainData$oprange=="low"] <<-
-		getConcurrencyVec(mainData$complete[mainData$targets=="high" & mainData$speed=="high" & mainData$oprange=="low"], additionLowMean, targetHighHighMean)
-	mainData$concurrency[mainData$targets=="low" & mainData$speed=="low" & mainData$oprange=="high"] <<-
-		getConcurrencyVec(mainData$complete[mainData$targets=="low" & mainData$speed=="low" & mainData$oprange=="high"], additionHighMean, targetLowLowMean)
-	mainData$concurrency[mainData$targets=="high" & mainData$speed=="low" & mainData$oprange=="high"] <<-
-		getConcurrencyVec(mainData$complete[mainData$targets=="high" & mainData$speed=="low" & mainData$oprange=="high"], additionHighMean, targetHighLowMean)
-	mainData$concurrency[mainData$targets=="low" & mainData$speed=="high" & mainData$oprange=="high"] <<-
-		getConcurrencyVec(mainData$complete[mainData$targets=="low" & mainData$speed=="high" & mainData$oprange=="high"], additionHighMean, targetLowHighMean)
-	mainData$concurrency[mainData$targets=="high" & mainData$speed=="high" & mainData$oprange=="high"] <<-
-		getConcurrencyVec(mainData$complete[mainData$targets=="high" & mainData$speed=="high" & mainData$oprange=="high"], additionHighMean, targetHighHighMean)
+	targetHighHighMean <<- mean(targetingData[targetingData$speed == speedHigh & targetingData$difficulty == difficultyHigh, ]$complete)
+
+	# compute concurrency
+	mainData$concurrency[mainData$difficulty==difficultyLow & mainData$speed==speedLow & mainData$oprange==oprangeLow] <<-
+		getConcurrencyVec(mainData$complete[mainData$difficulty==difficultyLow & mainData$speed==speedLow & mainData$oprange==oprangeLow], additionLowMean, targetLowLowMean)
+	mainData$concurrency[mainData$difficulty==difficultyHigh & mainData$speed==speedLow & mainData$oprange==oprangeLow] <<-
+		getConcurrencyVec(mainData$complete[mainData$difficulty==difficultyHigh & mainData$speed==speedLow & mainData$oprange==oprangeLow], additionLowMean, targetHighLowMean)
+	mainData$concurrency[mainData$difficulty==difficultyLow & mainData$speed==speedHigh & mainData$oprange==oprangeLow] <<-
+		getConcurrencyVec(mainData$complete[mainData$difficulty==difficultyLow & mainData$speed==speedHigh & mainData$oprange==oprangeLow], additionLowMean, targetLowHighMean)
+	mainData$concurrency[mainData$difficulty==difficultyHigh & mainData$speed==speedHigh & mainData$oprange==oprangeLow] <<-
+		getConcurrencyVec(mainData$complete[mainData$difficulty==difficultyHigh & mainData$speed==speedHigh & mainData$oprange==oprangeLow], additionLowMean, targetHighHighMean)
+	mainData$concurrency[mainData$difficulty==difficultyLow & mainData$speed==speedLow & mainData$oprange==oprangeHigh] <<-
+		getConcurrencyVec(mainData$complete[mainData$difficulty==difficultyLow & mainData$speed==speedLow & mainData$oprange==oprangeHigh], additionHighMean, targetLowLowMean)
+	mainData$concurrency[mainData$difficulty==difficultyHigh & mainData$speed==speedLow & mainData$oprange==oprangeHigh] <<-
+		getConcurrencyVec(mainData$complete[mainData$difficulty==difficultyHigh & mainData$speed==speedLow & mainData$oprange==oprangeHigh], additionHighMean, targetHighLowMean)
+	mainData$concurrency[mainData$difficulty==difficultyLow & mainData$speed==speedHigh & mainData$oprange==oprangeHigh] <<-
+		getConcurrencyVec(mainData$complete[mainData$difficulty==difficultyLow & mainData$speed==speedHigh & mainData$oprange==oprangeHigh], additionHighMean, targetLowHighMean)
+	mainData$concurrency[mainData$difficulty==difficultyHigh & mainData$speed==speedHigh & mainData$oprange==oprangeHigh] <<-
+		getConcurrencyVec(mainData$complete[mainData$difficulty==difficultyHigh & mainData$speed==speedHigh & mainData$oprange==oprangeHigh], additionHighMean, targetHighHighMean)
 }
 
 getConcurrencyVec <- function(completionTimes, additionTime, targetTime) {
