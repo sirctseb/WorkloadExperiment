@@ -454,6 +454,9 @@ func main() {
 				if len(times["finalHit"]) == 0 {
 					times["finalHit"] = []float64{0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.}
 				}
+				if len(times["complete"]) != 12 || len(times["addition"]) != 12 || len(times["finalHit"]) != 12 {
+					panic("one or more variables do not have 12 elements")
+				}
 
 				// TODO magic number 12 iterations should be looked up
 				for index := 0; index < 12; index++ {
