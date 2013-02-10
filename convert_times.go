@@ -64,7 +64,7 @@ func getResultTimes(lines []string, targets int) map[string][]float64 {
 	// define regexes for target hits and starts
 	hitRE, _ := regexp.Compile(`TargetHit, ([\d\.]+), `)
 	startRE, _ := regexp.Compile(`TargetStart, ([\d\.]+), `)
-	additionRE, _ := regexp.Compile(`AdditionEnd, ([\d\.]+)`)
+	additionRE, _ := regexp.Compile(`AdditionCorrect, ([\d\.]+)`)
 	taskCompleteRE, _ := regexp.Compile(`TasksComplete, ([\d\.]+), `)
 	iterationEndRE, _ := regexp.Compile(`IterationEnd, ([\d\.]+)`)
 	//trialStartRE, _ := regexp.Compile(`TrialStart, ([\d\.]+)`)
