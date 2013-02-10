@@ -49,6 +49,14 @@ body.ws-error {
   position:absolute;
 }
 
+/* show enemy targets above friendly so if they overlap it's easy to click enemy */
+.target.enemy {
+  z-index: 1
+}
+.target.friend {
+  z-index: 0
+}
+
 /* show targets as black by default in high difficulty*/
 body.high-targeting-difficulty .target {
   background-image: url('img/target.png');
