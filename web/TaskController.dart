@@ -162,8 +162,13 @@ class TaskController implements TargetDelegate {
         slider.value = "0";
       }
       
-      // go to task view
-      showTask();
+      // if using block manager and blocks are done, show weights
+      if(useBlockManager && blockManager.finished) {
+        showWeights();
+      } else {
+        // go to task view
+        showTask();
+      }
     });
     
     // add handler for setting subject number
@@ -485,10 +490,6 @@ class TaskController implements TargetDelegate {
       if(!blockManager.finished) {
         task = blockManager.getTask(this);
         Logger.root.fine("got new task: $task from manager");
-      } else {
-        // TODO show message that we are finished?
-        // show settings
-        showSettings();
       }
     } else {
       // otherwise, increment the trial number
