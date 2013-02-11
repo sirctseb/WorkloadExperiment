@@ -174,6 +174,11 @@ class TaskController implements TargetDelegate {
     // add handler for setting subject number
     document.query("#set-subject-number").onClick.listen(setSubjectNumber);
     
+    // add handler to button to start trial
+    query(".start-button").onClick.listen((event) {
+      startTrial();
+    });
+    
     // start trial at the start of the final beep
     beep.onPlay.listen((Event) {
       if(countdown == 0) {
@@ -299,33 +304,7 @@ class TaskController implements TargetDelegate {
       // show task screen
       showTask();
     } else if(event.which == "g".charCodeAt(0)) {
-      // tell task to actually generate task events
-      task.buildEvents();
-      
-      // g for 'go', start the task
-      // play chirps and then start
-      countdown = 2;
-      
-      // send trial number to server
-      if(wsReady) {
-        ws.send("set: ${stringify({'trial': useBlockManager ? blockManager.trialNumber : trial})}");
-      }
-      // if we're doing block sequence and we're on a new block, send block description
-      if(useBlockManager) {
-        if(wsReady) {
-          if(blockManager.trialNumber == 0) {
-            Logger.root.info("sending block info");
-            ws.send("set: ${stringify({'block': blockManager.block, 'blockDesc': blockManager.blockDesc})}");
-            Logger.root.info("sent block info");
-          }
-        }
-      }
-
-      // tell the data server we're starting so it can start recording
-      notifyWSStart();
-      
-      // play first tone
-      beep.play();
+      startTrial();
     } else if(event.which == "p".charCodeAt(0)) {
       // p for 'pause', stop the task
       task.stop();
@@ -359,6 +338,39 @@ class TaskController implements TargetDelegate {
       // show the weights root
       showWeights();
     }
+  }
+  
+  void startTrial() {
+    // hide the start trial button
+    query(".start-button").style.display = "none";
+    
+    // tell task to actually generate task events
+    task.buildEvents();
+    
+    // g for 'go', start the task
+    // play chirps and then start
+    countdown = 2;
+    
+    // send trial number to server
+    if(wsReady) {
+      ws.send("set: ${stringify({'trial': useBlockManager ? blockManager.trialNumber : trial})}");
+    }
+    // if we're doing block sequence and we're on a new block, send block description
+    if(useBlockManager) {
+      if(wsReady) {
+        if(blockManager.trialNumber == 0) {
+          Logger.root.info("sending block info");
+          ws.send("set: ${stringify({'block': blockManager.block, 'blockDesc': blockManager.blockDesc})}");
+          Logger.root.info("sent block info");
+        }
+      }
+    }
+
+    // tell the data server we're starting so it can start recording
+    notifyWSStart();
+    
+    // play first tone
+    beep.play();
   }
   
   void showSettings() {
@@ -498,6 +510,9 @@ class TaskController implements TargetDelegate {
       // TODO this assumes we did block settings and not all settings
       setTaskByBlockSettings();
     }
+    
+    // show start trial button
+    query(".start-button").style.display = "block";
   }
   
   void onTargetStart(TargetEvent te, num time) {
