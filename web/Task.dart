@@ -35,15 +35,6 @@ abstract class TaskEvent {
   }
 }
 
-class TaskEndEvent extends TaskEvent {
-  TaskEndEvent(TaskController delegate)
-      : super(delegate, 0);
-  
-  void start() {
-    delegate.endTrial();
-  }
-}
-
 /// [TargetEvent] is an [Event] that shows a target
 abstract class TargetEvent extends TaskEvent {
   Target target;
