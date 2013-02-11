@@ -155,7 +155,6 @@ class MovingTargetEvent extends TargetEvent {
   }
   
   void start() {
-    //window.requestAnimationFrame(update);
     running = true;
     
     // show target
@@ -255,12 +254,6 @@ abstract class Task {
   bool get iterationComplete => currentEvents.isEmpty;
   
   /// True if an iteration is currently active; i.e. not complete
-  // TODO we should have a better notion of iterations in this class
-  // this is set to true whenever an event starts because we assume
-  // all events start at the beginning of an iteration.
-  // this is set to false when it is true and any remaining tasks are friendly targets
-  // TODO that test should be a method on events
-  //bool iterationActive = false;
   bool iterationTasksCompleted = false;
   
   /// Generate the task events
@@ -302,17 +295,6 @@ abstract class Task {
     //onTimer(timer);
     update(null);
   }
-  // the method an end task event calls when it starts
-  void endTask() {
-    // if we haven't passed the last iteration, we have to notify the controller
-    // of the end of the iteration
-    // TODO I think this should never happen
-    if(iteration < iterations) {
-      Logger.root.info("got end task from end event, and still on $iteration; sending message");
-      delegate.onIterationComplete(new DateTime.now().millisecondsSinceEpoch);
-    }
-    stop();
-  }
   void stop() {
     //timer.cancel();
     stopwatch.stop();
@@ -343,13 +325,6 @@ abstract class Task {
     return false;
   }
   void update(time) {
-
-    // if we are done processing all events, stop
-    /*if(eventIndex >= events.length && currentEvents.length == 0) {
-      Logger.root.info("stopping because we are out of events and there are not more current events");
-      stop();
-    }*/
-    
     // get the current time since start of trial
     num currentTime = stopwatch.elapsedMilliseconds;
     
