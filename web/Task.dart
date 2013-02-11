@@ -345,15 +345,7 @@ abstract class Task {
     int numCurrent = currentEvents.length;
     
     // remove finished events
-    //currentEvents.removeMatching((ce) => !ce.running);
-    // TODO workaround for removeMatching not working
-    var dupEvents = []..addAll(currentEvents);
-    dupEvents.forEach((event) {
-      if(!event.running) {
-        Logger.root.info("removing event $event because it is done");
-        currentEvents.removeAt(currentEvents.indexOf(event));
-      }
-    });
+    currentEvents.removeMatching((ce) => !ce.running);
     
     // if the iteration was active, but now there are no active events,
     // then it was just completed
