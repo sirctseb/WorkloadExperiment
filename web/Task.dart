@@ -267,8 +267,7 @@ abstract class Task {
   void buildEvents();
   
   Map toJson() {
-    return {"events": stringify(events), "iterations": iterations, "iterationTime": iterationTime};
-    //return {"events": events.mappedBy((event) => event.toJson()).toList(), "iterations": iterations, "iterationTime": iterationTime};
+    return {"events": events, "iterations": iterations, "iterationTime": iterationTime};
   }
   
   /// The index in events that is next to process
