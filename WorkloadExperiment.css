@@ -26,6 +26,27 @@ body.ws-error {
   cursor: url('img/crosshair.png') 25 25, default;
 }
 
+.start-button {
+  height: 400px;
+  width: 400px;
+  border-radius: 50%;
+  background-color: green;
+  border: 5px solid black;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  color: white;
+  position: relative;
+  top: 50%;
+  margin-top: -200px;
+}
+.start-button div {
+  position:relative;
+  top: 50%;
+  margin-top: -0.6em;
+  font-size: 10em;
+}
+
 .addition {
   text-align:center;
   /* vertcal center */
