@@ -47,6 +47,9 @@ body.ws-error {
   margin-top: -0.6em;
   font-size: 10em;
 }
+.start-button:hover {
+  opacity:0.3;
+}
 
 .addition {
   text-align:center;
