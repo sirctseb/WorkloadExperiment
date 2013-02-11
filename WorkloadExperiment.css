@@ -39,6 +39,7 @@ body.ws-error {
   position: relative;
   top: 50%;
   margin-top: -200px;
+  z-index: 3;
 }
 .start-button div {
   position:relative;
