@@ -24,9 +24,8 @@ abstract class TaskEvent {
   bool running = false;
   
   void start() { running = true; }
-  void stop() { running = false; }
+  void stop([bool timeout = false]) { running = false; }
   void update(num sinceIterationStart) {
-    if(sinceIterationStart > duration) stop();
   }
   
   TaskEvent(TaskController this.delegate, num this.duration);
@@ -78,18 +77,15 @@ class FixedTargetEvent extends TargetEvent {
     delegate.onTargetStart(this, new DateTime.now().millisecondsSinceEpoch);
   }
   
-  void update(num sinceIterationStart) {
-    if(sinceIterationStart > duration) {
-
-      // if the target is still visible, it hasn't been dismissed, so remove and update score
-      if(target.visible) {
-        // remove the target
-        target.timeout();
-        
-        delegate.onTargetTimeout(this, new DateTime.now().millisecondsSinceEpoch);
-      }
+  void stop([bool timeout = false]) {
+    super.stop();
+    
+    // if the target is still visible, it hasn't been dismissed, so remove and update score
+    if(timeout && target.visible) {
+      // remove the target
+      target.timeout();
       
-      stop();
+      delegate.onTargetTimeout(this, new DateTime.now().millisecondsSinceEpoch);
     }
   }
   
@@ -179,16 +175,20 @@ class MovingTargetEvent extends TargetEvent {
       // position target
       target.move(startX + fraction * (endX - startX), startY + fraction * (endY - startY));
       
-      // call for next frame if not done
-      if(fraction >=1 ) {
-        // update score for missed target
-        target.timeout();
-        // notify delegate of target timeout
-        delegate.onTargetTimeout(this, new DateTime.now().millisecondsSinceEpoch);
-        stop();
-      }
     } else {
       // stop if target was dismissed
+      stop();
+    }
+  }
+  
+  void stop([bool timeout = false]) {
+    super.stop(timeout);
+    // call for next frame if not done
+    if(timeout && target.visible) {
+      // update score for missed target
+      target.timeout();
+      // notify delegate of target timeout
+      delegate.onTargetTimeout(this, new DateTime.now().millisecondsSinceEpoch);
       stop();
     }
   }
@@ -226,7 +226,7 @@ class AdditionEvent extends TaskEvent {
     delegate.onAdditionStart(this, new DateTime.now().millisecondsSinceEpoch);
   }
   
-  void stop() {
+  void stop([bool timeout = false]) {
     super.stop();
     delegate.onAdditionEnd(this, new DateTime.now().millisecondsSinceEpoch);
   }
@@ -250,10 +250,9 @@ abstract class Task {
   int iterationTime = 5000;
   
   /// The current iteration
-  int get iteration => stopwatch.elapsedMilliseconds ~/ iterationTime;
-  int get iterationStartTime => iteration * iterationTime;
+  int iteration = 0;
+  int iterationStartTime;
   bool get iterationComplete => currentEvents.isEmpty;
-  int lastIteration = 0;
   
   /// True if an iteration is currently active; i.e. not complete
   // TODO we should have a better notion of iterations in this class
@@ -261,7 +260,8 @@ abstract class Task {
   // all events start at the beginning of an iteration.
   // this is set to false when it is true and any remaining tasks are friendly targets
   // TODO that test should be a method on events
-  bool iterationActive = false;
+  //bool iterationActive = false;
+  bool iterationTasksCompleted = false;
   
   /// Generate the task events
   void buildEvents();
@@ -272,7 +272,7 @@ abstract class Task {
   }
   
   /// The index in events that is next to process
-  int eventIndex = 0;
+  //int eventIndex = 0;
   
   /// Stopwatch to keep track of progress
   Stopwatch stopwatch = new Stopwatch();
@@ -282,10 +282,22 @@ abstract class Task {
   void start() {
     running = true;
     
+    // start the stopwatch
     stopwatch.start();
+    
+    // set the initial iteration start time
+    iterationStartTime = 0;
 
     // tell delegate that task started
     delegate.onTrialStart(new DateTime.now().millisecondsSinceEpoch);
+    
+    // set current events
+    currentEvents = events[iteration];
+    
+    // start new tasks
+    for(TaskEvent event in currentEvents) {
+      event.start();
+    }
     
     // manually call first timer event
     //onTimer(timer);
@@ -320,10 +332,10 @@ abstract class Task {
     // look at each current event
     for(TaskEvent event in currentEvents) {
       // check if it is a target event
-      if(event is TargetEvent) {
+      if(event is TargetEvent && event.running) {
         // if it is, and it is enemy, return true
         if(event.target.enemy) return true;
-      } else {
+      } else if(event.running) {
         // if it is not, return true
         return true;
       }
@@ -332,51 +344,64 @@ abstract class Task {
     return false;
   }
   void update(time) {
-    
+
     // if we are done processing all events, stop
-    if(eventIndex >= events.length && currentEvents.length == 0) {
+    /*if(eventIndex >= events.length && currentEvents.length == 0) {
       Logger.root.info("stopping because we are out of events and there are not more current events");
       stop();
-    }
+    }*/
     
-    // save the number of current events so we can check if we finish the last one
-    int numCurrent = currentEvents.length;
+    // get the current time since start of trial
+    num currentTime = stopwatch.elapsedMilliseconds;
     
-    // remove finished events
-    currentEvents.removeMatching((ce) => !ce.running);
-    
-    // if the iteration was active, but now there are no active events,
-    // then it was just completed
-    if(iterationActive && !activeEvents()) {
+    // if time is past iteration duration, move to the next iteration
+    if(currentTime - iterationStartTime > iterationTime) {
+      
+      // kill current tasks
+      for(TaskEvent event in currentEvents) {
+        // TODO make sure tasks timeout correctly if not completed
+        event.stop(true);
+      }
+      
       // notify delegate
-      delegate.onCompleteTasks(new DateTime.now().millisecondsSinceEpoch, stopwatch.elapsedMilliseconds - iterationStartTime);
-      // set not active
-      iterationActive = false;
-    }
-    
-    // if we are changing iteration, notify delegate
-    if(lastIteration != iteration) {
       delegate.onIterationComplete(new DateTime.now().millisecondsSinceEpoch);
-    }
-    lastIteration = iteration;
-    
-    // TODO should this go above the loop that removes finished events so that
-    // TODO they will be removed as soon as they are done?
-    // update current events
-    currentEvents.forEach((ce) => ce.update(stopwatch.elapsedMilliseconds));
-    
-    // check for new events to add to current events
-    // process events that are scheduled at or before the current time
-    while(eventIndex < events.length && events[eventIndex].time <= stopwatch.elapsedMilliseconds) {
-      Logger.root.info("starting event $eventIndex");
-      // start the task
-      events[eventIndex].start();
-      // add to current events
-      currentEvents.add(events[eventIndex]);
-      // increment index
-      eventIndex++;
-      // if events are starting, then an iteration is starting
-      iterationActive = true;
+      
+      // reset tasks completed flag
+      iterationTasksCompleted = false;
+      
+      // increment iteration
+      iteration++;
+      
+      // update iteration startedTime
+      iterationStartTime = currentTime;
+      
+      // update currentEvents if not done
+      if(iteration < iterations) {
+        currentEvents = events[iteration];
+        
+        // start new tasks
+        for(TaskEvent event in currentEvents) {
+          event.start();
+        }
+      } else {
+        // otherwise, just stop here
+        stop();
+      }
+      
+    } else {
+      // otherwise, just update the current tasks
+      for(TaskEvent event in currentEvents) {
+        event.update(currentTime - iterationStartTime);
+      }
+      
+      // if the iterationTasksCompleted flag is not set, but there are no active tasks,
+      // then we must have just finished them, so notify delegate
+      if(!iterationTasksCompleted && !activeEvents()) {
+        // notify delegate
+        delegate.onCompleteTasks(new DateTime.now().millisecondsSinceEpoch, stopwatch.elapsedMilliseconds - iterationStartTime);
+        // set completed
+        iterationTasksCompleted = true;
+      }
     }
     
     if(running) {
@@ -431,8 +456,6 @@ abstract class TrialTask extends Task {
           events[i].add(buildAdditionEvent(i));
         }
       }
-      // add task end event
-      events.add(new TaskEndEvent(delegate, iterations * iterationTime));
     }
   }
   
