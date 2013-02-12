@@ -27,22 +27,12 @@ body.ws-error {
 }
 
 .start-button {
-  height: 400px;
-  width: 400px;
-  border-radius: 50%;
-  background-color: green;
-  border: 5px solid black;
-  text-align: center;
-  color: white;
-  position: absolute;
-  top:0;bottom:0;left:0;right:0;
+  top:0; bottom:0; right:0; left:30%;
   margin:auto;
-  z-index: 3;
-  line-height:400px;
-  font-size: 10em;
 }
-.start-button:hover {
-  opacity:0.3;
+.not-start-button {
+  top:0; bottom:0; right:0; left:-30%;
+  margin:auto;
 }
 
 .addition {
