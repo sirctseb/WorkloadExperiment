@@ -343,6 +343,7 @@ class TaskController implements TargetDelegate {
   void startTrial() {
     // hide the start trial button
     query(".start-button").style.display = "none";
+    query(".not-start-button").style.display = "none";
     
     // tell task to actually generate task events
     task.buildEvents();
@@ -513,6 +514,7 @@ class TaskController implements TargetDelegate {
     
     // show start trial button
     query(".start-button").style.display = "block";
+    query(".not-start-button").style.display = "block";
   }
   
   void onTargetStart(TargetEvent te, num time) {
