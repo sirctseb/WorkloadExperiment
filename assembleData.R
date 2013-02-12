@@ -1,4 +1,4 @@
-assembleData <- function(subject) {
+assembleData <- function(subject, ignorePractice=TRUE) {
 	# get the filename for the main file
 	mainfile <- sprintf("output/subject%d/r1.txt", subject)
 	# read in the data
@@ -35,25 +35,30 @@ assembleData <- function(subject) {
 	
 	# show boxplot of main data
 	#boxplot(complete~targets*speed*oprange, mainData, notch=TRUE)
+	if(ignorePractice) {
+		firstindex = 13
+	} else {
+		firstindex = 1
+	}
 	oprangeLow = levels(additionData$oprange)[1]
 	oprangeHigh = levels(additionData$oprange)[2]
 	# get the mean of the low addition only tasks
-	additionLowMean <<- mean(additionData[additionData$oprange==levels(additionData$oprange)[1], ]$complete)
+	additionLowMean <<- mean(additionData[additionData$oprange==levels(additionData$oprange)[1], ]$complete[firstindex:36])
 	# get the mean of the high addition only tasks
-	additionHighMean <<- mean(additionData[additionData$oprange==levels(additionData$oprange)[2], ]$complete)
+	additionHighMean <<- mean(additionData[additionData$oprange==levels(additionData$oprange)[2], ]$complete[firstindex:36])
 	
 	# get the mean of the low, low targeting only tasks
 	speedLow = levels(targetingData$speed)[1]
 	speedHigh = levels(targetingData$speed)[2]
 	difficultyLow = levels(targetingData$difficulty)[1]
 	difficultyHigh = levels(targetingData$difficulty)[2]
-	targetLowLowMean <<- mean(targetingData[targetingData$speed == speedLow & targetingData$difficulty == difficultyLow, ]$complete)
+	targetLowLowMean <<- mean(targetingData[targetingData$speed == speedLow & targetingData$difficulty == difficultyLow, ]$complete[firstindex:36])
 	# get the mean of the low, high targeting only tasks
-	targetLowHighMean <<- mean(targetingData[targetingData$speed == speedLow & targetingData$difficulty == difficultyHigh, ]$complete)
+	targetLowHighMean <<- mean(targetingData[targetingData$speed == speedLow & targetingData$difficulty == difficultyHigh, ]$complete[firstindex:36])
 	# get the mean of the high, low targeting only tasks
-	targetHighLowMean <<- mean(targetingData[targetingData$speed == speedHigh & targetingData$difficulty == difficultyLow, ]$complete)
+	targetHighLowMean <<- mean(targetingData[targetingData$speed == speedHigh & targetingData$difficulty == difficultyLow, ]$complete[firstindex:36])
 	# get the mean of the low, low targeting only tasks
-	targetHighHighMean <<- mean(targetingData[targetingData$speed == speedHigh & targetingData$difficulty == difficultyHigh, ]$complete)
+	targetHighHighMean <<- mean(targetingData[targetingData$speed == speedHigh & targetingData$difficulty == difficultyHigh, ]$complete[firstindex:36])
 
 	# compute concurrency
 	mainData$concurrency[mainData$difficulty==difficultyLow & mainData$speed==speedLow & mainData$oprange==oprangeLow] <<-
