@@ -315,11 +315,7 @@ type IVLevels struct {
 	TargetSpeed        int
 	AdditionDifficulty []int
 	TargetDifficulty   int
-}
-type TrialIVLevels struct {
-	NumTargets int
-	TargetDist int
-	OpRange    []int
+	Practice           bool
 }
 
 func getBlockIVLevels(subject int, block string) *IVLevels {
@@ -337,32 +333,6 @@ func getBlockIVLevels(subject int, block string) *IVLevels {
 		}*/
 	} else {
 		fmt.Printf("could not open block desc file output/subject%d/%s/block.txt", subject, block)
-	}
-	return nil
-}
-func getTrialIVLevels(subject int, block, trial string) *IVLevels {
-	// get file object
-	if fi, err := os.Open(fmt.Sprintf("output/subject%d/%s/%s/task.txt", subject, block, trial)); err == nil {
-		// get contents of file
-		bytes, _ := ioutil.ReadAll(bufio.NewReader(fi))
-		// take off non-json prefix
-		contents := string(bytes)[len("start trial: "):]
-		var levels *TrialIVLevels = new(TrialIVLevels)
-		var ivlevels *IVLevels = new(IVLevels)
-		// read into object
-		if json.Unmarshal([]byte(contents), &levels) == nil {
-			//ivlevels.TargetNumber = fmt.Sprintf("%d", levels.NumTargets)
-			//ivlevels.TargetSpeed = fmt.Sprintf("%d", levels.TargetDist)
-			//ivlevels.AdditionDifficulty = fmt.Sprintf("%v", levels.OpRange)
-			ivlevels.TargetNumber = levels.NumTargets
-			ivlevels.TargetSpeed = levels.TargetDist
-			ivlevels.AdditionDifficulty = levels.OpRange
-			return ivlevels
-		} else {
-			fmt.Printf("could not decode levels from task description file\n")
-		}
-	} else {
-		fmt.Printf("could not open trial desc file output/subject%d/%s/%s/task.txt", subject, block, trial)
 	}
 	return nil
 }
@@ -397,11 +367,6 @@ func main() {
 
 	for _, block := range blocks {
 
-		// if we're practicing, skip non-practice blocks, and vice versa
-		if practice != strings.Contains(block, "practice") {
-			continue
-		}
-
 		// get block IV levels now if we're not in practice block
 		levels = getBlockIVLevels(subject, block)
 
@@ -414,16 +379,6 @@ func main() {
 		}
 
 		for _, trial := range trials {
-
-			/*if levels != nil {
-				fmt.Printf("%s, %s, %s, ", levels.TargetNumber, levels.TargetSpeed, levels.AdditionDifficulty)
-			} else {
-				fmt.Printf("no block desc")
-			}*/
-			// if we couldn't get levels, grab the data from the trial spec
-			if practice {
-				levels = getTrialIVLevels(subject, block, trial)
-			}
 
 			// print subject and trial
 			//fmt.Printf("subject, %d, block %s, trial, %s\n", subject, block, trial)
@@ -491,7 +446,8 @@ func main() {
 
 				// TODO magic number 12 iterations should be looked up
 				for index := 0; index < 12; index++ {
-					fmt.Printf("%d, %d, %v, %d, %f, %f, %f, %d, %d, %d\n",
+					fmt.Printf("%t, %d, %d, %v, %d, %f, %f, %f, %d, %d, %d\n",
+						levels.Practice,
 						levels.TargetNumber, levels.TargetSpeed, levels.AdditionDifficulty, levels.TargetDifficulty,
 						times["addition"][index], times["finalHit"][index], times["complete"][index], int(times["hits"][index]),
 						int(times["friendHits"][index]), int(times["shots"][index]))
