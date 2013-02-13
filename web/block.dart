@@ -58,7 +58,7 @@ class Block {
   /// Is a practice block
   bool practice = false;
   /// The number of trials in the block
-  int trials = 2;
+  int trials = EXPERIMENTAL_TRIALS;
 
   // The levels of the target speed independent variable in pixels per second
   static const int LOW_SPEED = 0;
@@ -72,6 +72,10 @@ class Block {
   // The levels of the targeting difficulty
   static const int LOW_DIFFICULTY = 0;
   static const int HIGH_DIFFICULTY = 1;
+  
+  // The number of trials for practice blocks
+  static const int PRACTICE_TRIALS = 1;
+  static const int EXPERIMENTAL_TRIALS = 2;
   
   Map toJson() {
     return {
@@ -93,7 +97,9 @@ class Block {
   /// The target difficulty level
   int targetDiff;
   
-  Block(int this.targetNumber, int this.targetSpeed, List<int> this.additionDiff, int this.targetDiff, {this.practice: false, this.trials: 2});
+  Block(int this.targetNumber, int this.targetSpeed, List<int> this.additionDiff, int this.targetDiff, [this.practice = false, this.trials]) {
+    trials = practice ? PRACTICE_TRIALS : EXPERIMENTAL_TRIALS;
+  }
   Block.flags(bool lowTargetNumber, bool lowSpeed, bool lowAddition, bool lowDiff) {
     targetNumber = lowTargetNumber ? Block.LOW_TARGET_NUMBER : Block.HIGH_TARGET_NUMBER;
     targetSpeed = lowSpeed ? Block.LOW_SPEED : Block.HIGH_SPEED;
