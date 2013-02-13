@@ -297,18 +297,18 @@ class TaskController implements TargetDelegate {
   }
   void handleKeyPress(KeyboardEvent event) {
     // receive keyboard input
-    if(event.which == "s".charCodeAt(0)) {
+    if(event.which == "s".codeUnitAt(0)) {
       // show settings screen
       showSettings();
-    } else if(event.which == "t".charCodeAt(0)) {
+    } else if(event.which == "t".codeUnitAt(0)) {
       // show task screen
       showTask();
-    } else if(event.which == "g".charCodeAt(0)) {
+    } else if(event.which == "g".codeUnitAt(0)) {
       startTrial();
-    } else if(event.which == "p".charCodeAt(0)) {
+    } else if(event.which == "p".codeUnitAt(0)) {
       // p for 'pause', stop the task
       task.stop();
-    } else if(event.which == " ".charCodeAt(0)) {
+    } else if(event.which == " ".codeUnitAt(0)) {
       // mark correct addition response on space bar
       
       // make sure addition is not already marked correct
@@ -325,14 +325,14 @@ class TaskController implements TargetDelegate {
       
       // update score
       score += 100;
-    } else if(event.which == "n".charCodeAt(0)) {
+    } else if(event.which == "n".codeUnitAt(0)) {
       // n for nasa-tlx
       
       // show the survey root
       showSurvey();
       
       // TODO on button click, record responses
-    } else if(event.which == "w".charCodeAt(0)) {
+    } else if(event.which == "w".codeUnitAt(0)) {
       // w for weights
       
       // show the weights root

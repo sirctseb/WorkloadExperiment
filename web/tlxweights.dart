@@ -109,7 +109,7 @@ class TlxWeights {
       // if we're going past the last one, notify controller that we're done
       controller.weightsCollected(
           [Scale.MENTAL_DEMAND, Scale.PHYSICAL_DEMAND, Scale.TEMPORAL_DEMAND, Scale.PERFORMANCE, Scale.EFFORT, Scale.FRUSTRATION]
-          .mappedBy((scale) => new Scale.named(scale))
+          .map((scale) => new Scale.named(scale))
       );
     } else {
       // update backing field
@@ -123,7 +123,7 @@ class TlxWeights {
   List<int> get options => getOptions(currentOptionPairIndex);
   
   /// Get the current scales
-  List<Scale> get scales => options.mappedBy((scale) => new Scale.named(scale));
+  List<Scale> get scales => options.map((scale) => new Scale.named(scale));
   
   // option pair order
   List<List<int>> _optionPairs = _makeOptionPairs();
