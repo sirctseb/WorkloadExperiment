@@ -26,20 +26,12 @@ class BlockManager {
   /// Trial state
   int trialNumber = 0;
   
-  static const int TRIALS_PER_PRACTICE = 5;
-  static const int TRIALS_PER_BLOCK = 3;
-  
-  /// Retrieve the number of trials in a given block
-  int trialsForBlock(int blockNumber) {
-    return TRIALS_PER_BLOCK;
-  }
-  
   /// advance the trial. returns true iff we advance to a new block
   bool advance() {
     // increment trial
     trialNumber++;
     // if we have finished the trials for a block, increment the block and reset trial to 0
-    if(trialNumber >= trialsForBlock(_blockNumber)) {
+    if(trialNumber >= currentBlock.trials) {
       trialNumber = 0;
       _blockNumber++;
       return true;
