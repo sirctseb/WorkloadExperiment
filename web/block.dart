@@ -12,6 +12,9 @@ class BlockManager {
   /// Access to the block number
   int get blockNumber => _blockNumber;
   
+  /// Access to the current block object
+  Block get currentBlock => Block.allBlocks[blockNumber];
+  
   /// The number of blocks
   static const int NUM_BLOCKS = 14;
   
