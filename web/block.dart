@@ -13,10 +13,10 @@ class BlockManager {
   int get blockNumber => _blockNumber;
   
   /// Access to the current block object
-  Block get currentBlock => Block.allBlocks[blockNumber];
+  Block get currentBlock => allBlocks[blockNumber];
   
   /// The number of blocks
-  int get numBlocks => Block.allBlocks.length;
+  int get numBlocks => allBlocks.length;
   
   /// True iff we are in the practice blocks
   bool get practicing => blockNumber < 0;
@@ -40,11 +40,59 @@ class BlockManager {
   }
   
   Task getTask(TaskController controller) {
-    return Block.allBlocks[blockNumber].createTask(controller);
+    return allBlocks[blockNumber].createTask(controller);
   }
   
   dynamic get blockDesc {
-    return Block.allBlocks[blockNumber];
+    return allBlocks[blockNumber];
+  }
+  
+
+  static bool random = true;
+  static bool moreRandom = true;
+  static List<Block> _allBlocks;
+  /// A list of all experiment blocks
+  static List<Block> get allBlocks {
+    if(_allBlocks == null) {
+      _generateAllBlocks();
+    }
+    return _allBlocks;
+  }
+  static void _generateAllBlocks() {
+    _allBlocks = [];
+    var blocks = [
+      new Block(0, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.LOW_DIFFICULTY, true),
+      new Block(0, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.LOW_DIFFICULTY, true),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, null, Block.LOW_DIFFICULTY, true),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, null, Block.HIGH_DIFFICULTY, true),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, null, Block.LOW_DIFFICULTY, true),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, null, Block.HIGH_DIFFICULTY, true),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.LOW_DIFFICULTY),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.HIGH_DIFFICULTY),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.LOW_DIFFICULTY),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, Block.LOW_OPERANDS, Block.LOW_DIFFICULTY),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, Block.LOW_OPERANDS, Block.HIGH_DIFFICULTY),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, Block.HIGH_OPERANDS, Block.LOW_DIFFICULTY),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY)
+    ];
+    if(random) {
+      Random rng;
+      if(moreRandom) {
+        rng = new Random(new DateTime.now().millisecond);
+      } else {
+        rng = new Random(0);
+      }
+      // first six should not be random
+      for(int i = 0; i < 6; i++) {
+        _allBlocks.add(blocks.removeAt(0));
+      }
+      while(blocks.length > 0) {
+        _allBlocks.add(blocks.removeAt(rng.nextInt(blocks.length)));
+      }
+    } else {
+      _allBlocks = blocks;
+    }
   }
 }
 
@@ -108,52 +156,5 @@ class Block {
         targetNumber,
         additionDiff,
         targetDiff);
-  }
-
-  static bool random = true;
-  static bool moreRandom = true;
-  static List<Block> _allBlocks;
-  /// A list of all experiment blocks
-  static List<Block> get allBlocks {
-    if(_allBlocks == null) {
-      _generateAllBlocks();
-    }
-    return _allBlocks;
-  }
-  static void _generateAllBlocks() {
-    _allBlocks = [];
-    var blocks = [
-      new Block(0, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.LOW_DIFFICULTY, true),
-      new Block(0, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.LOW_DIFFICULTY, true),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, null, Block.LOW_DIFFICULTY, true),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, null, Block.HIGH_DIFFICULTY, true),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, null, Block.LOW_DIFFICULTY, true),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, null, Block.HIGH_DIFFICULTY, true),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.LOW_DIFFICULTY),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.HIGH_DIFFICULTY),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.LOW_DIFFICULTY),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, Block.LOW_OPERANDS, Block.LOW_DIFFICULTY),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, Block.LOW_OPERANDS, Block.HIGH_DIFFICULTY),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, Block.HIGH_OPERANDS, Block.LOW_DIFFICULTY),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY)
-    ];
-    if(random) {
-      Random rng;
-      if(moreRandom) {
-        rng = new Random(new DateTime.now().millisecond);
-      } else {
-        rng = new Random(0);
-      }
-      // first six should not be random
-      for(int i = 0; i < 6; i++) {
-        _allBlocks.add(blocks.removeAt(0));
-      }
-      while(blocks.length > 0) {
-        _allBlocks.add(blocks.removeAt(rng.nextInt(blocks.length)));
-      }
-    } else {
-      _allBlocks = blocks;
-    }
   }
 }
