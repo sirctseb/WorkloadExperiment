@@ -16,12 +16,12 @@ class BlockManager {
   Block get currentBlock => Block.allBlocks[blockNumber];
   
   /// The number of blocks
-  static const int NUM_BLOCKS = 14;
+  int get numBlocks => Block.allBlocks.length;
   
   /// True iff we are in the practice blocks
   bool get practicing => blockNumber < 0;
   
-  bool get finished => _blockNumber >= NUM_BLOCKS;
+  bool get finished => _blockNumber >= numBlocks;
   
   /// Trial state
   int trialNumber = 0;
