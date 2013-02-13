@@ -361,7 +361,7 @@ class TaskController implements TargetDelegate {
       if(wsReady) {
         if(blockManager.trialNumber == 0) {
           Logger.root.info("sending block info");
-          ws.send("set: ${stringify({'block': blockManager.blockNumber, 'blockDesc': blockManager.blockDesc})}");
+          ws.send("set: ${stringify({'block': blockManager.blockNumber, 'blockDesc': blockManager.block})}");
           Logger.root.info("sent block info");
         }
       }

@@ -40,10 +40,6 @@ class BlockManager {
     return block.createTask(controller);
   }
   
-  dynamic get blockDesc {
-    return block;
-  }
-  
 
   static bool random = true;
   static bool moreRandom = true;
