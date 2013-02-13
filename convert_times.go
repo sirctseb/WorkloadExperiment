@@ -266,7 +266,7 @@ func printTaskData(subject int, block, trial string) {
 func printRHeader() {
 	// TODO we should really read this from the file in case any of the parameters change
 	//fmt.Println("targets, speed, oprange, et1, et2, et3, et4, et5, et6, et7, et8, et9, et10, et11, et12")
-	fmt.Println("targets, speed, oprange, difficulty, addition, target, complete, hits, friendHits, shots")
+	fmt.Println("practice, targets, speed, oprange, difficulty, addition, target, complete, hits, friendHits, shots")
 }
 
 func printAccuracy(contents string) {
