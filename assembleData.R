@@ -20,6 +20,10 @@ assembleData <- function(subject, ignorePractice=TRUE) {
 	additionData$speed <<- NULL
 	additionData$difficulty <<- NULL
 	additionData$target <<- NULL
+	# get rid of targeting accuracy columns from addition data
+	additionData$hits <<- NULL
+	additionData$friendHits <<- NULL
+	additionData$shots <<- NULL
 	# remove empty levels
 	additionData$oprange <<- factor(additionData$oprange)
 	
