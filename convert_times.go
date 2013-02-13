@@ -76,6 +76,8 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 	taskCompleteTimes := make([]float64, 0, 100)
 	// make slice for final hit times
 	finalHitTimes := make([]float64, 0, 100)
+	// make slice for number of hits
+	numberHits := make([]float64, 0, 100)
 	iterationStartTime := 0.
 	lastHitTime := 0.
 	tasksComplete := false
@@ -145,6 +147,9 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 			if targetsHit < targets {
 				finalHitTimes = append(finalHitTimes, 5.)
 			}
+
+			// store number of targets hit
+			numberHits = append(numberHits, float64(targetsHit))
 			// TODO should also fill 5s for incomplete target tasks
 			// reset tasks Complete
 			tasksComplete = false
@@ -157,7 +162,8 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 			iterationStartTime, _ = strconv.ParseFloat(match[1], 64)
 		}
 	}
-	return map[string][]float64{"hit": hitTimes, "addition": additionTimes, "complete": taskCompleteTimes, "finalHit": finalHitTimes}
+	return map[string][]float64{"hit": hitTimes, "addition": additionTimes, "complete": taskCompleteTimes, "finalHit": finalHitTimes,
+		"hits": numberHits}
 }
 
 func printHitAndAdditionTimes(lines []string, targets int) {
@@ -236,7 +242,7 @@ func printTaskData(subject int, block, trial string) {
 func printRHeader() {
 	// TODO we should really read this from the file in case any of the parameters change
 	//fmt.Println("targets, speed, oprange, et1, et2, et3, et4, et5, et6, et7, et8, et9, et10, et11, et12")
-	fmt.Println("targets, speed, oprange, difficulty, addition, target, complete")
+	fmt.Println("targets, speed, oprange, difficulty, addition, target, complete, hits")
 }
 
 func printAccuracy(contents string) {
@@ -454,13 +460,16 @@ func main() {
 				if len(times["finalHit"]) == 0 {
 					times["finalHit"] = []float64{0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.}
 				}
-				if len(times["complete"]) != 12 || len(times["addition"]) != 12 || len(times["finalHit"]) != 12 {
+				if len(times["complete"]) != 12 || len(times["addition"]) != 12 || len(times["finalHit"]) != 12 ||
+					len(times["hits"]) != 12 {
 					panic("one or more variables do not have 12 elements")
 				}
 
 				// TODO magic number 12 iterations should be looked up
 				for index := 0; index < 12; index++ {
-					fmt.Printf("%d, %d, %v, %d, %f, %f, %f\n", levels.TargetNumber, levels.TargetSpeed, levels.AdditionDifficulty, levels.TargetDifficulty, times["addition"][index], times["finalHit"][index], times["complete"][index])
+					fmt.Printf("%d, %d, %v, %d, %f, %f, %f, %f\n",
+						levels.TargetNumber, levels.TargetSpeed, levels.AdditionDifficulty, levels.TargetDifficulty,
+						times["addition"][index], times["finalHit"][index], times["complete"][index], times["hits"][index])
 				}
 			}
 		}
