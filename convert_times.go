@@ -60,7 +60,7 @@ func printResponseTimes(subject int, block, trial string) {
 	}
 
 }
-func getResultTimes(lines []string, targets int) map[string][]float64 {
+func parseResults(lines []string, targets int) map[string][]float64 {
 	// define regexes for target hits and starts
 	hitRE, _ := regexp.Compile(`TargetHit, ([\d\.]+), `)
 	startRE, _ := regexp.Compile(`TargetStart, ([\d\.]+), `)
@@ -161,7 +161,7 @@ func getResultTimes(lines []string, targets int) map[string][]float64 {
 }
 
 func printHitAndAdditionTimes(lines []string, targets int) {
-	results := getResultTimes(lines, targets)
+	results := parseResults(lines, targets)
 	//hitTimes := results["hit"]
 	//additionTimes := results["addition"]
 	taskCompleteTimes := results["complete"]
@@ -446,7 +446,7 @@ func main() {
 			if levels != nil {
 				var enemyTargets int = int(math.Ceil(float64(levels.TargetNumber) / 2))
 				//printHitAndAdditionTimes(lines, targets)
-				times := getResultTimes(lines, enemyTargets)
+				times := parseResults(lines, enemyTargets)
 				// fill with zeros if data not present
 				if len(times["addition"]) == 0 {
 					times["addition"] = []float64{0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.}
