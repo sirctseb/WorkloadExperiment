@@ -123,7 +123,7 @@ class TlxWeights {
   List<int> get options => getOptions(currentOptionPairIndex);
   
   /// Get the current scales
-  List<Scale> get scales => options.map((scale) => new Scale.named(scale));
+  List<Scale> get scales => options.map((scale) => new Scale.named(scale)).toList();
   
   // option pair order
   List<List<int>> _optionPairs = _makeOptionPairs();

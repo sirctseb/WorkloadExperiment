@@ -455,7 +455,7 @@ class TaskController implements TargetDelegate {
     event.stopPropagation();
   }
   
-  void weightsCollected(List<Scale> scales) {
+  void weightsCollected(Iterable<Scale> scales) {
     // send weights to data server
     if(wsReady) {
       Map counts = {};
