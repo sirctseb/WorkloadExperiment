@@ -53,7 +53,7 @@ class BlockManager {
   }
   static void _generateAllBlocks() {
     _allBlocks = [];
-    var blocks = [
+    var practiceBlocks = [
       new Block(0, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.LOW_DIFFICULTY, true),
       new Block(0, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.LOW_DIFFICULTY, true),
       new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, null, Block.LOW_DIFFICULTY, true),
@@ -67,7 +67,8 @@ class BlockManager {
       new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, Block.LOW_OPERANDS, Block.LOW_DIFFICULTY, true),
       new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, Block.LOW_OPERANDS, Block.HIGH_DIFFICULTY, true),
       new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, Block.HIGH_OPERANDS, Block.LOW_DIFFICULTY, true),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY, true),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY, true)];
+    var experimentalBlocks = [
       new Block(0, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.LOW_DIFFICULTY),
       new Block(0, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.LOW_DIFFICULTY),
       new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, null, Block.LOW_DIFFICULTY),
@@ -90,15 +91,15 @@ class BlockManager {
       } else {
         rng = new Random(0);
       }
-      // first six should not be random
-      for(int i = 0; i < 14; i++) {
-        _allBlocks.add(blocks.removeAt(0));
+      // randomize practice blocks
+      while(practiceBlocks.length > 0) {
+        _allBlocks.add(practiceBlocks.removeAt(rng.nextInt(practiceBlocks.length)));
       }
-      while(blocks.length > 0) {
-        _allBlocks.add(blocks.removeAt(rng.nextInt(blocks.length)));
+      while(experimentalBlocks.length > 0) {
+        _allBlocks.add(experimentalBlocks.removeAt(rng.nextInt(experimentalBlocks.length)));
       }
     } else {
-      _allBlocks = blocks;
+      _allBlocks..addAll(practiceBlocks)..addAll(experimentalBlocks);
     }
   }
 }
