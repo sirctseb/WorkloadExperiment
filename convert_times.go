@@ -67,7 +67,9 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 	additionRE, _ := regexp.Compile(`AdditionCorrect, ([\d\.]+)`)
 	taskCompleteRE, _ := regexp.Compile(`TasksComplete, ([\d\.]+), `)
 	iterationEndRE, _ := regexp.Compile(`IterationEnd, ([\d\.]+)`)
+	friendHitRE, _ := regexp.Compile(`FriendHit, `)
 	//trialStartRE, _ := regexp.Compile(`TrialStart, ([\d\.]+)`)
+
 	// make slice for hit times
 	hitTimes := make([]float64, 0, 100)
 	// make slice for additiont imes
@@ -78,11 +80,16 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 	finalHitTimes := make([]float64, 0, 100)
 	// make slice for number of hits
 	numberHits := make([]float64, 0, 100)
+	// make slice for number of friendly hits
+	numberFriendHits := make([]float64, 0, 100)
+
+	// variables for accumulating totals and keeping state
 	iterationStartTime := 0.
 	lastHitTime := 0.
 	tasksComplete := false
 	additionComplete := false
 	targetsHit := 0
+	friendTargetsHit := 0
 
 	// compute hit times
 	for _, line := range lines {
@@ -150,6 +157,9 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 
 			// store number of targets hit
 			numberHits = append(numberHits, float64(targetsHit))
+			// store number of friend targets hit
+			numberFriendHits = append(numberFriendHits, float64(friendTargetsHit))
+
 			// TODO should also fill 5s for incomplete target tasks
 			// reset tasks Complete
 			tasksComplete = false
@@ -157,13 +167,17 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 			additionComplete = false
 			// reset number of targets hit
 			targetsHit = 0
+			// reset number of friend targets hit
+			friendTargetsHit = 0
 
 			// reset iteration start time
 			iterationStartTime, _ = strconv.ParseFloat(match[1], 64)
+		} else if friendHitRE.MatchString(line) {
+			friendTargetsHit++
 		}
 	}
 	return map[string][]float64{"hit": hitTimes, "addition": additionTimes, "complete": taskCompleteTimes, "finalHit": finalHitTimes,
-		"hits": numberHits}
+		"hits": numberHits, "friendHits": numberFriendHits}
 }
 
 func printHitAndAdditionTimes(lines []string, targets int) {
@@ -242,7 +256,7 @@ func printTaskData(subject int, block, trial string) {
 func printRHeader() {
 	// TODO we should really read this from the file in case any of the parameters change
 	//fmt.Println("targets, speed, oprange, et1, et2, et3, et4, et5, et6, et7, et8, et9, et10, et11, et12")
-	fmt.Println("targets, speed, oprange, difficulty, addition, target, complete, hits")
+	fmt.Println("targets, speed, oprange, difficulty, addition, target, complete, hits, friendHits")
 }
 
 func printAccuracy(contents string) {
@@ -461,15 +475,16 @@ func main() {
 					times["finalHit"] = []float64{0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.}
 				}
 				if len(times["complete"]) != 12 || len(times["addition"]) != 12 || len(times["finalHit"]) != 12 ||
-					len(times["hits"]) != 12 {
+					len(times["hits"]) != 12 || len(times["friendHits"]) != 12 {
 					panic("one or more variables do not have 12 elements")
 				}
 
 				// TODO magic number 12 iterations should be looked up
 				for index := 0; index < 12; index++ {
-					fmt.Printf("%d, %d, %v, %d, %f, %f, %f, %f\n",
+					fmt.Printf("%d, %d, %v, %d, %f, %f, %f, %f, %f\n",
 						levels.TargetNumber, levels.TargetSpeed, levels.AdditionDifficulty, levels.TargetDifficulty,
-						times["addition"][index], times["finalHit"][index], times["complete"][index], times["hits"][index])
+						times["addition"][index], times["finalHit"][index], times["complete"][index], times["hits"][index],
+						times["friendHits"][index])
 				}
 			}
 		}
