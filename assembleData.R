@@ -26,6 +26,9 @@ assembleData <- function(subject, ignorePractice=TRUE) {
 	additionData$shots <<- NULL
 	# remove empty levels
 	additionData$oprange <<- factor(additionData$oprange)
+
+	# add targeting accuracy fraction column to remaining data
+	mainData$accuracy <<- mainData$hits / mainData$shots
 	
 	# separate targeting-only trials
 	targetingData <<- mainData[mainData$oprange == "[]", ]
