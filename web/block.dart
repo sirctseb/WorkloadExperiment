@@ -123,12 +123,12 @@ class Block {
   static void _generateAllBlocks() {
     _allBlocks = [];
     var blocks = [
-      new Block(0, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.LOW_DIFFICULTY),
-      new Block(0, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.LOW_DIFFICULTY),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, null, Block.LOW_DIFFICULTY),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, null, Block.HIGH_DIFFICULTY),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, null, Block.LOW_DIFFICULTY),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, null, Block.HIGH_DIFFICULTY),
+      new Block(0, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.LOW_DIFFICULTY, true),
+      new Block(0, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.LOW_DIFFICULTY, true),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, null, Block.LOW_DIFFICULTY, true),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, null, Block.HIGH_DIFFICULTY, true),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, null, Block.LOW_DIFFICULTY, true),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, null, Block.HIGH_DIFFICULTY, true),
       new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.LOW_DIFFICULTY),
       new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.HIGH_DIFFICULTY),
       new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.LOW_DIFFICULTY),
