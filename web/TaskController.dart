@@ -495,7 +495,7 @@ class TaskController implements TargetDelegate {
     if(useBlockManager) {
       Logger.root.fine("trial over, incrementing trial");
       
-      bool practice = !blockManager.block.practice;
+      bool practice = blockManager.block.practice;
       // tell manager to advance trial
       if(blockManager.advance() && !practice) {
         // if block advanced and it wasn't a practice trial, show workload survey
