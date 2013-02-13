@@ -6,14 +6,11 @@ class BlockManager {
   // The number of the block we're on.
   int _blockNumber = 0;
   
-  /// The "name" of the block.
-  int get block => _blockNumber;
-  
-  /// Access to the block number
+  /// Access the number of the block.
   int get blockNumber => _blockNumber;
-  
+
   /// Access to the current block object
-  Block get currentBlock => allBlocks[blockNumber];
+  Block get block => allBlocks[blockNumber];
   
   /// The number of blocks
   int get numBlocks => allBlocks.length;
@@ -31,7 +28,7 @@ class BlockManager {
     // increment trial
     trialNumber++;
     // if we have finished the trials for a block, increment the block and reset trial to 0
-    if(trialNumber >= currentBlock.trials) {
+    if(trialNumber >= block.trials) {
       trialNumber = 0;
       _blockNumber++;
       return true;
@@ -40,11 +37,11 @@ class BlockManager {
   }
   
   Task getTask(TaskController controller) {
-    return allBlocks[blockNumber].createTask(controller);
+    return block.createTask(controller);
   }
   
   dynamic get blockDesc {
-    return allBlocks[blockNumber];
+    return block;
   }
   
 
