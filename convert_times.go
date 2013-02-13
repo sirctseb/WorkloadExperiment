@@ -481,10 +481,10 @@ func main() {
 
 				// TODO magic number 12 iterations should be looked up
 				for index := 0; index < 12; index++ {
-					fmt.Printf("%d, %d, %v, %d, %f, %f, %f, %f, %f\n",
+					fmt.Printf("%d, %d, %v, %d, %f, %f, %f, %d, %d\n",
 						levels.TargetNumber, levels.TargetSpeed, levels.AdditionDifficulty, levels.TargetDifficulty,
-						times["addition"][index], times["finalHit"][index], times["complete"][index], times["hits"][index],
-						times["friendHits"][index])
+						times["addition"][index], times["finalHit"][index], times["complete"][index], int(times["hits"][index]),
+						int(times["friendHits"][index]))
 				}
 			}
 		}
