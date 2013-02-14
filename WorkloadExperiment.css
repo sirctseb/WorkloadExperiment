@@ -52,7 +52,7 @@ body.ws-error {
   color: #0f0;
 }
 /* don't show addition problem in targeting-only trials */
-.task.targeting-only .addition {
+body.targeting-only .addition {
   display:none;
 }
 
@@ -77,7 +77,7 @@ body.ws-error {
 }
 
 /* don't show the extra start target for addition only tasks */
-.task.addition-only .target.not-start-button {
+body.addition-only .target.not-start-button {
   display: none;
 }
 

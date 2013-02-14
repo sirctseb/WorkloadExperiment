@@ -485,7 +485,7 @@ class ConfigurableTrialTask extends TrialTask {
     if(numTargets == 0) {
       document.body.classes.add("addition-only");
     } else {
-      document.body.classes.add("targeting-only");
+      document.body.classes.remove("addition-only");
     }
   }
 }
