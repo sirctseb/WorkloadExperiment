@@ -77,7 +77,7 @@ body.ws-error {
 }
 
 /* don't show the extra start target for addition only tasks */
-.task.addition-only .target.not-start-target {
+.task.addition-only .target.not-start-button {
   display: none;
 }
 
