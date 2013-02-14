@@ -67,6 +67,10 @@ body.ws-error {
   z-index: 0
 }
 
+.task.active .target.start-target {
+  display: none;
+}
+
 /* show targets as black by default in high difficulty*/
 body.high-targeting-difficulty .target {
   background-image: url('img/target.png');
