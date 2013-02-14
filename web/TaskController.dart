@@ -342,7 +342,7 @@ class TaskController implements TargetDelegate {
   
   void startTrial() {
     // add the active class to the trial
-    query(".trial").classes.add("active");
+    query(".task").classes.add("active");
     
     // tell task to actually generate task events
     task.buildEvents();
@@ -513,7 +513,7 @@ class TaskController implements TargetDelegate {
     }
     
     // remove active class from trial display
-    query(".trial").classes.remove("active");
+    query(".task").classes.remove("active");
   }
   
   void onTargetStart(TargetEvent te, num time) {
