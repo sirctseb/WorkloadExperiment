@@ -51,6 +51,10 @@ body.ws-error {
 .addition.correct {
   color: #0f0;
 }
+/* don't show addition problem in targeting-only trials */
+.task.targeting-only .addition {
+  display:none;
+}
 
 .target {
   background-size: contain;
@@ -67,7 +71,13 @@ body.ws-error {
   z-index: 0
 }
 
+/* don't show start targets during the task */
 .task.active .target.start-target {
+  display: none;
+}
+
+/* don't show the extra start target for addition only tasks */
+.task.addition-only .target.not-start-target {
   display: none;
 }
 

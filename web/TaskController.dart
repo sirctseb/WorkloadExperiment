@@ -138,6 +138,8 @@ class TaskController implements TargetDelegate {
       useBlockManager = true;
       // get first task
       task = blockManager.getTask(this);
+      // set up ui for first task
+      task.setupUI();
     });
     
     // add handler to survey submission
@@ -502,6 +504,10 @@ class TaskController implements TargetDelegate {
       }
       if(!blockManager.finished) {
         task = blockManager.getTask(this);
+        
+        // set up the interface based on the new task
+        task.setupUI();
+        
         Logger.root.fine("got new task: $task from manager");
       }
     } else {

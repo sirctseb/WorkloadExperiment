@@ -385,6 +385,9 @@ abstract class Task {
       }
     }
   }
+  
+  /// Set up the task interface for this task
+  void setupUI();
 }
 
 abstract class TrialTask extends Task {
@@ -458,14 +461,32 @@ class ConfigurableTrialTask extends TrialTask {
   }
   
   void start() {
+    // do normal start
+    super.start();
+  }
+  
+  /// Set up UI by added classes based on targeting difficulty and single-task vs dual-task
+  void setupUI() {
     // set css based on target difficulty
     if(targetDifficulty == Block.HIGH_DIFFICULTY) {
       document.body.classes.add("high-targeting-difficulty");
     } else {
       document.body.classes.remove("high-targeting-difficulty");
     }
-    // do normal start
-    super.start();
+    
+    // set css based on whether there is an addition task
+    if(opRange == null) {
+      document.body.classes.add("targeting-only");
+    } else {
+      document.body.classes.remove("targeting-only");
+    }
+    
+    // set css based on whether there is a targeting task
+    if(numTargets == 0) {
+      document.body.classes.add("addition-only");
+    } else {
+      document.body.classes.add("targeting-only");
+    }
   }
 }
 
