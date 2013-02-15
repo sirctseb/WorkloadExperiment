@@ -257,7 +257,12 @@ class TaskController implements TargetDelegate {
     useBlockManager = false;
   }
   bool lowSetting(String name) {
-    return (query("[name=$name]:checked") as InputElement).value == "low";
+    // get element that is checked
+    var el = query("[name=$name]:checked") as InputElement;
+    // if neither is checked, return null
+    if(el == null) return null;
+    // return true if value is low
+    return el.value == "low";
   }
   
   static int getInputValue(String id) {

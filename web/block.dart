@@ -115,7 +115,7 @@ class Block {
   static const int LOW_SPEED = 0;
   static const int HIGH_SPEED = 160;
   // The levels of the target count indpendent variable
-  static const int LOW_TARGET_NUMBER = 2;
+  static const int LOW_TARGET_NUMBER = 0;
   static const int HIGH_TARGET_NUMBER = 3;
   // The levels of the addition operand ranges
   static const List<int> LOW_OPERANDS = const [1,12];
@@ -154,7 +154,7 @@ class Block {
   Block.flags(bool lowTargetNumber, bool lowSpeed, bool lowAddition, bool lowDiff) {
     targetNumber = lowTargetNumber ? Block.LOW_TARGET_NUMBER : Block.HIGH_TARGET_NUMBER;
     targetSpeed = lowSpeed ? Block.LOW_SPEED : Block.HIGH_SPEED;
-    additionDiff = lowAddition ? Block.LOW_OPERANDS : Block.HIGH_OPERANDS;
+    additionDiff = lowAddition == null ? null : lowAddition ? Block.LOW_OPERANDS : Block.HIGH_OPERANDS;
     targetDiff = lowDiff ? Block.LOW_DIFFICULTY : Block.HIGH_DIFFICULTY;
   }
   
