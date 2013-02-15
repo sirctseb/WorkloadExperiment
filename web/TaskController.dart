@@ -252,6 +252,8 @@ class TaskController implements TargetDelegate {
   void setTaskByBlockSettings() {
     task = block.createTask(this);
     
+    task.setupUI();
+    
     useBlockManager = false;
   }
   bool lowSetting(String name) {
