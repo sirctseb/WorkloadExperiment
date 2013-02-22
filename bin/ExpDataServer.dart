@@ -69,6 +69,24 @@ class Server {
           
           // write mouse click location to file
           stream.writeString("$message\n");
+        } else {
+          // if we're not running, check for requests for trial replay data
+          try {
+            var request = parse(message);
+            // check if it is a data file request
+            if(request["cmd"] == "replay" && request["data"] == "datafile") {
+              Logger.root.info("got request for data file in ${request['path']}");
+              // load the data file and send contents back
+              new File.fromPath(new Path(request["path"]).append("data.txt"))
+                .readAsString()
+                .then((content) {
+                  Logger.root.info("finished reading file, sending to client");
+                  conn.send(stringify({"data": "datafile", "content": content}));
+                });
+            }
+          } on FormatException catch(e) {
+            // don't do anything
+          }
         }
         
         // check for subject number command
