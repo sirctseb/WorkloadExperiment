@@ -73,11 +73,11 @@ class TrialReplay {
   set iterationTime(num t);
   
   // ui elements
-  InputElement iterationSlider = query(".iteration-time-slider");
-  InputElement trialSlider = query(".trial-time-slider");
-  InputElement iterationTimeBox = query(".iteration-time");
-  InputElement trialTimeBox = query(".trial-time");
-  
+  InputElement iterationSlider = query("#iteration-time-slider");
+  InputElement trialSlider = query("#trial-time-slider");
+  InputElement iterationTimeBox = query("#iteration-time");
+  InputElement trialTimeBox = query("#trial-time");
+ 
   TrialReplay() {
     // add listener for trial time input changes
     trialTimeBox.onChange.listen((event) {
