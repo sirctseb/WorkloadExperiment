@@ -11,6 +11,7 @@ part 'Task.dart';
 part 'block.dart';
 part 'tlxweights.dart';
 part 'mathutility.dart';
+part 'trialreplay.dart';
 
 
 void main() {
