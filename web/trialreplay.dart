@@ -25,6 +25,6 @@ class TrialReplay {
   // ui elements
   InputElement iterationSlider;
   InputElement trialSlider;
-  InputElement iterationTime;
-  InputElement trialTime;
+  InputElement iterationTimeBox;
+  InputElement trialTimeBox;
 }
