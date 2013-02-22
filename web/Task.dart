@@ -493,8 +493,8 @@ class ConfigurableTrialTask extends TrialTask {
 class BlockTrialTask extends ConfigurableTrialTask {
   
   // trial task constants
-  static const int ITERATION_TIME_S = 5;
-  static const int ITERATION_TIME_MS = 5000;
+  static const int ITERATION_TIME_S = 6;
+  static const int ITERATION_TIME_MS = 6000;
   static const int ITERATIONS = 12;
   static const int TARGET_SIZE = 128;
   
