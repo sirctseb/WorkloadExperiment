@@ -59,7 +59,6 @@ class TrialReplay {
         // TODO parse data file into mouse move and event lists
         mouseMoves = TrialDataParser.parseMouseMoveData(data["content"]);
         events = TrialDataParser.parseEventData(data["content"]);
-        print(events);
       }
     } on FormatException catch(e) {
       // ignore if not valid json
@@ -67,7 +66,9 @@ class TrialReplay {
   }
   
   /// Move the replay to a given trial time
-  set time(num t);
+  set time(num t) {
+    Logger.root.info("setting time to $t");
+  }
   /// Move the replay to a given iteration time
   set iterationTime(num t);
   
@@ -76,6 +77,14 @@ class TrialReplay {
   InputElement trialSlider = query(".trial-time-slider");
   InputElement iterationTimeBox = query(".iteration-time");
   InputElement trialTimeBox = query(".trial-time");
+  
+  TrialReplay() {
+    // add listener for trial time input changes
+    trialTimeBox.onChange.listen((event) {
+      // set time value from input
+      time = trialTimeBox.valueAsNumber;
+    });
+  }
 }
 
 class TrialDataParser {
