@@ -113,7 +113,7 @@ class Block {
 
   // The levels of the target speed independent variable in pixels per second
   static const int LOW_SPEED = 0;
-  static const int HIGH_SPEED = 160;
+  static const int HIGH_SPEED = 280;
   // The levels of the target count indpendent variable
   static const int LOW_TARGET_NUMBER = 0;
   static const int HIGH_TARGET_NUMBER = 3;
