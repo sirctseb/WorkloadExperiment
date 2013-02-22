@@ -360,6 +360,8 @@ class TaskController implements TargetDelegate {
       
       // load an arbitrary trial for replay
       trialReplay.loadTrial("output/subject7/block2/trial1");
+      // show replay ui
+      query(".task").classes.add("replay");
     }
   }
   

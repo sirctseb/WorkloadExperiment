@@ -45,7 +45,7 @@ class TrialReplay {
   
   // load data
   void loadTrial(String path) {
-    if(delegate.wsReady) {
+    if(delegate != null && delegate.wsReady) {
       // send request for data file contents
       delegate.ws.send(stringify({"cmd": "replay", "data": "datafile", "path": path}));
     } else {

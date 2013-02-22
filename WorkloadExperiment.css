@@ -169,7 +169,22 @@ body.high-targeting-difficulty .target.friend:hover {
   -webkit-animation-timing-function: ease-out
 }
 
+/* replay div in task div */
 
+/* do not show replay ui unless we are in replay mode */
+.task:not(.replay) .replay-ui {
+  display:none;
+}
+
+/* show replay ui at the bottom of the screen */
+.replay-ui {
+  position:fixed;
+  width:100%;
+  bottom: 0;
+}
+.replay-ui .replay-time-slider {
+  width: 100%;
+}
 
 
 /* Settings div */
