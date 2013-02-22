@@ -82,7 +82,7 @@ class TrialReplay {
     // add listener for trial time input changes
     trialTimeBox.onChange.listen((event) {
       // set time value from input
-      time = trialTimeBox.valueAsNumber;
+      time = double.parse(trialTimeBox.value);
     });
   }
 }
