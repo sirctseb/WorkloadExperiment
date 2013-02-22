@@ -13,10 +13,13 @@
       <div id="start-button" class="start-button target enemy start-target"></div>
       <div class="not-start-button target friend start-target"></div>
       <div class="replay-ui">
-        <input type="range" class="replay-time-slider" id="iteration-time-slider"><br>
-        <input type="range" class="replay-time-slider" id="trial-time-slider"><br>
-        <label for="iteration-time">Iteration Time:</label><input type="text" id="iteration-time"><br>
-        <label for="trial-time">Trial Time:</label><input type="text" id="trial-time">
+        <div class="replay-controls">
+          <input type="range" class="replay-time-slider" id="iteration-time-slider"><br>
+          <input type="range" class="replay-time-slider" id="trial-time-slider"><br>
+          <label for="iteration-time">Iteration Time:</label><input type="text" id="iteration-time"><br>
+          <label for="trial-time">Trial Time:</label><input type="text" id="trial-time">
+        </div>
+        <div id="replay-cursor"></div>
       </div>
     </div>
     <div id="settings" class="settings">

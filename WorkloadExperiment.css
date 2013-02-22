@@ -177,13 +177,25 @@ body.high-targeting-difficulty .target.friend:hover {
 }
 
 /* show replay ui at the bottom of the screen */
-.replay-ui {
+.replay-ui .replay-controls{
   position:fixed;
   width:100%;
   bottom: 0;
 }
 .replay-ui .replay-time-slider {
   width: 100%;
+}
+
+#replay-cursor {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  background-image: url('img/crosshair.png');
+  top: 0;
+  left: 0;
+  /* so setting top and left will actually put the middle at those values*/
+  transform:translate(-25px, -25px);
+  -webkit-transform:translate(-25px, -25px);
 }
 
 
