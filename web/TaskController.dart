@@ -21,6 +21,9 @@ class TaskController implements TargetDelegate {
   /// The block manager
   BlockManager blockManager;
   
+  /// The trial replay manager
+  TrialReplay trialReplay;
+  
   /// Task state
   bool taskRunning = false;
   num _score = 0;
@@ -75,6 +78,9 @@ class TaskController implements TargetDelegate {
     if(wsReady) {
       Logger.root.info("ws ready");
       document.body.classes.remove("ws-error");
+      // set up trial replay
+      // TODO seems like this should go somewhere better
+      trialReplay.delegate = this;
     } else {
       Logger.root.info("error: ws not ready");
       document.body.classes.add("ws-error");
@@ -106,6 +112,9 @@ class TaskController implements TargetDelegate {
     
     // make block manager
     blockManager = new BlockManager();
+    
+    // make trial replay
+    trialReplay = new TrialReplay();
     
     // register for keyboard input
     window.onKeyPress.listen(handleKeyPress);
@@ -346,6 +355,11 @@ class TaskController implements TargetDelegate {
       
       // show the weights root
       showWeights();
+    } else if(event.which == "r".codeUnitAt(0)) {
+      // r for replay
+      
+      // load an arbitrary trial for replay
+      trialReplay.loadTrial("output/subject7/block2/trial1");
     }
   }
   
