@@ -145,6 +145,8 @@ class TrialReplay implements TargetDelegate {
         var currTarget = targetIDmap[events[i]["id"]];
         // compute time parameter
         num param = iterationTime / events[i]["iterationTime"];
+        // if parameter is outside of [0,1], target either doesn't exist yet or it is dismissed, so hide it
+        currTarget.element.style.display = (param < 0 || param > 1) ? "none" : "block";
         // interpolate position of target
         currTarget.move(currTarget.x + param * (events[i]["x"] - currTarget.x),
                         currTarget.y + param * (events[i]["y"] - currTarget.y));
