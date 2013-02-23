@@ -137,6 +137,8 @@ class TrialReplay implements TargetDelegate {
     // set cursor location
     query("#replay-cursor").style..left = "${lastMove['x']}px"
                                 ..top = "${lastMove['y']}px";
+    num mouseX = lastMove['x'];
+    num mouseY = lastMove['y'];
     if(block["targetNumber"] == 3) {
       // set target state
       // clear id map
@@ -168,6 +170,13 @@ class TrialReplay implements TargetDelegate {
           // interpolate position of target
           currTarget.move(currTarget.x + param * (events[i]["x"] - currTarget.x),
                           currTarget.y + param * (events[i]["y"] - currTarget.y));
+          ClientRect tRect = currTarget.element.getBoundingClientRect(); 
+          if(mouseX >= tRect.left && mouseX <= tRect.right &&
+              mouseY >= tRect.top && mouseY <= tRect.bottom) {
+            currTarget.element.classes.add("hover");
+          } else {
+            currTarget.element.classes.remove("hover");
+          }
           // set enemy / friend
           currTarget.enemy = events[i]["event"] == "TargetHit" || (events[i]["event"] == "TargetTimeout" && events[i]["enemy"] == 0);
           if(events[i]["event"] == "TargetTimeout") {
