@@ -26,6 +26,9 @@ class TrialReplay implements TargetDelegate {
   /// The trial end time in unix ms
   int trialEndStamp;
   
+  /// The block description for this trial
+  Map block;
+  
   // access to trial controller
   TaskController _delegate;
   TaskController get delegate => _delegate;
@@ -70,7 +73,10 @@ class TrialReplay implements TargetDelegate {
       var data = parse(event.data);
       if(data.containsKey("data") && data["data"] == "datafile") {
         Logger.root.info("got data from server, parsing");
-        // TODO parse data file into mouse move and event lists
+        // read block description
+        block = parse(data["block"]);
+        Logger.root.info("block is like: $block");
+        // parse data file into mouse move and event lists
         mouseMoves = TrialDataParser.parseMouseMoveData(data["content"]);
         events = TrialDataParser.parseEventData(data["content"]);
         // find trial start event to set stamp
