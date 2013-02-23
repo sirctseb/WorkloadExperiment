@@ -202,6 +202,15 @@ body.high-targeting-difficulty .target.friend:hover {
   -webkit-transform:translate(-25px, -25px);
 }
 
+/* show green target when faking a hover during replay */
+body.high-targeting-difficulty .target.friend.hover {
+  background-image: url('img/target-friend.png');
+}
+/* show red target when faking a hover during replay */
+body.high-targeting-difficulty .target.enemy.hover {
+  background-image: url('img/target-enemy.png');
+}
+
 
 /* Settings div */
 .settings {
