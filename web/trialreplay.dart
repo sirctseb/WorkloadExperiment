@@ -74,6 +74,7 @@ class TrialReplay {
   
   /// Move the replay to a given trial time
   set time(num t) {
+    Logger.root.fine("setting time to $t");
     // find most recent mouse move
     var lastMove = findLastMouseMove(t);
     Logger.root.fine("mouse at ${lastMove['x']}, ${lastMove['y']}");
@@ -106,8 +107,8 @@ class TrialReplay {
   set iterationTime(num t);
   
   // ui elements
-  InputElement iterationSlider = query("#iteration-time-slider");
-  InputElement trialSlider = query("#trial-time-slider");
+  RangeInputElement iterationSlider = query("#iteration-time-slider");
+  RangeInputElement trialSlider = query("#trial-time-slider");
   InputElement iterationTimeBox = query("#iteration-time");
   InputElement trialTimeBox = query("#trial-time");
  
@@ -116,6 +117,14 @@ class TrialReplay {
     trialTimeBox.onChange.listen((event) {
       // set time value from input
       time = double.parse(trialTimeBox.value);
+    });
+    // set min, max on slider
+    trialSlider.min = "0";
+    trialSlider.max = "1000";
+    trialSlider.onChange.listen((event) {
+      Logger.root.info("slider changes to ${trialSlider.valueAsNumber}");
+      // set time parameter from slider
+      timeParameter = trialSlider.valueAsNumber / int.parse(trialSlider.max);
     });
   }
 }
