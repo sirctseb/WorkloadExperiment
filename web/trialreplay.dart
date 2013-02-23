@@ -214,7 +214,7 @@ class TrialReplay implements TargetDelegate {
       // set time value from input
       time = double.parse(trialTimeBox.value);
       // set the trail slider position based on value
-      trialSlider.value = "${SLIDER_RESOLUTION * time / trialLength}"; 
+      trialSlider.value = "${SLIDER_RESOLUTION * time / trialLength}";
     });
     // set min, max on slider
     trialSlider.min = "0";
