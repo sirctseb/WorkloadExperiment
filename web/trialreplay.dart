@@ -17,6 +17,8 @@ class TrialReplay {
   
   /// The trial start time in unix ms
   int trialStartStamp;
+  /// The trial end time in unix ms
+  int trialEndStamp;
   
   // access to trial controller
   TaskController _delegate;
@@ -77,6 +79,10 @@ class TrialReplay {
     query("#replay-cursor").style..left = "${lastMove['x']}px"
                                 ..top = "${lastMove['y']}px";
   }
+  /// Move the replay a given fraction into the trial
+  set timeParameter(num p) {
+    time = trialStartStamp + p * (trialEndStamp - trialStartStamp);
+  }
   Map findLastMouseMove(num t) {
     // do a binary search to find the closest mouse move
     int low = 0, high = mouseMoves.length - 1;
@@ -123,6 +129,7 @@ class TrialDataParser {
   static RegExp iterationEnd = new RegExp(r"IterationEnd, (\d*)");
   static RegExp friendHit = new RegExp(r"FriendHit, (\d*), ([\d\.]*), ([\d\.]*), (\d*)");
   static RegExp targetTimeout = new RegExp(r"TargetTimeout, (\d*), ([\d\.]*), ([\d\.]*), (\d)(, friend)?");
+  static RegExp trialEnd = new RegExp(r"TrialEnd, (\d*)");
   
   static List<Map> parseMouseMoveData(String data) {
     // parse all mouse moves and put into list
@@ -192,6 +199,11 @@ class TrialDataParser {
           "y": double.parse(match.group(3)),
           "id": int.parse(match.group(4))
           }));
+      } else if((match = trialEnd.firstMatch(line)) != null) {
+        // create trial end event
+        events.add(parseTimes(match, {"event": "TrialEnd"}));
+        // set trial end var
+        trialEndStamp = events.last["time"];
       }
     }
     return events;
