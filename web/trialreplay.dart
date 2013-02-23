@@ -75,6 +75,12 @@ class TrialReplay implements TargetDelegate {
         Logger.root.info("got data from server, parsing");
         // read block description
         block = parse(data["block"]);
+        // set targeting difficulty class
+        if(block["targetDifficulty"] == 1) {
+          document.body.classes.add("high-targeting-difficulty");
+        } else {
+          document.body.classes.remove("high-targeting-difficulty");
+        }
         Logger.root.info("block is like: $block");
         // parse data file into mouse move and event lists
         mouseMoves = TrialDataParser.parseMouseMoveData(data["content"]);
