@@ -78,6 +78,8 @@ class TrialReplay implements TargetDelegate {
         // find trial end event to set stamp
         trialEndStamp = events.lastMatching((event) => event["event"] == "TrialEnd")["time"];
         // TODO set trial times in mouse moves?
+        // set time so state is set correctly
+        time = 0;
       }
     } on FormatException catch(e) {
       // ignore if not valid json
