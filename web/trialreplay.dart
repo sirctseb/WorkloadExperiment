@@ -231,6 +231,18 @@ class TrialReplay implements TargetDelegate {
       // TODO magic number assumes 6 second iterations
       iterationSlider.value = "${SLIDER_RESOLUTION * iterationTime / 6}";
     });
+    // add listener for iteration time input changes
+    iterationTimeBox.onChange.listen((event) {
+      // set time value from input
+      iterationTime = double.parse(iterationTimeBox.value);
+      // set the trial slider position based on new time
+      trialSlider.value = "${SLIDER_RESOLUTION * time / trialLength}";
+      // set the value of the trial time text box
+      trialTimeBox.value = "$time";
+      // set the position of the iteration slider
+      // TODO magic number assumes 6 second iterations
+      iterationSlider.value = "${SLIDER_RESOLUTION * iterationTime / 6}";
+    });
     // set min, max on slider
     trialSlider.min = "0";
     trialSlider.max = "$SLIDER_RESOLUTION";
