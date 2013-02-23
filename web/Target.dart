@@ -12,7 +12,20 @@ class Target {
   static const bool FRIEND = false;
   
   /// The target is an enemy
-  bool enemy;
+  bool get enemy => _enemy;
+  bool _enemy;
+  set enemy(bool e) {
+    // set backing field
+    _enemy = e;
+    // add enemy or friend class
+    if(_enemy) {
+      element.classes.remove("friend");
+      element.classes.add("enemy");
+    } else {
+      element.classes.remove("enemy");
+      element.classes.add("friend");
+    }
+  }
   
   // an ID to tell target apart from others
   int _ID = _ID_counter++;
@@ -105,17 +118,13 @@ class Target {
   }
   
   /// Create a new [Target]
-  Target(this.delegate, bool this.enemy, {show: false}) {
+  Target(this.delegate, bool enemy, {show: false}) {
     
     // add target class
     element.classes.add("target");
     
     // add enemy or friend class
-    if(enemy) {
-      element.classes.add("enemy");
-    } else {
-      element.classes.add("friend");
-    }
+    this.enemy = enemy;
     
     // set default location 
     move(200,200);
