@@ -1,19 +1,23 @@
 part of WorkloadExperiment;
 
 /// A class to manage the replay of trials
-class TrialReplay {
+class TrialReplay implements TargetDelegate {
   // trial state
   /// The current time in seconds from the start of the trial. can be negative
   num get time => _time;
   num _time;
   /// The current time in seconds from the start of the iteration
-  num get iterationTime;
+  num get iterationTime => time - iterationStartTime;
   /// The current iteration
   int iteration;
   /// The targets
   List<Target> targets;
   /// The addition operands
   int op1, op2;
+  
+  /// The start time of the iteration in seconds since the start of the trial
+  num get iterationStartTime => _iterationStartTime;
+  num _iterationStartTime;
   
   /// The trial start time in unix ms
   int trialStartStamp;
@@ -40,6 +44,11 @@ class TrialReplay {
     }
   }
   StreamSubscription dataSubscription;
+  
+  // TargetDelegate implementation
+  void TargetClicked(Target target, MouseEvent event) {
+    // don't do anything;
+  }
   
   // data
   List<Map> mouseMoves;
@@ -72,20 +81,97 @@ class TrialReplay {
     }
   }
   
+  // map from target ids of the original targets to the target objects we are replaying them with
+  Map<int, Target> targetIDmap = new Map<int, Target>();
+  // map from target ids of the original targets to the time their events started in seconds from the 
+  //Map<int, num> targetIDstarts = new Map<int, num>();
+  
   /// Move the replay to a given trial time
   set time(num t) {
+    
     Logger.root.fine("setting time to $t");
+    
+    // TODO error check input
+    _time = t;
+    
+    // get index of last event
+    int lastEventIndex = findLastEventIndex(t);
+    
+    // find iteration start index
+    int iterationStartIndex = -1;
+    for(iterationStartIndex = lastEventIndex;
+        iterationStartIndex >= 0 &&
+        events[iterationStartIndex]["event"] != "IterationEnd"
+        && events[iterationStartIndex]["event"] != "TrialStart";
+        iterationStartIndex--);
+    if(iterationStartIndex < 0) {
+      Logger.root.info("Time $t appears to be before any iteration started");
+      return;
+    }
+    
+    // set iteration start time
+    _iterationStartTime = events[iterationStartIndex]["trialTime"];
+    
+    Logger.root.info("this iteration started at $_iterationStartTime");
+    
     // find most recent mouse move
     var lastMove = findLastMouseMove(t);
     Logger.root.fine("mouse at ${lastMove['x']}, ${lastMove['y']}");
     // set cursor location
     query("#replay-cursor").style..left = "${lastMove['x']}px"
                                 ..top = "${lastMove['y']}px";
+    // set target state
+    // clear id map
+    targetIDmap.clear();
+    // find target start events
+    for(int targ = 0, i = iterationStartIndex; targ < 3; i++) {
+      // test if target start event
+      if(events[i]["event"] == "TargetStart") {
+        // TODO should also grab enemy status from this but they're not in there
+        // add target to id map
+        targetIDmap[events[i]["id"]] = targets[targ];
+        // set target location just to store the start points
+        targets[targ].move(events[i]["x"], events[i]["y"]);
+        // increment target index
+        targ++;
+      }
+    }
+    // scan to find the ending time and location of each target
+    for(int targ = 0, i = iterationStartIndex; targ < 3; i++) {
+      // test if target end event (hit, friend hit, or timeout
+      if(events[i]["event"] == "TargetHit" || events[i]["event"] == "FriendHit" || events[i]["event"] == "TargetTimeout") {
+        Logger.root.info("found end of target id ${events[i]['id']}");
+        // get target reference
+        var currTarget = targetIDmap[events[i]["id"]];
+        // compute time parameter
+        num param = iterationTime / events[i]["iterationTime"];
+        // interpolate position of target
+        currTarget.move(currTarget.x + param * (events[i]["x"] - currTarget.x),
+                        currTarget.y + param * (events[i]["y"] - currTarget.y));
+        targ++;
+      }
+    }
   }
   /// Move the replay a given fraction into the trial
   set timeParameter(num p) {
     Logger.root.fine("setting time param to $p");
-    time = p * (trialEndStamp - trialStartStamp);
+    time = p * (trialEndStamp - trialStartStamp) / 1000;
+  }
+  int findLastEventIndex(num t) {
+    // TODO DRY these searches
+    // do a binary search to find the closest event
+    int low = 0, high = events.length - 1;
+    int ind;
+    while(low < high) {
+      ind = low + ((high - low) / 2).ceil().toInt();
+      if(events[ind]["trialTime"] == t) return ind;
+      if(events[ind]["trialTime"] < t) {
+        low = ind;
+      } else {
+        high = ind - 1;
+      }
+    }
+    return ind;
   }
   Map findLastMouseMove(num t) {
     // do a binary search to find the closest mouse move
@@ -93,8 +179,8 @@ class TrialReplay {
     int ind;
     while(low < high) {
       ind = low + ((high - low) / 2).ceil().toInt();
-      if(mouseMoves[ind]["time"] - trialStartStamp == t) return mouseMoves[ind];
-      if(mouseMoves[ind]["time"] - trialStartStamp < t) {
+      if(mouseMoves[ind]["time"] - trialStartStamp == t*1000) return mouseMoves[ind];
+      if(mouseMoves[ind]["time"] - trialStartStamp < t*1000) {
         low = ind;
       } else {
         high = ind - 1;
@@ -120,12 +206,16 @@ class TrialReplay {
     });
     // set min, max on slider
     trialSlider.min = "0";
-    trialSlider.max = "1000";
+    trialSlider.max = "10000";
     trialSlider.onChange.listen((event) {
       Logger.root.info("slider changes to ${trialSlider.valueAsNumber}");
       // set time parameter from slider
       timeParameter = trialSlider.valueAsNumber / int.parse(trialSlider.max);
     });
+    // create targets
+    targets = [new Target(this, true), new Target(this, true), new Target(this, false)];
+    // add targets to replay ui
+    query(".replay-ui").children.addAll(targets.map((target) => target.element));
   }
 }
 
@@ -140,7 +230,7 @@ class TrialDataParser {
   static RegExp taskComplete = new RegExp(r"TasksComplete, (\d*), (\d*)");
   static RegExp iterationEnd = new RegExp(r"IterationEnd, (\d*)");
   static RegExp friendHit = new RegExp(r"FriendHit, (\d*), ([\d\.]*), ([\d\.]*), (\d*)");
-  static RegExp targetTimeout = new RegExp(r"TargetTimeout, (\d*), ([\d\.]*), ([\d\.]*), (\d)(, friend)?");
+  static RegExp targetTimeout = new RegExp(r"TargetTimeout, (\d*), ([\d\.]*), ([\d\.]*), (\d*)(, friend)?");
   static RegExp trialEnd = new RegExp(r"TrialEnd, (\d*)");
   
   static List<Map> parseMouseMoveData(String data) {
@@ -170,8 +260,7 @@ class TrialDataParser {
       } else if((match = targetStart.firstMatch(line)) != null) {
         // create target start event
         var time = int.parse(match.group(1));
-        events.add({"event": "TargetStart", "time": time, "trialTime": time - trialStartTime, "iterationTime": time - iterationStartTime,
-                    "x": int.parse(match.group(2)), "y": int.parse(match.group(3)), "id": int.parse(match.group(4))});
+        events.add(parseTimes(match, {"event": "TargetStart", "x": int.parse(match.group(2)), "y": int.parse(match.group(3)), "id": int.parse(match.group(4))}));
       } else if((match = additionStart.firstMatch(line))!= null) {
         // create addition start event
         events.add(parseTimes(match, {"event": "AdditionStart", "op1": int.parse(match.group(2)), "op2": int.parse(match.group(3))}));
@@ -222,8 +311,8 @@ class TrialDataParser {
   static Map parseTimes(Match match, Map event) {
     int time = int.parse(match.group(1));
     event["time"] = time;
-    event["trialTime"] = time - trialStartTime;
-    event["iterationTime"] = time - iterationStartTime;
+    event["trialTime"] = (time - trialStartTime)/1000;
+    event["iterationTime"] = (time - iterationStartTime)/1000;
     return event;
   }
 }
