@@ -219,6 +219,8 @@ class TrialReplay implements TargetDelegate {
       Logger.root.info("slider changes to ${trialSlider.valueAsNumber}");
       // set time parameter from slider
       timeParameter = trialSlider.valueAsNumber / int.parse(trialSlider.max);
+      // set the value of the trial time text box
+      trialTimeBox.value = "$time";
     });
     // create targets
     targets = [new Target(this, true), new Target(this, true), new Target(this, false)];
