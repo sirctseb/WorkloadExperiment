@@ -59,6 +59,9 @@ class TrialReplay {
         // TODO parse data file into mouse move and event lists
         mouseMoves = TrialDataParser.parseMouseMoveData(data["content"]);
         events = TrialDataParser.parseEventData(data["content"]);
+        // find trial start event to set stamp
+        trialStartStamp = events.firstMatching((event) => event["event"] == "TrialStart")["time"];
+        // TODO set trial times in mouse moves?
       }
     } on FormatException catch(e) {
       // ignore if not valid json
@@ -67,7 +70,28 @@ class TrialReplay {
   
   /// Move the replay to a given trial time
   set time(num t) {
-    Logger.root.info("setting time to $t");
+    // find most recent mouse move
+    var lastMove = findLastMouseMove(t);
+    Logger.root.fine("mouse at ${lastMove['x']}, ${lastMove['y']}");
+    // set cursor location
+    query("#replay-cursor").style..left = "${lastMove['x']}px"
+                                ..top = "${lastMove['y']}px";
+  }
+  Map findLastMouseMove(num t) {
+    // do a binary search to find the closest mouse move
+    int low = 0, high = mouseMoves.length - 1;
+    int ind;
+    while(low < high) {
+      ind = low + ((high - low) / 2).ceil().toInt();
+      if(mouseMoves[ind]["time"] - trialStartStamp == t) return mouseMoves[ind];
+      if(mouseMoves[ind]["time"] - trialStartStamp < t) {
+        low = ind;
+      } else {
+        high = ind - 1;
+      }
+    }
+    Logger.root.fine("last mouse move at ind $ind, max ${mouseMoves.length-1}");
+    return mouseMoves[ind];
   }
   /// Move the replay to a given iteration time
   set iterationTime(num t);
