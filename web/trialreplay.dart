@@ -63,6 +63,8 @@ class TrialReplay {
         events = TrialDataParser.parseEventData(data["content"]);
         // find trial start event to set stamp
         trialStartStamp = events.firstMatching((event) => event["event"] == "TrialStart")["time"];
+        // find trial end event to set stamp
+        trialEndStamp = events.lastMatching((event) => event["event"] == "TrialEnd")["time"];
         // TODO set trial times in mouse moves?
       }
     } on FormatException catch(e) {
@@ -202,8 +204,6 @@ class TrialDataParser {
       } else if((match = trialEnd.firstMatch(line)) != null) {
         // create trial end event
         events.add(parseTimes(match, {"event": "TrialEnd"}));
-        // set trial end var
-        trialEndStamp = events.last["time"];
       }
     }
     return events;
