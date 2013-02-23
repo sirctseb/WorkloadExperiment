@@ -18,6 +18,8 @@ class TrialReplay implements TargetDelegate {
   /// The start time of the iteration in seconds since the start of the trial
   num get iterationStartTime => _iterationStartTime;
   num _iterationStartTime;
+  /// The length of the trial in seconds
+  num get trialLength => (trialEndStamp - trialStartStamp)/1000;
   
   /// The trial start time in unix ms
   int trialStartStamp;
@@ -211,6 +213,8 @@ class TrialReplay implements TargetDelegate {
     trialTimeBox.onChange.listen((event) {
       // set time value from input
       time = double.parse(trialTimeBox.value);
+      // set the trail slider position based on value
+      trialSlider.value = "${SLIDER_RESOLUTION * time / trialLength}"; 
     });
     // set min, max on slider
     trialSlider.min = "0";
