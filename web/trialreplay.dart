@@ -232,7 +232,7 @@ class TrialDataParser {
   static RegExp taskComplete = new RegExp(r"TasksComplete, (\d*), (\d*)");
   static RegExp iterationEnd = new RegExp(r"IterationEnd, (\d*)");
   static RegExp friendHit = new RegExp(r"FriendHit, (\d*), ([\d\.]*), ([\d\.]*), (\d*)");
-  static RegExp targetTimeout = new RegExp(r"TargetTimeout, (\d*), ([\d\.]*), ([\d\.]*), (\d*)(, friend)?");
+  static RegExp targetTimeout = new RegExp(r"TargetTimeout, (\d*), ([\d\.]*), ([\d\.]*), (\d*), (friend|enemy)");
   static RegExp trialEnd = new RegExp(r"TrialEnd, (\d*)");
   
   static List<Map> parseMouseMoveData(String data) {
@@ -300,7 +300,8 @@ class TrialDataParser {
         events.add(parseTimes(match, {"event": "TargetTimeout",
           "x": double.parse(match.group(2)),
           "y": double.parse(match.group(3)),
-          "id": int.parse(match.group(4))
+          "id": int.parse(match.group(4)),
+          "enemy": match.group(5) == "enemy"
           }));
       } else if((match = trialEnd.firstMatch(line)) != null) {
         // create trial end event
