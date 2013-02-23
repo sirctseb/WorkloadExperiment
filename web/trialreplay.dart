@@ -69,6 +69,7 @@ class TrialReplay implements TargetDelegate {
     try {
       var data = parse(event.data);
       if(data.containsKey("data") && data["data"] == "datafile") {
+        Logger.root.info("got data from server, parsing");
         // TODO parse data file into mouse move and event lists
         mouseMoves = TrialDataParser.parseMouseMoveData(data["content"]);
         events = TrialDataParser.parseEventData(data["content"]);
@@ -225,6 +226,8 @@ class TrialReplay implements TargetDelegate {
       timeParameter = trialSlider.valueAsNumber / int.parse(trialSlider.max);
       // set the value of the trial time text box
       trialTimeBox.value = "$time";
+      // set the value of the iteration time text box
+      iterationTimeBox.value = "$iterationTime";
     });
     // create targets
     targets = [new Target(this, true), new Target(this, true), new Target(this, false)];
