@@ -75,6 +75,10 @@ body.targeting-only .addition {
 .task.active .target.start-target {
   display: none;
 }
+/* don't show start targets during replay */
+.task.replay .target.start-target {
+  display: none;
+}
 
 /* don't show the extra start target for addition only tasks */
 body.addition-only .target.not-start-button {
