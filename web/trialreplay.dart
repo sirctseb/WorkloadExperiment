@@ -205,6 +205,7 @@ class TrialReplay implements TargetDelegate {
   InputElement iterationTimeBox = query("#iteration-time");
   InputElement trialTimeBox = query("#trial-time");
  
+  final int SLIDER_RESOLUTION = 10000;
   TrialReplay() {
     // add listener for trial time input changes
     trialTimeBox.onChange.listen((event) {
@@ -213,7 +214,7 @@ class TrialReplay implements TargetDelegate {
     });
     // set min, max on slider
     trialSlider.min = "0";
-    trialSlider.max = "10000";
+    trialSlider.max = "$SLIDER_RESOLUTION";
     trialSlider.onChange.listen((event) {
       Logger.root.info("slider changes to ${trialSlider.valueAsNumber}");
       // set time parameter from slider
