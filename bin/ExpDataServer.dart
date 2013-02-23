@@ -76,12 +76,17 @@ class Server {
             // check if it is a data file request
             if(request["cmd"] == "replay" && request["data"] == "datafile") {
               Logger.root.info("got request for data file in ${request['path']}");
-              // load the data file and send contents back
-              new File.fromPath(new Path(request["path"]).append("data.txt"))
+              // load the block description file
+              new File.fromPath(new Path(request["path"]).directoryPath.append("block.txt"))
                 .readAsString()
-                .then((content) {
-                  Logger.root.info("finished reading file, sending to client");
-                  conn.send(stringify({"data": "datafile", "content": content}));
+                .then((blockContent) {
+                  // load the data file and send contents back
+                  new File.fromPath(new Path(request["path"]).append("data.txt"))
+                    .readAsString()
+                    .then((content) {
+                      Logger.root.info("finished reading file, sending to client");
+                      conn.send(stringify({"data": "datafile", "content": content, "block": blockContent}));
+                    });
                 });
             }
           } on FormatException catch(e) {
