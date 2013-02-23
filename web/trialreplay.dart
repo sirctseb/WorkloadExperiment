@@ -150,6 +150,11 @@ class TrialReplay implements TargetDelegate {
         // interpolate position of target
         currTarget.move(currTarget.x + param * (events[i]["x"] - currTarget.x),
                         currTarget.y + param * (events[i]["y"] - currTarget.y));
+        // set enemy / friend
+        currTarget.enemy = events[i]["event"] == "TargetHit" || (events[i]["event"] == "TargetTimeout" && events[i]["enemy"] == 0);
+        if(events[i]["event"] == "TargetTimeout") {
+          Logger.root.info("target timing out is ${events[i]['enemy'] ? 'enemy' : 'friend'}");
+        }
         targ++;
       }
     }
