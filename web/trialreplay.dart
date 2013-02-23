@@ -131,42 +131,67 @@ class TrialReplay implements TargetDelegate {
     // set cursor location
     query("#replay-cursor").style..left = "${lastMove['x']}px"
                                 ..top = "${lastMove['y']}px";
-    // set target state
-    // clear id map
-    targetIDmap.clear();
-    // find target start events
-    for(int targ = 0, i = iterationStartIndex; targ < 3; i++) {
-      // test if target start event
-      if(events[i]["event"] == "TargetStart") {
-        // TODO should also grab enemy status from this but they're not in there
-        // add target to id map
-        targetIDmap[events[i]["id"]] = targets[targ];
-        // set target location just to store the start points
-        targets[targ].move(events[i]["x"], events[i]["y"]);
-        // increment target index
-        targ++;
+    if(block["targetNumber"] == 3) {
+      // set target state
+      // clear id map
+      targetIDmap.clear();
+      // find target start events
+      for(int targ = 0, i = iterationStartIndex; targ < 3; i++) {
+        // test if target start event
+        if(events[i]["event"] == "TargetStart") {
+          // TODO should also grab enemy status from this but they're not in there
+          // add target to id map
+          targetIDmap[events[i]["id"]] = targets[targ];
+          // set target location just to store the start points
+          targets[targ].move(events[i]["x"], events[i]["y"]);
+          // increment target index
+          targ++;
+        }
+      }
+      // scan to find the ending time and location of each target
+      for(int targ = 0, i = iterationStartIndex; targ < 3; i++) {
+        // test if target end event (hit, friend hit, or timeout
+        if(events[i]["event"] == "TargetHit" || events[i]["event"] == "FriendHit" || events[i]["event"] == "TargetTimeout") {
+          Logger.root.info("found end of target id ${events[i]['id']}");
+          // get target reference
+          var currTarget = targetIDmap[events[i]["id"]];
+          // compute time parameter
+          num param = iterationTime / events[i]["iterationTime"];
+          // if parameter is outside of [0,1], target either doesn't exist yet or it is dismissed, so hide it
+          currTarget.element.style.display = (param < 0 || param > 1) ? "none" : "block";
+          // interpolate position of target
+          currTarget.move(currTarget.x + param * (events[i]["x"] - currTarget.x),
+                          currTarget.y + param * (events[i]["y"] - currTarget.y));
+          // set enemy / friend
+          currTarget.enemy = events[i]["event"] == "TargetHit" || (events[i]["event"] == "TargetTimeout" && events[i]["enemy"] == 0);
+          if(events[i]["event"] == "TargetTimeout") {
+            Logger.root.info("target timing out is ${events[i]['enemy'] ? 'enemy' : 'friend'}");
+          }
+          targ++;
+        }
       }
     }
-    // scan to find the ending time and location of each target
-    for(int targ = 0, i = iterationStartIndex; targ < 3; i++) {
-      // test if target end event (hit, friend hit, or timeout
-      if(events[i]["event"] == "TargetHit" || events[i]["event"] == "FriendHit" || events[i]["event"] == "TargetTimeout") {
-        Logger.root.info("found end of target id ${events[i]['id']}");
-        // get target reference
-        var currTarget = targetIDmap[events[i]["id"]];
-        // compute time parameter
-        num param = iterationTime / events[i]["iterationTime"];
-        // if parameter is outside of [0,1], target either doesn't exist yet or it is dismissed, so hide it
-        currTarget.element.style.display = (param < 0 || param > 1) ? "none" : "block";
-        // interpolate position of target
-        currTarget.move(currTarget.x + param * (events[i]["x"] - currTarget.x),
-                        currTarget.y + param * (events[i]["y"] - currTarget.y));
-        // set enemy / friend
-        currTarget.enemy = events[i]["event"] == "TargetHit" || (events[i]["event"] == "TargetTimeout" && events[i]["enemy"] == 0);
-        if(events[i]["event"] == "TargetTimeout") {
-          Logger.root.info("target timing out is ${events[i]['enemy'] ? 'enemy' : 'friend'}");
+    if(block["additionDifficulty"] != null) {
+      // scan for addition operand values
+      for(int i = iterationStartIndex; true; i++) {
+        if(events[i]["event"] == "AdditionStart") {
+          // set addition problem values
+          query("#addition").text = "${events[i]['op1']} + ${events[i]['op2']}";
+          break;
         }
-        targ++;
+      }
+      // scan backwards to see if addition task is complete
+      bool correct = false;
+      for(int i = lastEventIndex; i >= iterationStartIndex; i--) {
+        // check for addition correct
+        if(events[i]["event"] == "AdditionCorrect") {
+          query("#addition").classes.add("correct");
+          correct = true;
+          break;
+        }
+      }
+      if(!correct) {
+        query("#addition").classes.remove("correct");
       }
     }
   }
