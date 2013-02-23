@@ -83,7 +83,8 @@ class TrialReplay {
   }
   /// Move the replay a given fraction into the trial
   set timeParameter(num p) {
-    time = trialStartStamp + p * (trialEndStamp - trialStartStamp);
+    Logger.root.fine("setting time param to $p");
+    time = p * (trialEndStamp - trialStartStamp);
   }
   Map findLastMouseMove(num t) {
     // do a binary search to find the closest mouse move
