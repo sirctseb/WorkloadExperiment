@@ -200,7 +200,16 @@ class TrialReplay implements TargetDelegate {
     return mouseMoves[ind];
   }
   /// Move the replay to a given iteration time
-  set iterationTime(num t);
+  set iterationTime(num t) {
+    // use time setter to do real work
+    time = iterationStartTime + t;
+  }
+  /// Move the replay to a given fraction into the iteration
+  set iterationTimeParameter(num p) {
+    // user iterationTime to do real work
+    // TODO magic number. this assumes 6 second iterations
+    iterationTime = 6 * p;
+  }
   
   // ui elements
   RangeInputElement iterationSlider = query("#iteration-time-slider");
@@ -216,6 +225,11 @@ class TrialReplay implements TargetDelegate {
       time = double.parse(trialTimeBox.value);
       // set the trail slider position based on value
       trialSlider.value = "${SLIDER_RESOLUTION * time / trialLength}";
+      // set the value of the iteration time text box
+      iterationTimeBox.value = "$iterationTime";
+      // set the position of the iteration slider
+      // TODO magic number assumes 6 second iterations
+      iterationSlider.value = "${SLIDER_RESOLUTION * iterationTime / 6}";
     });
     // set min, max on slider
     trialSlider.min = "0";
@@ -228,6 +242,22 @@ class TrialReplay implements TargetDelegate {
       trialTimeBox.value = "$time";
       // set the value of the iteration time text box
       iterationTimeBox.value = "$iterationTime";
+      // set the position of the iteration slider
+      // TODO magic number assumes 6 second iterations
+      iterationSlider.value = "${SLIDER_RESOLUTION * iterationTime / 6}";
+    });
+    // set min, max on iteration slider
+    iterationSlider.min = "0";
+    iterationSlider.max = "$SLIDER_RESOLUTION";
+    iterationSlider.onChange.listen((event) {
+      // set time parameter
+      iterationTimeParameter = iterationSlider.valueAsNumber / int.parse(trialSlider.max);
+      // set the value of the trial time text box
+      trialTimeBox.value = "$time";
+      // set the value of the iteration time text box
+      iterationTimeBox.value = "$iterationTime";
+      // set the position of the trial slider
+      trialSlider.value = "${SLIDER_RESOLUTION * time / trialLength}";
     });
     // create targets
     targets = [new Target(this, true), new Target(this, true), new Target(this, false)];
