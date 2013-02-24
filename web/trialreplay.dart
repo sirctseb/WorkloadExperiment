@@ -161,7 +161,6 @@ class TrialReplay implements TargetDelegate {
       for(int targ = 0, i = iterationStartIndex; targ < 3; i++) {
         // test if target end event (hit, friend hit, or timeout
         if(events[i]["event"] == "TargetHit" || events[i]["event"] == "FriendHit" || events[i]["event"] == "TargetTimeout") {
-          Logger.root.info("found end of target id ${events[i]['id']}");
           // get target reference
           var currTarget = targetIDmap[events[i]["id"]];
           // compute time parameter
@@ -180,9 +179,6 @@ class TrialReplay implements TargetDelegate {
           }
           // set enemy / friend
           currTarget.enemy = events[i]["event"] == "TargetHit" || (events[i]["event"] == "TargetTimeout" && events[i]["enemy"] == 0);
-          if(events[i]["event"] == "TargetTimeout") {
-            Logger.root.info("target timing out is ${events[i]['enemy'] ? 'enemy' : 'friend'}");
-          }
           targ++;
         }
       }
