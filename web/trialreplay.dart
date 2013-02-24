@@ -434,6 +434,13 @@ class TrialReplay implements TargetDelegate {
     query("#hit2").onClick.listen((event) {
       goToHit(2);
     });
+    // add click handlers to the addition complete time indicator div
+    query("#additionTime").onClick.listen((event) {
+      // set iteration time
+      iterationTime = additionTime;
+      // update time views
+      updateTimeViews();
+    });
     
     // create targets
     targets = [new Target(this, true), new Target(this, true), new Target(this, false)];
