@@ -164,7 +164,8 @@ class TrialReplay implements TargetDelegate {
       // clear id map
       targetIDmap.clear();
       // find target start events
-      for(int targ = 0, i = iterationStartIndex; targ < 3; i++) {
+      int i = iterationStartIndex;
+      for(int targ = 0; targ < 3; i++) {
         // test if target start event
         if(events[i]["event"] == "TargetStart") {
           // TODO should also grab enemy status from this but they're not in there
@@ -179,13 +180,14 @@ class TrialReplay implements TargetDelegate {
       int hit = 0;
       hit1Time = hit2Time = 0;
       // scan to find the ending time and location of each target
-      for(int targ = 0, i = iterationStartIndex; targ < 3; i++) {
+      for(int targ = 0; targ < 3; i++) {
         // test if target end event (hit, friend hit, or timeout
         if(events[i]["event"] == "TargetHit" || events[i]["event"] == "FriendHit" || events[i]["event"] == "TargetTimeout") {
           // get target reference
           var currTarget = targetIDmap[events[i]["id"]];
           // compute time parameter
           num param = iterationTime / events[i]["iterationTime"];
+          //logger.info("target id: ${events[i]['id']}, param: $param, iteration time: ${events[i]['iterationTime']}");
           // if parameter is outside of [0,1], target either doesn't exist yet or it is dismissed, so hide it
           currTarget.element.style.display = (param < 0 || param > 1) ? "none" : "block";
           // interpolate position of target
