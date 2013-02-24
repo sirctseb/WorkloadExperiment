@@ -185,6 +185,9 @@ body.high-targeting-difficulty .target.friend:hover {
   position:fixed;
   width:100%;
   bottom: 0;
+  -webkit-box-sizing: border-box;
+  padding-left:5px;
+  padding-right:5px;
 }
 .replay-ui .replay-time-slider {
   width: 100%;
