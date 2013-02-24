@@ -246,6 +246,7 @@ class TrialReplay implements TargetDelegate {
         high = ind - 1;
       }
     }
+    ind = low;
     return ind;
   }
   Map findLastMouseMove(num t) {
@@ -261,6 +262,7 @@ class TrialReplay implements TargetDelegate {
         high = ind - 1;
       }
     }
+    ind = low;
     Logger.root.fine("last mouse move at ind $ind, max ${mouseMoves.length-1}");
     return mouseMoves[ind];
   }
