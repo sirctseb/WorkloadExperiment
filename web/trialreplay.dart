@@ -100,8 +100,9 @@ class TrialReplay implements TargetDelegate {
   
   // map from target ids of the original targets to the target objects we are replaying them with
   Map<int, Target> targetIDmap = new Map<int, Target>();
-  // map from target ids of the original targets to the time their events started in seconds from the 
-  //Map<int, num> targetIDstarts = new Map<int, num>();
+  
+  // the amount of time to show a miss during replay
+  final num MISS_SHOW_TIME = 0.1;
   
   /// Move the replay to a given trial time
   set time(num t) {
@@ -184,6 +185,22 @@ class TrialReplay implements TargetDelegate {
           }
           targ++;
         }
+      }
+      // scan for a recent miss
+      bool miss = false;
+      for(int i = lastEventIndex; i >= 0 && events[i]["trialTime"] + MISS_SHOW_TIME > t; i--) {
+        if(events[i]["event"] == "TargetMiss") {
+          // set the miss indicator position
+          query("#replay-miss").style..left = "${events[i]["x"]}px"
+          ..top = "${events[i]["y"]}px"
+          ..display = "block";
+          miss = true;
+          Logger.root.info("missed recently, displaying miss");
+          break;
+        }
+      }
+      if(!miss) {
+        query("#replay-miss").style.display = "none";
       }
     }
     if(block["additionDifficulty"] != null) {
@@ -339,6 +356,7 @@ class TrialDataParser {
   static RegExp friendHit = new RegExp(r"FriendHit, (\d*), ([\d\.]*), ([\d\.]*), (\d*)");
   static RegExp targetTimeout = new RegExp(r"TargetTimeout, (\d*), ([\d\.]*), ([\d\.]*), (\d*), (friend|enemy)");
   static RegExp trialEnd = new RegExp(r"TrialEnd, (\d*)");
+  static RegExp miss = new RegExp(r"MouseDown, (\d*), (\d*), (\d*), MISS");
   
   static List<Map> parseMouseMoveData(String data) {
     // parse all mouse moves and put into list
@@ -411,6 +429,13 @@ class TrialDataParser {
       } else if((match = trialEnd.firstMatch(line)) != null) {
         // create trial end event
         events.add(parseTimes(match, {"event": "TrialEnd"}));
+      } else if((match = miss.firstMatch(line)) != null) {
+        // create miss event
+        events.add(parseTimes(match,
+          {"event": "TargetMiss",
+           "x": int.parse(match.group(2)),
+           "y": int.parse(match.group(3))
+           }));
       }
     }
     return events;

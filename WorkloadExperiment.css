@@ -202,6 +202,19 @@ body.high-targeting-difficulty .target.friend:hover {
   -webkit-transform:translate(-25px, -25px);
 }
 
+#replay-miss {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  background-image: url('img/miss.png');
+  background-size: contain;
+  top:0;
+  left:0;
+  /* so setting top and left will actually put the middle at those values*/
+  transform:translate(-15px, -15px);
+  -webkit-transform:translate(-15px, -15px);
+}
+
 /* show green target when faking a hover during replay */
 body.high-targeting-difficulty .target.friend.hover {
   background-image: url('img/target-friend.png');
