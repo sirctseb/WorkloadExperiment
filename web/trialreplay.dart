@@ -33,6 +33,8 @@ class TrialReplay implements TargetDelegate {
   num hit1Time;
   /// The iteration time of the second target hit of the iteration
   num hit2Time;
+  /// The iteration time when the addition problem was completed
+  num additionTime;
   
   /// The block description for this trial
   Map block;
@@ -231,7 +233,7 @@ class TrialReplay implements TargetDelegate {
       }
     }
     if(block["additionDifficulty"] != null) {
-      // scan for addition operand values
+      // scan for addition operand values and addition end time
       for(int i = iterationStartIndex; true; i++) {
         if(events[i]["event"] == "AdditionStart") {
           if(op1 != events[i]['op1'] || op2 != events[i]['op2']) {
@@ -240,6 +242,12 @@ class TrialReplay implements TargetDelegate {
             // set addition problem values
             query("#addition").text = "$op1 + $op2";
           }
+        } else if(events[i]["event"] == "AdditionCorrect") {
+          // set the position of the addition indicator
+          query("#additionTime").style.left = "${100*events[i]['iterationTime'] / 6}%";
+          additionTime = events[i]['iterationTime'];
+          break;
+        } else if(events[i]["event"] == "IterationEnd") {
           break;
         }
       }

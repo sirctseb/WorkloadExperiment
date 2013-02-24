@@ -233,6 +233,16 @@ body.high-targeting-difficulty .target.friend:hover {
 #hit2 {
   margin-left: -10px;
 }
+/* draw green box to indicate when addition problem was finished */
+.addition-indicator {
+  width: 10px;
+  height: 10px;
+  background-color: green;
+  position:relative;
+  display: inline-block;
+  cursor: pointer;
+  margin-left: -15px;
+}
 
 /* show green target when faking a hover during replay */
 body.high-targeting-difficulty .target.friend.hover {
