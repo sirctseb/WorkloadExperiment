@@ -169,6 +169,7 @@ class TrialReplay implements TargetDelegate {
           targ++;
         }
       }
+      int hit = 0;
       // scan to find the ending time and location of each target
       for(int targ = 0, i = iterationStartIndex; targ < 3; i++) {
         // test if target end event (hit, friend hit, or timeout
@@ -182,6 +183,7 @@ class TrialReplay implements TargetDelegate {
           // interpolate position of target
           currTarget.move(currTarget.x + param * (events[i]["x"] - currTarget.x),
                           currTarget.y + param * (events[i]["y"] - currTarget.y));
+          // test if target element contains mouse position and add hover class
           ClientRect tRect = currTarget.element.getBoundingClientRect(); 
           if(mouseX >= tRect.left && mouseX <= tRect.right &&
               mouseY >= tRect.top && mouseY <= tRect.bottom) {
@@ -192,6 +194,12 @@ class TrialReplay implements TargetDelegate {
           // set enemy / friend
           currTarget.enemy = events[i]["event"] == "TargetHit" || (events[i]["event"] == "TargetTimeout" && events[i]["enemy"] == 0);
           targ++;
+          
+          // set hit indicator locations
+          if(events[i]["event"] == "TargetHit") {
+            query("#hit${hit+1}").style.left = "${100 * events[i]['iterationTime'] / 6}%";
+            hit++;
+          }
         }
       }
       // scan for a recent miss

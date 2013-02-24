@@ -217,6 +217,21 @@ body.high-targeting-difficulty .target.friend:hover {
   transform:translate(-15px, -15px);
   -webkit-transform:translate(-15px, -15px);
 }
+/* draw red boxes to indicate when hits are in an iteration */
+.hit-indicator {
+  width: 10px;
+  height: 10px;
+  background-color: red;
+  position:relative;
+  display: inline-block;
+}
+/* offset so the divs are centered directly over the time */
+#hit1 {
+  margin-left: -5px;
+}
+#hit2 {
+  margin-left: -10px;
+}
 
 /* show green target when faking a hover during replay */
 body.high-targeting-difficulty .target.friend.hover {
