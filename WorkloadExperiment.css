@@ -217,14 +217,17 @@ body.high-targeting-difficulty .target.friend:hover {
   transform:translate(-15px, -15px);
   -webkit-transform:translate(-15px, -15px);
 }
-/* draw red boxes to indicate when hits are in an iteration */
-.hit-indicator {
+/* draw boxes to indicate events in the iteration */
+#indicator-bar div {
   width: 10px;
   height: 10px;
-  background-color: red;
   position:relative;
   display: inline-block;
   cursor: pointer;
+}
+/* draw red boxes to indicate when hits are in an iteration */
+.hit-indicator {
+  background-color: red;
 }
 /* offset so the divs are centered directly over the time */
 #hit1 {
@@ -235,12 +238,7 @@ body.high-targeting-difficulty .target.friend:hover {
 }
 /* draw green box to indicate when addition problem was finished */
 .addition-indicator {
-  width: 10px;
-  height: 10px;
   background-color: green;
-  position:relative;
-  display: inline-block;
-  cursor: pointer;
   margin-left: -15px;
 }
 
