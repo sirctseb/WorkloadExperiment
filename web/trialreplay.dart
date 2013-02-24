@@ -293,6 +293,8 @@ class TrialReplay implements TargetDelegate {
     }
     // set the new trial time
     time = newTrialTime;
+    // update time views
+    updateTimeViews();
     // if still playing, call for another frame
     if(playing) {
       window.requestAnimationFrame(doPlaybackFrame);
@@ -307,6 +309,27 @@ class TrialReplay implements TargetDelegate {
   InputElement trialTimeBox = query("#trial-time");
   ButtonElement startButton = query("#replay-play");
   ButtonElement stopButton = query("#replay-stop");
+  
+  void updateTimeViews({updateIterationSlider: true, updateTrialSlider: true,
+                        updateIterationTimeBox: true, updateTrialTimeBox: true}) {
+    if(updateIterationSlider) {
+      // set the position of the iteration slider
+      // TODO magic number assumes 6 second iterations
+      iterationSlider.value = "${SLIDER_RESOLUTION * iterationTime / 6}";
+    }
+    if(updateTrialSlider) {
+      // set the trial slider position based on new time
+      trialSlider.value = "${SLIDER_RESOLUTION * time / trialLength}";
+    }
+    if(updateIterationTimeBox) {
+      // set the value of the iteration time text box
+      iterationTimeBox.value = "$iterationTime";
+    }
+    if(updateTrialTimeBox) {
+      // set the value of the trial time text box
+      trialTimeBox.value = "$time";
+    }
+  }
  
   final int SLIDER_RESOLUTION = 10000;
   TrialReplay() {
