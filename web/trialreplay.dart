@@ -32,6 +32,13 @@ class TrialReplay implements TargetDelegate {
   /// The block description for this trial
   Map block;
   
+  /// True if we are running real-time playback
+  bool playing = false;
+  /// The trial time when the playback started
+  num trialTimePlaybackStart;
+  /// The time passed to the animation frame request callback when the animation started
+  num animationPlaybackStartTime;
+  
   // access to trial controller
   TaskController _delegate;
   TaskController get delegate => _delegate;
@@ -275,11 +282,31 @@ class TrialReplay implements TargetDelegate {
     iterationTime = 6 * p;
   }
   
+  void doPlaybackFrame(num t) {
+    // compute new trial time
+    num newTrialTime = trialTimePlaybackStart + (t - animationPlaybackStartTime)/1000;
+    // check that it's not longer than the trial
+    // TODO this should be error checked in time setter
+    if(newTrialTime > this.trialLength) {
+      playing = false;
+      return;
+    }
+    // set the new trial time
+    time = newTrialTime;
+    // if still playing, call for another frame
+    if(playing) {
+      window.requestAnimationFrame(doPlaybackFrame);
+      //window.animationFrame.then(doPlaybackFrame);
+    }
+  }
+  
   // ui elements
   RangeInputElement iterationSlider = query("#iteration-time-slider");
   RangeInputElement trialSlider = query("#trial-time-slider");
   InputElement iterationTimeBox = query("#iteration-time");
   InputElement trialTimeBox = query("#trial-time");
+  ButtonElement startButton = query("#replay-play");
+  ButtonElement stopButton = query("#replay-stop");
  
   final int SLIDER_RESOLUTION = 10000;
   TrialReplay() {
@@ -333,6 +360,23 @@ class TrialReplay implements TargetDelegate {
       iterationTimeBox.value = "$iterationTime";
       // set the position of the trial slider
       trialSlider.value = "${SLIDER_RESOLUTION * time / trialLength}";
+    });
+    // add handler for start and stop buttons
+    startButton.onClick.listen((event) {
+      if(playing) return;
+      // set playing
+      playing = true;
+      // request animation frame
+      window.requestAnimationFrame((t) {
+        // set the start time values
+        animationPlaybackStartTime = t;
+        trialTimePlaybackStart = time;
+        // call the actual frame handler
+        doPlaybackFrame(t);
+      });
+    });
+    stopButton.onClick.listen((event) {
+      playing = false;
     });
     // create targets
     targets = [new Target(this, true), new Target(this, true), new Target(this, false)];
