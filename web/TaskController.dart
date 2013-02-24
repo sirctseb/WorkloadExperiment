@@ -281,6 +281,8 @@ class TaskController implements TargetDelegate {
   void onBodyDown(MouseEvent event) {
     // ignore if on settings screen
     if(settingsRoot.style.display == "block") return;
+    // ignore if task is not active
+    if(!query(".task").classes.contains("active")) return;
     
     // show miss feedback
     // first remove from DOM so that animation will start again when it is added back
