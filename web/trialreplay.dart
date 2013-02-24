@@ -534,6 +534,10 @@ class TrialDataParser {
           "id": int.parse(match.group(4)),
           "enemy": match.group(5) == "enemy"
           }));
+        // TODO some old trials have the target timeout after the iteration end,
+        // so this parses it as being at iteration time 0 or very small.
+        // in this case, set to 6
+        if(events.last['iterationTime'] < 1) events.last['iterationTime'] = 6;
       } else if((match = trialEnd.firstMatch(line)) != null) {
         // create trial end event
         events.add(parseTimes(match, {"event": "TrialEnd"}));
