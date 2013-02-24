@@ -2,6 +2,9 @@ part of WorkloadExperiment;
 
 /// A class to manage the replay of trials
 class TrialReplay implements TargetDelegate {
+  // logger for replay
+  static Logger logger = new Logger("replay");
+  
   // trial state
   /// The current time in seconds from the start of the trial. can be negative
   num get time => _time;
@@ -72,7 +75,7 @@ class TrialReplay implements TargetDelegate {
     try {
       var data = parse(event.data);
       if(data.containsKey("data") && data["data"] == "datafile") {
-        Logger.root.info("got data from server, parsing");
+        logger.info("got data from server, parsing");
         // read block description
         block = parse(data["block"]);
         // set targeting difficulty class
@@ -81,7 +84,7 @@ class TrialReplay implements TargetDelegate {
         } else {
           document.body.classes.remove("high-targeting-difficulty");
         }
-        Logger.root.info("block is like: $block");
+        logger.info("block is like: $block");
         // parse data file into mouse move and event lists
         mouseMoves = TrialDataParser.parseMouseMoveData(data["content"]);
         events = TrialDataParser.parseEventData(data["content"]);
@@ -107,7 +110,7 @@ class TrialReplay implements TargetDelegate {
   /// Move the replay to a given trial time
   set time(num t) {
     
-    Logger.root.fine("setting time to $t");
+    logger.fine("setting time to $t");
     
     // TODO error check input
     _time = t;
@@ -123,18 +126,18 @@ class TrialReplay implements TargetDelegate {
         && events[iterationStartIndex]["event"] != "TrialStart";
         iterationStartIndex--);
     if(iterationStartIndex < 0) {
-      Logger.root.info("Time $t appears to be before any iteration started");
+      logger.fine("Time $t appears to be before any iteration started");
       return;
     }
     
     // set iteration start time
     _iterationStartTime = events[iterationStartIndex]["trialTime"];
     
-    Logger.root.info("this iteration started at $_iterationStartTime");
+    logger.fine("this iteration started at $_iterationStartTime");
     
     // find most recent mouse move
     var lastMove = findLastMouseMove(t);
-    Logger.root.fine("mouse at ${lastMove['x']}, ${lastMove['y']}");
+    logger.fine("mouse at ${lastMove['x']}, ${lastMove['y']}");
     // set cursor location
     query("#replay-cursor").style..left = "${lastMove['x']}px"
                                 ..top = "${lastMove['y']}px";
@@ -191,7 +194,6 @@ class TrialReplay implements TargetDelegate {
           ..top = "${events[i]["y"]}px"
           ..display = "block";
           miss = true;
-          Logger.root.info("missed recently, displaying miss");
           break;
         }
       }
@@ -225,7 +227,7 @@ class TrialReplay implements TargetDelegate {
   }
   /// Move the replay a given fraction into the trial
   set timeParameter(num p) {
-    Logger.root.fine("setting time param to $p");
+    logger.fine("setting time param to $p");
     time = p * (trialEndStamp - trialStartStamp) / 1000;
   }
   int findLastEventIndex(num t) {
@@ -259,7 +261,6 @@ class TrialReplay implements TargetDelegate {
       }
     }
     ind = low;
-    Logger.root.fine("last mouse move at ind $ind, max ${mouseMoves.length-1}");
     return mouseMoves[ind];
   }
   /// Move the replay to a given iteration time
@@ -310,7 +311,6 @@ class TrialReplay implements TargetDelegate {
     trialSlider.min = "0";
     trialSlider.max = "$SLIDER_RESOLUTION";
     trialSlider.onChange.listen((event) {
-      Logger.root.info("slider changes to ${trialSlider.valueAsNumber}");
       // set time parameter from slider
       timeParameter = trialSlider.valueAsNumber / int.parse(trialSlider.max);
       // set the value of the trial time text box
