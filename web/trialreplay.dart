@@ -102,6 +102,8 @@ class TrialReplay implements TargetDelegate {
         // TODO set trial times in mouse moves?
         // set time so state is set correctly
         time = 0;
+        // update time views
+        updateTimeViews();
       }
     } on FormatException catch(e) {
       // ignore if not valid json
