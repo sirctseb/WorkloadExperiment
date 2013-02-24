@@ -218,10 +218,13 @@ body.high-targeting-difficulty .target.friend:hover {
   -webkit-transform:translate(-15px, -15px);
 }
 /* draw boxes to indicate events in the iteration */
+#indicator-bar {
+  height:10px;
+}
 #indicator-bar div {
   width: 10px;
   height: 10px;
-  position:relative;
+  position: absolute;
   display: inline-block;
   cursor: pointer;
 }
@@ -229,17 +232,9 @@ body.high-targeting-difficulty .target.friend:hover {
 .hit-indicator {
   background-color: red;
 }
-/* offset so the divs are centered directly over the time */
-#hit1 {
-  margin-left: -5px;
-}
-#hit2 {
-  margin-left: -10px;
-}
 /* draw green box to indicate when addition problem was finished */
 .addition-indicator {
   background-color: green;
-  margin-left: -15px;
 }
 
 /* show green target when faking a hover during replay */
