@@ -29,6 +29,11 @@ class TrialReplay implements TargetDelegate {
   /// The trial end time in unix ms
   int trialEndStamp;
   
+  /// The iteration time of the first target hit of the iteration
+  num hit1Time;
+  /// The iteration time of the second target hit of the iteration
+  num hit2Time;
+  
   /// The block description for this trial
   Map block;
   
@@ -170,6 +175,7 @@ class TrialReplay implements TargetDelegate {
         }
       }
       int hit = 0;
+      hit1Time = hit2Time = 0;
       // scan to find the ending time and location of each target
       for(int targ = 0, i = iterationStartIndex; targ < 3; i++) {
         // test if target end event (hit, friend hit, or timeout
@@ -198,6 +204,11 @@ class TrialReplay implements TargetDelegate {
           // set hit indicator locations
           if(events[i]["event"] == "TargetHit") {
             query("#hit${hit+1}").style.left = "${100 * events[i]['iterationTime'] / 6}%";
+            if(hit == 0) {
+              hit1Time = events[i]['iterationTime'];
+            } else {
+              hit2Time = events[i]['iterationTime'];
+            }
             hit++;
           }
         }
@@ -295,6 +306,14 @@ class TrialReplay implements TargetDelegate {
     // user iterationTime to do real work
     // TODO magic number. this assumes 6 second iterations
     iterationTime = 6 * p;
+  }
+  
+  /// Go to the time of the nth hit of the iteration
+  void goToHit(int hit) {
+    // set the iteration time
+    iterationTime = hit == 1 ? hit1Time : hit2Time;
+    // update time view
+    updateTimeViews();
   }
   
   void doPlaybackFrame(num t) {
@@ -399,6 +418,15 @@ class TrialReplay implements TargetDelegate {
       logger.info("setting playing to false");
       playing = false;
     });
+    
+    // add click handlers to the target hit time indicator divs
+    query("#hit1").onClick.listen((event) {
+      goToHit(1);
+    });
+    query("#hit2").onClick.listen((event) {
+      goToHit(2);
+    });
+    
     // create targets
     targets = [new Target(this, true), new Target(this, true), new Target(this, false)];
     // add targets to replay ui
