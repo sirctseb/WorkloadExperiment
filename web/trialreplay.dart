@@ -337,25 +337,15 @@ class TrialReplay implements TargetDelegate {
     trialTimeBox.onChange.listen((event) {
       // set time value from input
       time = double.parse(trialTimeBox.value);
-      // set the trail slider position based on value
-      trialSlider.value = "${SLIDER_RESOLUTION * time / trialLength}";
-      // set the value of the iteration time text box
-      iterationTimeBox.value = "$iterationTime";
-      // set the position of the iteration slider
-      // TODO magic number assumes 6 second iterations
-      iterationSlider.value = "${SLIDER_RESOLUTION * iterationTime / 6}";
+      // update time views except trial time box
+      updateTimeViews(updateTrialTimeBox: false);
     });
     // add listener for iteration time input changes
     iterationTimeBox.onChange.listen((event) {
       // set time value from input
       iterationTime = double.parse(iterationTimeBox.value);
-      // set the trial slider position based on new time
-      trialSlider.value = "${SLIDER_RESOLUTION * time / trialLength}";
-      // set the value of the trial time text box
-      trialTimeBox.value = "$time";
-      // set the position of the iteration slider
-      // TODO magic number assumes 6 second iterations
-      iterationSlider.value = "${SLIDER_RESOLUTION * iterationTime / 6}";
+      // update time views except iteration time box
+      updateTimeViews(updateIterationTimeBox: false);
     });
     // set min, max on slider
     trialSlider.min = "0";
@@ -363,13 +353,8 @@ class TrialReplay implements TargetDelegate {
     trialSlider.onChange.listen((event) {
       // set time parameter from slider
       timeParameter = trialSlider.valueAsNumber / int.parse(trialSlider.max);
-      // set the value of the trial time text box
-      trialTimeBox.value = "$time";
-      // set the value of the iteration time text box
-      iterationTimeBox.value = "$iterationTime";
-      // set the position of the iteration slider
-      // TODO magic number assumes 6 second iterations
-      iterationSlider.value = "${SLIDER_RESOLUTION * iterationTime / 6}";
+      // update time views except trial slider
+      updateTimeViews(updateTrialSlider: false);
     });
     // set min, max on iteration slider
     iterationSlider.min = "0";
@@ -377,12 +362,8 @@ class TrialReplay implements TargetDelegate {
     iterationSlider.onChange.listen((event) {
       // set time parameter
       iterationTimeParameter = iterationSlider.valueAsNumber / int.parse(trialSlider.max);
-      // set the value of the trial time text box
-      trialTimeBox.value = "$time";
-      // set the value of the iteration time text box
-      iterationTimeBox.value = "$iterationTime";
-      // set the position of the trial slider
-      trialSlider.value = "${SLIDER_RESOLUTION * time / trialLength}";
+      // update time views except iteration slider
+      updateTimeViews(updateIterationSlider: false);
     });
     // add handler for start and stop buttons
     startButton.onClick.listen((event) {
