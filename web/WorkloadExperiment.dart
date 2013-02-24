@@ -21,6 +21,7 @@ void main() {
     print(record.message);
   });
   Logger.root.level = Level.FINE;
+  hierarchicalLoggingEnabled = true;
 
   // disable all selection
   document.onSelectStart.listen((e) {

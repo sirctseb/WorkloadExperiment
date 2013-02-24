@@ -3,7 +3,7 @@ part of WorkloadExperiment;
 /// A class to manage the replay of trials
 class TrialReplay implements TargetDelegate {
   // logger for replay
-  static Logger logger = new Logger("replay");
+  static Logger logger = new Logger("replay")..level = Level.INFO;
   
   // trial state
   /// The current time in seconds from the start of the trial. can be negative
@@ -367,6 +367,7 @@ class TrialReplay implements TargetDelegate {
     });
     // add handler for start and stop buttons
     startButton.onClick.listen((event) {
+      logger.info("got start button click");
       if(playing) return;
       // set playing
       playing = true;
@@ -380,6 +381,7 @@ class TrialReplay implements TargetDelegate {
       });
     });
     stopButton.onClick.listen((event) {
+      logger.info("setting playing to false");
       playing = false;
     });
     // create targets
