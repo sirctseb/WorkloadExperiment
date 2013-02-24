@@ -196,26 +196,31 @@ class TrialReplay implements TargetDelegate {
       }
       // scan for a recent miss
       bool miss = false;
+      var missDiv = query("#replay-miss");
       for(int i = lastEventIndex; i >= 0 && events[i]["trialTime"] + MISS_SHOW_TIME > t; i--) {
         if(events[i]["event"] == "TargetMiss") {
           // set the miss indicator position
-          query("#replay-miss").style..left = "${events[i]["x"]}px"
+          missDiv.style..left = "${events[i]["x"]}px"
           ..top = "${events[i]["y"]}px"
           ..display = "block";
           miss = true;
           break;
         }
       }
-      if(!miss) {
-        query("#replay-miss").style.display = "none";
+      if(!miss && missDiv.style.display != "none") {
+        missDiv.style.display = "none";
       }
     }
     if(block["additionDifficulty"] != null) {
       // scan for addition operand values
       for(int i = iterationStartIndex; true; i++) {
         if(events[i]["event"] == "AdditionStart") {
-          // set addition problem values
-          query("#addition").text = "${events[i]['op1']} + ${events[i]['op2']}";
+          if(op1 != events[i]['op1'] || op2 != events[i]['op2']) {
+            op1 = events[i]['op1'];
+            op2 = events[i]['op2'];
+            // set addition problem values
+            query("#addition").text = "$op1 + $op2";
+          }
           break;
         }
       }

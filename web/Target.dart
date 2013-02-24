@@ -15,6 +15,8 @@ class Target {
   bool get enemy => _enemy;
   bool _enemy;
   set enemy(bool e) {
+    // bail if we're not changing
+    if(_enemy == e) return;
     // set backing field
     _enemy = e;
     // add enemy or friend class
