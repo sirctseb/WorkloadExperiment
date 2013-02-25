@@ -243,6 +243,12 @@ class TrialReplay implements TargetDelegate {
                 ..text = "x"
                 ..style.color="red"
                 ..style.left = "${100 * events[i]['iterationTime'] / 6}%"
+                ..onClick.listen((event) {
+                  // set time
+                  iterationTime = events[i]['iterationTime'];
+                  // update time views
+                  updateTimeViews();
+                })
               );
         }
       }
