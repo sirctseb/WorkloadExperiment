@@ -141,9 +141,6 @@ class Target {
       // check that the click is within the target image and not just in the div
       num distSq = pow(e.clientX - x, 2) + pow(e.clientY - y, 2);
       if(distSq <= width*width/4) {
-        // dismiss the target
-        // TODO this should probably happen in delegate.TargetClicked
-        this.dismiss();
         
         // notify delegate
         delegate.TargetClicked(this, e);

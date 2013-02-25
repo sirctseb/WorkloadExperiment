@@ -361,7 +361,7 @@ class TaskController implements TargetDelegate {
       // r for replay
       
       // load an arbitrary trial for replay
-      trialReplay.loadTrial("output/subject7/block7/trial0");
+      trialReplay.loadTrial("output/subject7/block3 copy/trial2");
       // show replay ui
       query(".task").classes.add("replay");
     }
@@ -458,6 +458,9 @@ class TaskController implements TargetDelegate {
   
   /* TargetDelegate implementation */
   void TargetClicked(Target target, MouseEvent event) {
+    // dismiss the target
+    target.dismiss();
+    
     // log the mouse down so we also get the exact mouse location
     logMouseDown(event, true);
     
