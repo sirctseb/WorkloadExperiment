@@ -230,6 +230,22 @@ class TrialReplay implements TargetDelegate {
           break;
         }
       }
+      // clear miss indicators
+      // TODO check if we are changing iterations so we don't have to do this every time
+      queryAll("#indicator-bar .miss-indicator").forEach((indicator) => indicator.remove());
+      // scan for all misses
+      for(int i = iterationStartIndex + 1; events[i]['event'] != "IterationEnd"; i++) {
+        if(events[i]['event'] == "TargetMiss") {
+          // add an indicator div
+          query("#indicator-bar").children.add(
+              new DivElement()
+                ..classes.add("miss-indicator")
+                ..text = "x"
+                ..style.color="red"
+                ..style.left = "${100 * events[i]['iterationTime'] / 6}%"
+              );
+        }
+      }
       if(!miss && missDiv.style.display != "none") {
         missDiv.style.display = "none";
       }

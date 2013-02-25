@@ -236,6 +236,9 @@ body.high-targeting-difficulty .target.friend:hover {
 .addition-indicator {
   background-color: green;
 }
+.miss-indicator {
+  line-height: 10px;
+}
 
 /* show green target when faking a hover during replay */
 body.high-targeting-difficulty .target.friend.hover {
