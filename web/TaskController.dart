@@ -53,10 +53,11 @@ class TaskController implements TargetDelegate {
   Task task;
   
   /// Web socket to communicate with data server
-  String ws_url = "ws://localhost:8000/ws";
-  WebSocket ws;// = new WebSocket("ws://localhost:8000/ws");
+  String ws_url = "ws://localhost:8000/";
+  WebSocket ws;
   bool get wsReady => ws != null ? ws.readyState == WebSocket.OPEN : false;
   void openWS() {
+    // TODO this may change soon
     ws = new WebSocket(ws_url)
     // update warning on state changes
     ..onOpen.listen(WarnWS)

@@ -12,14 +12,12 @@ void main() {
 }
 
 class Server {
-  HttpServer server = new HttpServer();
-  WebSocketHandler wsHandler = new WebSocketHandler();
   File dataFile = null;
   int trialNumber = 0;
   int subjectNumber = 0;
   var blockNumber = 0;
   bool logEvents = false;
-  OutputStream stream;
+  IOSink sink;
   Process recordingProcess;
   
   String get subjectDirStr => "output/subject$subjectNumber";
@@ -32,14 +30,34 @@ class Server {
   String get weightsPathStr => "$subjectDirStr/weights.txt";
   
   Server() {
+    // listen on port 8000
+    HttpServer.bind("127.0.0.1", 8000)
+      .then((HttpServer server) {
+        // log start of server
+        Logger.root.info("server listening on port ${server.port}");
+        
+        // watch for web socket connections
+        server.transform(new WebSocketTransformer())
+        .listen((WebSocket webSocket) {
+          
+          // log new connection to console
+          Logger.root.info('new connection');
+          
+          webSocket.listen((event) {
+            if(event is MessageEvent) {
+              // Handle message
+              handleMessage(event, webSocket);
+            } else if(event is CloseEvent) {
+              // Handle message
+              handleClose(event);
+            }
+          });
+        });
+      });
+  }
     
-    server.addRequestHandler((req) => req.path == "/ws", wsHandler.onRequest);
-    
-    wsHandler.onOpen = (WebSocketConnection conn) {
-      
-      Logger.root.info('new connection');
-      
-      conn.onMessage = (String message) {
+   void handleMessage(MessageEvent event, WebSocket socket) {
+     var message = event.data;
         Logger.root.finest("data server received message: $message");
         
         if(message.startsWith("end trial")) {
@@ -49,7 +67,7 @@ class Server {
           logEvents = false;
           
           // close stream
-          stream.close();
+          sink.close();
           
           // stop recording
           if(recordingProcess != null) {
@@ -67,8 +85,8 @@ class Server {
         if(logEvents) {
           Logger.root.finest("data server logging message");
           
-          // write mouse click location to file
-          stream.writeString("$message\n");
+          // write event to file
+          sink.addString("$message\n");
         } else {
           // if we're not running, check for requests for trial replay data
           try {
@@ -85,7 +103,7 @@ class Server {
                     .readAsString()
                     .then((content) {
                       Logger.root.info("finished reading file, sending to client");
-                      conn.send(stringify({"data": "datafile", "content": content, "block": blockContent}));
+                      socket.send(stringify({"data": "datafile", "content": content, "block": blockContent}));
                     });
                 });
             }
@@ -170,7 +188,7 @@ class Server {
           new Directory(trialDirStr).createSync(recursive:true);
           
           // open file stream
-          stream = dataFile.openOutputStream();
+          sink = dataFile.openWrite();
           
           // write task description to separate file
           new File.fromPath(dataFilePath.directoryPath.append("task.txt")).writeAsString(message);
@@ -178,19 +196,18 @@ class Server {
           // start recording
           Logger.root.info("starting recording");
           Logger.root.info("cwd: ${new Directory.current().toString()}");
-          //Process.start("sox", ["-d", "output/subject$subjectNumber/trial$trialNumber/audio.mp3"])
           Process.start("/opt/local/bin/sox", ["-d", "$trialDirStr/audio.mp3"])
           .then((Process process) {
             Logger.root.info("recording started");
             recordingProcess = process;
             // read all stdout and stderr data so it doesn't break the recording
             // TODO log to an invisible div?
-            recordingProcess.stdout.onData = () {
-              process.stdout.read();
-            };
-            recordingProcess.stderr.onData = () {
-              process.stderr.read();
-            };
+            recordingProcess.stdout.listen((data) {
+              // TODO do we have to do anything to extract the actual data so it doesn't back up?
+            });
+            recordingProcess.stderr.listen((data) {
+              // TODO do we have to do anything to extract the actual data so it doesn't back up?
+            });
             // TODO send message to client that recording started
             // TODO on error send message that we're not recording
           });
@@ -198,18 +215,13 @@ class Server {
           // set log event flag
           logEvents = true;
         }
-      };
-      
-      conn.onClosed = (int status, String reason) {
-        print('closed with $status for $reason');
-        Logger.root.info(new DateTime.now().toString());
-      };
-    };
-    
-    server.listen('127.0.0.1', 8000);
   }
   
-  void createFile() {
-    // create a file for the current subject and trial number
+  // TODO this happens when the web socket closes, not when the client disconnects.
+  // TODO how to detect client disconnect?
+  // TODO also, we don't really need to
+  void handleClose(CloseEvent event) {
+    Logger.root.info('closed with ${event.code} for ${event.reason}');
+    Logger.root.info(new DateTime.now().toString());
   }
 }
