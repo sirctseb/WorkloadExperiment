@@ -71,6 +71,12 @@ class TrialReplay implements TargetDelegate {
   void TargetClicked(Target target, MouseEvent event) {
     // don't do anything;
   }
+  void TargetOver(Target target, MouseEvent event) {
+    // don't do anything
+  }
+  void TargetOut(Target target, MouseEvent event) {
+    // don't do anything
+  }
   
   // data
   List<Map> mouseMoves;

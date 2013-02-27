@@ -491,6 +491,18 @@ class TaskController implements TargetDelegate {
     // don't propagate mouse down so body won't react to it
     event.stopPropagation();
   }
+  void TargetOver(Target target, MouseEvent event) {
+    // log hover
+    if(wsReady) {
+      ws.send("TargetOver, ${event.timeStamp}, ${event.clientX}, ${event.clientY}, ${target.enemy ? 'enemy' : 'friend'}");
+    }
+  }
+  void TargetOut(Target target, MouseEvent event) {
+    // log unhover
+    if(wsReady) {
+      ws.send("TargetOut, ${event.timeStamp}, ${event.clientX}, ${event.clientY}, ${target.enemy ? 'enemy' : 'friend'}");
+    }
+  }
   
   void weightsCollected(Iterable<Scale> scales) {
     // send weights to data server

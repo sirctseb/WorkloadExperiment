@@ -2,6 +2,8 @@ part of WorkloadExperiment;
 
 abstract class TargetDelegate {
   void TargetClicked(Target target, MouseEvent event);
+  void TargetOver(Target target, MouseEvent event);
+  void TargetOut(Target target, MouseEvent event);
 }
 
 /// [Target] is a class that represents a visible target on the screen
@@ -145,6 +147,16 @@ class Target {
         // notify delegate
         delegate.TargetClicked(this, e);
       }
+    });
+    // register mouse over event
+    element.onMouseOver.listen((MouseEvent e) {
+      // notify delegate
+      delegate.TargetOver(this, e);
+    });
+    // register mouse leave event
+    element.onMouseOut.listen((MouseEvent e) {
+      // notify delegate
+      delegate.TargetOut(this, e);
     });
   }
 }
