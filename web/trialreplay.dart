@@ -236,10 +236,12 @@ class TrialReplay implements TargetDelegate {
           break;
         }
       }
-      // clear miss indicators
+      // clear miss and hover indicators
       // TODO check if we are changing iterations so we don't have to do this every time
       queryAll("#indicator-bar .miss-indicator").forEach((indicator) => indicator.remove());
-      // scan for all misses
+      query("#hover-bar").children.clear();
+      // scan for all misses and hovers
+      Map<int, num> targetIDHoverStarts = new Map<int,num>();
       for(int i = iterationStartIndex + 1; events[i]['event'] != "IterationEnd"; i++) {
         if(events[i]['event'] == "TargetMiss") {
           // add an indicator div
@@ -256,6 +258,25 @@ class TrialReplay implements TargetDelegate {
                   updateTimeViews();
                 })
               );
+        } else if(events[i]['event'] == "TargetOver") {
+          // set the start time of the hover of the target
+          targetIDHoverStarts[events[i]['id']] = events[i]['iterationTime'];
+        } else if(events[i]['event'] == "TargetOut") {
+          // create an entry in the bar
+          num left = 100*targetIDHoverStarts[events[i]['id']] / 6;
+          num width = 100 * (events[i]['iterationTime'] - targetIDHoverStarts[events[i]['id']]) / 6;
+          query("#hover-bar").children.add(
+              new DivElement()
+                ..classes.addAll(["hover-indicator", "hover-indicator-${events[i]['enemy'] ? 'enemy' : 'friend'}"])
+                ..style.left = "${left}%"
+                ..style.width = "${width}%"
+                ..onClick.listen((event) {
+                  // set time
+                  iterationTime = targetIDHoverStarts[events[i]['id']];
+                  // update time views
+                  updateTimeViews();
+                })
+          );
         }
       }
       if(!miss && missDiv.style.display != "none") {
@@ -493,6 +514,8 @@ class TrialDataParser {
   static RegExp targetTimeout = new RegExp(r"TargetTimeout, (\d*), ([\d\.]*), ([\d\.]*), (\d*), (friend|enemy)");
   static RegExp trialEnd = new RegExp(r"TrialEnd, (\d*)");
   static RegExp miss = new RegExp(r"MouseDown, (\d*), (\d*), (\d*), MISS");
+  static RegExp targetOver = new RegExp(r"TargetOver, (\d*), (\d*), (\d*), (\d*), (friend|enemy)");
+  static RegExp targetOut = new RegExp(r"TargetOut, (\d*), (\d*), (\d*), (\d*), (friend|enemy)");
   
   static List<Map> parseMouseMoveData(String data) {
     // parse all mouse moves and put into list
@@ -576,6 +599,26 @@ class TrialDataParser {
            "x": int.parse(match.group(2)),
            "y": int.parse(match.group(3))
            }));
+      } else if((match = targetOver.firstMatch(line)) != null) {
+        // create over event
+        events.add(parseTimes(match,
+          {"event": "TargetOver",
+           "x": int.parse(match.group(2)),
+           "y": int.parse(match.group(3)),
+           "id": int.parse(match.group(4)),
+           "enemy": match.group(5) == "enemy"
+          }
+        ));
+      } else if((match = targetOut.firstMatch(line)) != null) {
+        // create over event
+        events.add(parseTimes(match,
+          {"event": "TargetOut",
+           "x": int.parse(match.group(2)),
+           "y": int.parse(match.group(3)),
+           "id": int.parse(match.group(4)),
+           "enemy": match.group(5) == "enemy"
+          }
+        ));
       }
     }
     return events;

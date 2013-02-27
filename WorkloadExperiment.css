@@ -218,10 +218,10 @@ body.high-targeting-difficulty .target.friend:hover {
   -webkit-transform:translate(-15px, -15px);
 }
 /* draw boxes to indicate events in the iteration */
-#indicator-bar {
+.indicator-bar {
   height:10px;
 }
-#indicator-bar div {
+.indicator-bar div {
   width: 10px;
   height: 10px;
   position: absolute;
@@ -238,6 +238,12 @@ body.high-targeting-difficulty .target.friend:hover {
 }
 .miss-indicator {
   line-height: 10px;
+}
+.hover-indicator-enemy {
+  background-color: red;
+}
+.hover-indicator-friend {
+  background-color: green;
 }
 
 /* show green target when faking a hover during replay */
