@@ -150,6 +150,8 @@ class TaskController implements TargetDelegate {
       task = blockManager.getTask(this);
       // set up ui for first task
       task.setupUI();
+      // log task info
+      logTaskInfo();
     });
     
     // add handler to survey submission
@@ -365,6 +367,11 @@ class TaskController implements TargetDelegate {
       trialReplay.loadTrial("output/subject7/block3 copy/trial2");
       // show replay ui
       query(".task").classes.add("replay");
+    } else if(event.which == "k".codeUnitAt(0)) {
+      // k for skip
+      
+      // move to the next trial
+      advanceBlockManagerTrial();
     }
   }
   
@@ -510,6 +517,34 @@ class TaskController implements TargetDelegate {
       ws.send("TrialStart, $time");
     }
   }
+  
+  /// log the task info for the current task
+  void logTaskInfo() {
+    Logger.root.info("Current task info:");
+    BlockTrialTask btt = task as BlockTrialTask;
+    Logger.root.info("oprange: ${btt.opRange}, dist: ${btt.targetDist}, diff: ${btt.targetDifficulty}, targets: ${btt.numTargets}");
+  }
+  /// advance the trial in the block manager.
+  /// if we finished a block condition and it's not practice, show the survey
+  /// get the new task, set up the ui, and log the task info
+  void advanceBlockManagerTrial() {
+    Logger.root.fine("trial over, incrementing trial");
+    
+    bool practice = blockManager.block.practice;
+    // tell manager to advance trial
+    if(blockManager.advance() && !practice) {
+      // if block advanced and it wasn't a practice trial, show workload survey
+      showSurvey();
+    }
+    if(!blockManager.finished) {
+      task = blockManager.getTask(this);
+      
+      // set up the interface based on the new task
+      task.setupUI();
+      
+      logTaskInfo();
+    }
+  }
   void onTrialEnd(num time) {
     // send trial end to data server
     if(wsReady) {
@@ -523,22 +558,7 @@ class TaskController implements TargetDelegate {
     
     // if we are using all blocks, increment trial / block and create new task
     if(useBlockManager) {
-      Logger.root.fine("trial over, incrementing trial");
-      
-      bool practice = blockManager.block.practice;
-      // tell manager to advance trial
-      if(blockManager.advance() && !practice) {
-        // if block advanced and it wasn't a practice trial, show workload survey
-        showSurvey();
-      }
-      if(!blockManager.finished) {
-        task = blockManager.getTask(this);
-        
-        // set up the interface based on the new task
-        task.setupUI();
-        
-        Logger.root.fine("got new task: $task from manager");
-      }
+      advanceBlockManagerTrial();
     } else {
       // otherwise, increment the trial number
       trial++;
