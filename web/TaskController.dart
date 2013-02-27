@@ -494,13 +494,13 @@ class TaskController implements TargetDelegate {
   void TargetOver(Target target, MouseEvent event) {
     // log hover
     if(wsReady) {
-      ws.send("TargetOver, ${event.timeStamp}, ${event.clientX}, ${event.clientY}, ${target.enemy ? 'enemy' : 'friend'}");
+      ws.send("TargetOver, ${event.timeStamp}, ${event.clientX}, ${event.clientY}, ${target.ID}, ${target.enemy ? 'enemy' : 'friend'}");
     }
   }
   void TargetOut(Target target, MouseEvent event) {
     // log unhover
     if(wsReady) {
-      ws.send("TargetOut, ${event.timeStamp}, ${event.clientX}, ${event.clientY}, ${target.enemy ? 'enemy' : 'friend'}");
+      ws.send("TargetOut, ${event.timeStamp}, ${event.clientX}, ${event.clientY}, ${target.ID}, ${target.enemy ? 'enemy' : 'friend'}");
     }
   }
   
