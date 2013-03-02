@@ -159,7 +159,7 @@ class TrialReplay implements TargetDelegate {
             ..addAll(
               data["blocks"].map(
                   (block) => new DivElement()
-                  ..text = block["name"]
+                  ..text = "${block['name']}, #: ${block['blockDesc']['targetNumber']}, diff:${block['blockDesc']['targetDifficulty']}, op:${block['blockDesc']['additionDifficulty']}, speed: ${block['blockDesc']['targetSpeed']}"
                   ..onClick.listen((event) => loadTrials(block["subject"], block["name"]))
                   // TODO show block description
               )

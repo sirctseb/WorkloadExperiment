@@ -117,7 +117,14 @@ class Server {
           socket.send(
             stringify({"data": "blocks",
               "blocks": new Directory.fromPath(new Path("output").append(request["subject"]))
-                .listSync().where((entry) => entry is Directory).map((dir) => {"name": new Path(dir.path).filename, "subject": request["subject"]}).toList()})
+                .listSync().where((entry) => entry is Directory).map(
+                    (dir) {
+                      // read the block description file
+                      var blockDesc = parse(new File.fromPath(new Path("${dir.path}/block.txt")).readAsStringSync());
+                      return {"name": new Path(dir.path).filename, "subject": request["subject"],
+                        "blockDesc": blockDesc};
+                    }
+                 ).toList()})
           );
         } else if(request["cmd"] == "trials") {
           // read the list of trials and respond
