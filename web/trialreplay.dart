@@ -558,6 +558,11 @@ class TrialReplay implements TargetDelegate {
       updateTimeViews();
     });
     
+    // add click handler to the expand bar
+    query("#expand-bar").onClick.listen((event) {
+      query("#replay-select-lists").classes.toggle("hidden");
+    });
+    
     // create targets
     targets = [new Target(this, true), new Target(this, true), new Target(this, false)];
     // add targets to replay ui

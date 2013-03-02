@@ -198,6 +198,10 @@ body.high-targeting-difficulty .target.friend:hover {
 #expand-bar {
   height: 10px;
   background-color: #E8E8E8;
+  min-width: 100px;
+}
+#replay-select-lists.hidden {
+  display:none;
 }
 /* put lists side by side */
 .replay-select-list {
