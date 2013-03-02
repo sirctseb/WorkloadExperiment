@@ -143,7 +143,9 @@ class TrialReplay implements TargetDelegate {
         } else if(data["data"] == "subjects") {
           logger.info("receive subject list");
           // load subjects into ui
-          query("#subject-select").children.addAll(
+          query("#subject-select").children
+            ..clear()
+            ..addAll(
               data["subjects"].map(
                   (subject) => new DivElement()
                   ..text = subject["name"]
@@ -152,7 +154,9 @@ class TrialReplay implements TargetDelegate {
           );
         } else if(data["data"] == "blocks") {
           // load blocks into ui
-          query("#block-select").children.addAll(
+          query("#block-select").children
+            ..clear()
+            ..addAll(
               data["blocks"].map(
                   (block) => new DivElement()
                   ..text = block["name"]
@@ -162,11 +166,13 @@ class TrialReplay implements TargetDelegate {
           );
         } else if(data["data"] == "trials") {
           // load trials into ui
-          query("#trial-select").children.addAll(
+          query("#trial-select").children
+            ..clear()
+            ..addAll(
               data["trials"].map(
                   (trial) => new DivElement()
                   ..text = trial["name"]
-                  ..onClick.listen((event) => loadTrial("${trial['subject']}/${trial['block']}/${trial['name']}"))
+                  ..onClick.listen((event) => loadTrial("output/${trial['subject']}/${trial['block']}/${trial['name']}"))
               )
           );
         }

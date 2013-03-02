@@ -110,7 +110,22 @@ class Server {
           // read the list of subjects and respond
           socket.send(
             stringify({"data": "subjects",
-              "subjects": new Directory("output").listSync().where((entry) => entry is Directory).map((dir) => {"name": (dir as Directory).path}).toList()})
+              "subjects": new Directory("output").listSync().where((entry) => entry is Directory).map((dir) => {"name": new Path(dir.path).filename}).toList()})
+          );
+        } else if(request["cmd"] == "blocks") {
+          // read the list of blocks and respond
+          socket.send(
+            stringify({"data": "blocks",
+              "blocks": new Directory.fromPath(new Path("output").append(request["subject"]))
+                .listSync().where((entry) => entry is Directory).map((dir) => {"name": new Path(dir.path).filename, "subject": request["subject"]}).toList()})
+          );
+        } else if(request["cmd"] == "trials") {
+          // read the list of trials and respond
+          socket.send(
+            stringify({"data": "trials",
+              "trials": new Directory.fromPath(new Path("output").append(request["subject"]).append(request["block"]))
+                .listSync().where((entry) => entry is Directory).map((dir) =>
+                    {"name": new Path(dir.path).filename, "subject": request["subject"], "block": request["block"]}).toList()})
           );
         }
       } on FormatException catch(e) {
