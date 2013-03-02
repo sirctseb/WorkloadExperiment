@@ -189,6 +189,22 @@ body.high-targeting-difficulty .target.friend:hover {
   padding-left:5px;
   padding-right:5px;
 }
+
+/* make the trial selection ui full width */
+#replay-selection {
+  width:100%;
+}
+/* make the expander div full width and force height */
+#expand-bar {
+  width:100%;
+  height: 10px;
+  background-color: #F8F8F8;
+}
+/* put lists side by side */
+.replay-select-list {
+  display: inline-block;
+}
+
 .replay-ui .replay-time-slider {
   width: 100%;
 }

@@ -106,6 +106,12 @@ class Server {
                   socket.send(stringify({"data": "datafile", "content": content, "block": blockContent}));
                 });
             });
+        } else if(request["cmd"] == "subjects") {
+          // read the list of subjects and respond
+          socket.send(
+            stringify({"data": "subjects",
+              "subjects": new Directory("output").listSync().where((entry) => entry is Directory).map((dir) => {"name": (dir as Directory).path}).toList()})
+          );
         }
       } on FormatException catch(e) {
         // don't do anything

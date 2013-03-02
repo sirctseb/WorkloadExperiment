@@ -91,32 +91,85 @@ class TrialReplay implements TargetDelegate {
       // TODO error message
     }
   }
+  /// ask for subjects
+  void loadSubjects() {
+    if(delegate != null && delegate.wsReady) {
+      logger.info("requesting subject list");
+      // send request for subject list
+      delegate.ws.send(stringify({"cmd": "subjects"}));
+    }
+  }
+  /// ask for blocks
+  void loadBlocks(String subject) {
+    if(delegate != null && delegate.wsReady) {
+      // send request for block list
+      delegate.ws.send(stringify({"cmd": "blocks", "subject": subject}));
+    }
+  }
+  /// ask for trials
+  void loadTrials(String subject, String block) {
+    if(delegate != null && delegate.wsReady) {
+      // send request for trial list
+      delegate.ws.send(stringify({"cmd": "trials", "subject": subject, "block": block}));
+    }
+  }
   void receiveData(MessageEvent event) {
     try {
       var data = parse(event.data);
-      if(data.containsKey("data") && data["data"] == "datafile") {
-        logger.info("got data from server, parsing");
-        // read block description
-        block = parse(data["block"]);
-        // set targeting difficulty class
-        if(block["targetDifficulty"] == 1) {
-          document.body.classes.add("high-targeting-difficulty");
-        } else {
-          document.body.classes.remove("high-targeting-difficulty");
+      if(data.containsKey("data")) {
+        if(data["data"] == "datafile") {
+          logger.info("got data from server, parsing");
+          // read block description
+          block = parse(data["block"]);
+          // set targeting difficulty class
+          if(block["targetDifficulty"] == 1) {
+            document.body.classes.add("high-targeting-difficulty");
+          } else {
+            document.body.classes.remove("high-targeting-difficulty");
+          }
+          logger.info("block is like: $block");
+          // parse data file into mouse move and event lists
+          mouseMoves = TrialDataParser.parseMouseMoveData(data["content"]);
+          events = TrialDataParser.parseEventData(data["content"]);
+          // find trial start event to set stamp
+          trialStartStamp = events.firstMatching((event) => event["event"] == "TrialStart")["time"];
+          // find trial end event to set stamp
+          trialEndStamp = events.lastMatching((event) => event["event"] == "TrialEnd")["time"];
+          // TODO set trial times in mouse moves?
+          // set time so state is set correctly
+          time = 0;
+          // update time views
+          updateTimeViews();
+        } else if(data["data"] == "subjects") {
+          logger.info("receive subject list");
+          // load subjects into ui
+          query("#subject-select").children.addAll(
+              data["subjects"].map(
+                  (subject) => new DivElement()
+                  ..text = subject["name"]
+                  ..onClick.listen((event) => loadBlocks(subject["name"]))
+              )
+          );
+        } else if(data["data"] == "blocks") {
+          // load blocks into ui
+          query("#block-select").children.addAll(
+              data["blocks"].map(
+                  (block) => new DivElement()
+                  ..text = block["name"]
+                  ..onClick.listen((event) => loadTrials(block["subject"], block["name"]))
+                  // TODO show block description
+              )
+          );
+        } else if(data["data"] == "trials") {
+          // load trials into ui
+          query("#trial-select").children.addAll(
+              data["trials"].map(
+                  (trial) => new DivElement()
+                  ..text = trial["name"]
+                  ..onClick.listen((event) => loadTrial("${trial['subject']}/${trial['block']}/${trial['name']}"))
+              )
+          );
         }
-        logger.info("block is like: $block");
-        // parse data file into mouse move and event lists
-        mouseMoves = TrialDataParser.parseMouseMoveData(data["content"]);
-        events = TrialDataParser.parseEventData(data["content"]);
-        // find trial start event to set stamp
-        trialStartStamp = events.firstMatching((event) => event["event"] == "TrialStart")["time"];
-        // find trial end event to set stamp
-        trialEndStamp = events.lastMatching((event) => event["event"] == "TrialEnd")["time"];
-        // TODO set trial times in mouse moves?
-        // set time so state is set correctly
-        time = 0;
-        // update time views
-        updateTimeViews();
       }
     } on FormatException catch(e) {
       // ignore if not valid json
@@ -422,6 +475,12 @@ class TrialReplay implements TargetDelegate {
       // set the value of the trial time text box
       trialTimeBox.value = "$time";
     }
+  }
+  
+  /// initialize replay view
+  /// ask for list of subjects and display them
+  void init() {
+    loadSubjects();
   }
  
   final int SLIDER_RESOLUTION = 10000;
