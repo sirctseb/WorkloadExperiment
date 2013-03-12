@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/skelterjohn/geom"
 	"io/ioutil"
 	"math"
 	"os"
@@ -60,6 +61,60 @@ func printResponseTimes(subject int, block, trial string) {
 	}
 
 }
+
+type Target struct {
+	ID        int
+	startX    float64
+	startY    float64
+	endX      float64
+	endY      float64
+	startTime float64
+	endTime   float64
+}
+
+// get the fraction of the way through the target's existence at the given time
+func (t Target) TimeParam(time float64) float64 {
+	return (time - t.startTime) / (t.endTime - t.startTime)
+}
+
+// get the start point of the target
+func (t Target) StartPoint() geom.Coord {
+	return geom.Coord{t.startX, t.startY}
+}
+
+// get the end point of the target
+func (t Target) EndPoint() geom.Coord {
+	return geom.Coord{t.endX, t.endY}
+}
+
+// get the center point of the target at a given time
+func (t Target) Center(time float64) geom.Coord {
+	timeParam := t.TimeParam(time)
+	// interpolate
+	return t.StartPoint().Plus(t.EndPoint().Minus(t.StartPoint()).Times(timeParam))
+}
+
+// get the top left point of the target at a given time
+func (t Target) TopLeft(time float64) geom.Coord {
+	return t.Center(time).Minus(geom.Coord{-64, -64})
+}
+
+// get the bottom right point of the target at a given time
+func (t Target) BottomRight(time float64) geom.Coord {
+	return t.Center(time).Plus(geom.Coord{64, 64})
+}
+
+// get the target rectangle of a target at a given time
+func (t Target) Rect(time float64) geom.Rect {
+	// create rectangle
+	return geom.Rect{t.TopLeft(time), t.BottomRight(time)}
+}
+
+// test if a target contains a point at a given time
+func (t Target) Contains(time float64, point geom.Coord) bool {
+	return t.Rect(time).ContainsCoord(point)
+}
+
 func parseResults(lines []string, targets int) map[string][]float64 {
 	// define regexes for target hits and starts
 	hitRE, _ := regexp.Compile(`TargetHit, ([\d\.]+), `)
