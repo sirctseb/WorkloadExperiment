@@ -289,7 +289,7 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 			friendTargetsHit++
 		} else if shotRE.MatchString(line) {
 			shots++
-		} else if match = mouseMoveRE.FindStringSubmatch(line); match != nil {
+		} else if match = mouseMoveRE.FindStringSubmatch(line); match != nil && targetsHit < 2 {
 			// test if mouse is over friend target
 			for _, target := range targetObjs {
 				// get time and x,y
