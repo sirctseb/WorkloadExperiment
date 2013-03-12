@@ -96,7 +96,7 @@ func (t Target) Center(time float64) geom.Coord {
 
 // get the top left point of the target at a given time
 func (t Target) TopLeft(time float64) geom.Coord {
-	return t.Center(time).Minus(geom.Coord{-64, -64})
+	return t.Center(time).Minus(geom.Coord{64, 64})
 }
 
 // get the bottom right point of the target at a given time
