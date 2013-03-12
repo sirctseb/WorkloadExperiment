@@ -462,12 +462,12 @@ func main() {
 
 			// define function for replacing time stamps
 			replaceFunc := func(match string) string {
-				diff := datetimeFromString(match).Sub(startDate)
-				return fmt.Sprintf("%f", diff.Seconds())
+				diff := datetimeFromString(strings.TrimSpace(match)).Sub(startDate)
+				return fmt.Sprintf(" %f", diff.Seconds())
 			}
 
 			// define regex for time stamp
-			date_regex, _ := regexp.Compile(`\d{13}`)
+			date_regex, _ := regexp.Compile(` \d{13}`)
 			// replace times stamps
 			diffTimes := date_regex.ReplaceAllStringFunc(contents, replaceFunc)
 
