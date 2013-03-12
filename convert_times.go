@@ -290,6 +290,11 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 		} else if shotRE.MatchString(line) {
 			shots++
 		} else if match = mouseMoveRE.FindStringSubmatch(line); match != nil && targetsHit < 2 {
+			// store the current number of hovers so we can prevent the count from incrementing
+			// when the cursor is over two targets
+			curentFriendHovers := friendHovers
+			// flag to record if the cursor is over any enemy target
+			overEnemy := false
 			// test if mouse is over friend target
 			for _, target := range targetObjs {
 				// get time and x,y
@@ -303,6 +308,8 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 					if target.enemy {
 						// reset hover flag
 						overFriend = false
+						// set enemy hover flag
+						overEnemy = true
 					} else {
 						// increment hovers if it is a new friend hover
 						if overTarget && !overFriend {
@@ -311,6 +318,10 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 						}
 					}
 				}
+			}
+			// if the cursor was over any enemy target, don't allow count to increment
+			if overEnemy {
+				friendHovers = curentFriendHovers
 			}
 		}
 	}
