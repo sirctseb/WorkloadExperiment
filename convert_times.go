@@ -299,7 +299,7 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 				y, _ := strconv.ParseFloat(match[3], 64)
 				// find out if we're over the target
 				overTarget := target.Contains(time, geom.Coord{x, y})
-				if overTarget {
+				if overTarget && target.endTime > time {
 					if target.enemy {
 						// reset hover flag
 						overFriend = false
