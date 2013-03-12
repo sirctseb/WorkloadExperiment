@@ -277,6 +277,8 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 			shots = 0
 			// reset number of friend hovers
 			friendHovers = 0
+			// reset over friend flag
+			overFriend = false
 
 			// reset iteration start time
 			iterationStartTime, _ = strconv.ParseFloat(match[1], 64)
@@ -290,17 +292,23 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 		} else if match = mouseMoveRE.FindStringSubmatch(line); match != nil {
 			// test if mouse is over friend target
 			for _, target := range targetObjs {
-				if !target.enemy {
-					time, _ := strconv.ParseFloat(match[1], 64)
-					time = time - iterationStartTime
-					x, _ := strconv.ParseFloat(match[2], 64)
-					y, _ := strconv.ParseFloat(match[3], 64)
-					nowOverFriend := target.Contains(time, geom.Coord{x, y})
-					if nowOverFriend != overFriend {
-						if nowOverFriend {
+				// get time and x,y
+				time, _ := strconv.ParseFloat(match[1], 64)
+				//time = time - iterationStartTime
+				x, _ := strconv.ParseFloat(match[2], 64)
+				y, _ := strconv.ParseFloat(match[3], 64)
+				// find out if we're over the target
+				overTarget := target.Contains(time, geom.Coord{x, y})
+				if overTarget {
+					if target.enemy {
+						// reset hover flag
+						overFriend = false
+					} else {
+						// increment hovers if it is a new friend hover
+						if overTarget && !overFriend {
 							friendHovers++
+							overFriend = true
 						}
-						overFriend = nowOverFriend
 					}
 				}
 			}
