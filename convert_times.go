@@ -282,7 +282,7 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 			iterationStartTime, _ = strconv.ParseFloat(match[1], 64)
 
 			// get new target objects
-			makeTargets(lines, index)
+			targetObjs = makeTargets(lines, index)
 		} else if friendHitRE.MatchString(line) {
 			friendTargetsHit++
 		} else if shotRE.MatchString(line) {
