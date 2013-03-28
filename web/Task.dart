@@ -246,6 +246,7 @@ abstract class Task {
   int iteration = 0;
   int iterationStartTime;
   bool get iterationComplete => currentEvents.isEmpty;
+  bool get firstHalfSecondOfIteration => (stopwatch.elapsedMilliseconds - iterationStartTime) < 500;
   
   /// True if an iteration is currently active; i.e. not complete
   bool iterationTasksCompleted = false;
