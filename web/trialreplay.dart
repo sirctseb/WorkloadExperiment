@@ -132,9 +132,9 @@ class TrialReplay implements TargetDelegate {
           mouseMoves = TrialDataParser.parseMouseMoveData(data["content"]);
           events = TrialDataParser.parseEventData(data["content"]);
           // find trial start event to set stamp
-          trialStartStamp = events.firstMatching((event) => event["event"] == "TrialStart")["time"];
+          trialStartStamp = events.firstWhere((event) => event["event"] == "TrialStart")["time"];
           // find trial end event to set stamp
-          trialEndStamp = events.lastMatching((event) => event["event"] == "TrialEnd")["time"];
+          trialEndStamp = events.lastWhere((event) => event["event"] == "TrialEnd")["time"];
           // TODO set trial times in mouse moves?
           // set time so state is set correctly
           time = 0;
@@ -259,7 +259,7 @@ class TrialReplay implements TargetDelegate {
           currTarget.move(currTarget.x + param * (events[i]["x"] - currTarget.x),
                           currTarget.y + param * (events[i]["y"] - currTarget.y));
           // test if target element contains mouse position and add hover class
-          ClientRect tRect = currTarget.element.getBoundingClientRect(); 
+          Rect tRect = currTarget.element.getBoundingClientRect(); 
           if(mouseX >= tRect.left && mouseX <= tRect.right &&
               mouseY >= tRect.top && mouseY <= tRect.bottom) {
             currTarget.element.classes.add("hover");

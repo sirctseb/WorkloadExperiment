@@ -6,7 +6,7 @@ import "package:logging/logging.dart";
 void main() {
   Server server = new Server();
   // print messages to console
-  Logger.root.on.record.add((LogRecord record) {
+  Logger.root.onRecord.listen((LogRecord record) {
     print(record.message);
   });
 }
@@ -44,20 +44,14 @@ class Server {
           Logger.root.info('new connection');
           
           webSocket.listen((event) {
-            if(event is MessageEvent) {
-              // Handle message
-              handleMessage(event, webSocket);
-            } else if(event is CloseEvent) {
-              // Handle message
-              handleClose(event);
-            }
-          });
+            handleMessage(event, webSocket);
+          }, onDone: () { handleClose(webSocket.closeCode, webSocket.closeReason); });
         });
       });
   }
     
-  void handleMessage(MessageEvent event, WebSocket socket) {
-    var message = event.data;
+  void handleMessage(message, WebSocket socket) {
+    //var message = event.data;
     Logger.root.finest("data server received message: $message");
     
     if(message.startsWith("end trial")) {
@@ -86,7 +80,7 @@ class Server {
       Logger.root.finest("data server logging message");
       
       // write event to file
-      sink.addString("$message\n");
+      sink.write("$message\n");
     } else {
       // if we're not running, check for requests for trial replay data
       try {
@@ -248,8 +242,8 @@ class Server {
   // TODO this happens when the web socket closes, not when the client disconnects.
   // TODO how to detect client disconnect?
   // TODO also, we don't really need to
-  void handleClose(CloseEvent event) {
-    Logger.root.info('closed with ${event.code} for ${event.reason}');
+  void handleClose(int closeCode, String closeReason) {
+    Logger.root.info('closed with ${closeCode} for ${closeReason}');
     Logger.root.info(new DateTime.now().toString());
   }
 }

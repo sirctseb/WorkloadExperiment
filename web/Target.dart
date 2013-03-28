@@ -116,7 +116,7 @@ class Target {
   void delayedRemove() {
     // remove after 200ms
     // TODO if animation time changes, change this delay
-    new Timer(200, (timer) {
+    new Timer(const Duration(milliseconds:200), () {
       element.remove();
     });
   }
@@ -141,7 +141,7 @@ class Target {
     // register mouse down event
     element.onMouseDown.listen((MouseEvent e) {
       // check that the click is within the target image and not just in the div
-      num distSq = pow(e.clientX - x, 2) + pow(e.clientY - y, 2);
+      num distSq = pow(e.client.x - x, 2) + pow(e.client.y - y, 2);
       if(distSq <= width*width/4) {
         
         // notify delegate

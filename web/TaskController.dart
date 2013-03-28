@@ -36,7 +36,7 @@ class TaskController implements TargetDelegate {
     // animate color of score text
     query(".score").classes.add(increase ? "increase" : "decrease");
     // remove the class in 400ms
-    new Timer(400, (timer) {
+    new Timer(const Duration(milliseconds:400), () {
       query(".score").classes.removeAll(["increase", "decrease"]);
     });
   }
@@ -205,7 +205,7 @@ class TaskController implements TargetDelegate {
       // if countdown is not done, decrement and schedule another in 1 second
       if(countdown > 0) {
         countdown--;
-        new Timer(1000, (Timer) {
+        new Timer(const Duration(milliseconds: 1000), () {
           beep.play();
         });
       }
@@ -293,8 +293,8 @@ class TaskController implements TargetDelegate {
     
     // set location
     // TODO magic numbers
-    shotElement.style.left = "${event.clientX - 15}px";
-    shotElement.style.top = "${event.clientY - 15}px";
+    shotElement.style.left = "${event.client.x - 15}px";
+    shotElement.style.top = "${event.client.y - 15}px";
     
     // add back to DOM
     document.body.children.add(shotElement);
@@ -305,7 +305,7 @@ class TaskController implements TargetDelegate {
     // send click event to server
     if(wsReady) {
       Logger.root.finest("sending mouse down event");
-      ws.send("MouseDown, ${event.timeStamp}, ${event.clientX}, ${event.clientY}, ${hit?'HIT':'MISS'}");
+      ws.send("MouseDown, ${event.timeStamp}, ${event.client.x}, ${event.client.y}, ${hit?'HIT':'MISS'}");
     }
     if(!hit) {
       score -= 20;
@@ -315,7 +315,7 @@ class TaskController implements TargetDelegate {
   void onBodyMove(MouseEvent event) {
     // set info to data server
     if(wsReady) {
-      ws.send("MouseMove, ${event.timeStamp}, ${event.clientX}, ${event.clientY}");
+      ws.send("MouseMove, ${event.timeStamp}, ${event.client.x}, ${event.client.y}");
     }
   }
   void handleKeyPress(KeyboardEvent event) {
@@ -496,13 +496,13 @@ class TaskController implements TargetDelegate {
   void TargetOver(Target target, MouseEvent event) {
     // log hover
     if(wsReady) {
-      ws.send("TargetOver, ${event.timeStamp}, ${event.clientX}, ${event.clientY}, ${target.ID}, ${target.enemy ? 'enemy' : 'friend'}");
+      ws.send("TargetOver, ${event.timeStamp}, ${event.client.x}, ${event.client.y}, ${target.ID}, ${target.enemy ? 'enemy' : 'friend'}");
     }
   }
   void TargetOut(Target target, MouseEvent event) {
     // log unhover
     if(wsReady) {
-      ws.send("TargetOut, ${event.timeStamp}, ${event.clientX}, ${event.clientY}, ${target.ID}, ${target.enemy ? 'enemy' : 'friend'}");
+      ws.send("TargetOut, ${event.timeStamp}, ${event.client.x}, ${event.client.y}, ${target.ID}, ${target.enemy ? 'enemy' : 'friend'}");
     }
   }
   
