@@ -117,14 +117,19 @@ class MovingTargetEvent extends TargetEvent {
     var c2 = new Circle(new Point(0, document.body.clientHeight), length);
     var c3 = new Circle(new Point(document.body.clientWidth, 0), length);
     var c4 = new Circle(new Point(document.body.clientWidth, document.body.clientHeight), length);
-    var c5 = new Circle(new Point(document.body.clientWidth/2, document.body.clientHeight/2), 300); 
+    var c5 = new Circle(new Point(document.body.clientWidth/2, document.body.clientHeight/2), 300);
+    var rect = new Rectangle(target.width / 2, target.height / 2,
+                             document.body.clientWidth - target.width,
+                             document.body.clientHeight - target.height);
     
     // make function that determines if a point has no other points within the screen at the given distance
     var ineligiblePoint = (x, y) {
       var point = new Point(x,y);
       return (c1.contains(point) && c2.contains(point) && c3.contains(point) && c4.contains(point))
           // also rule out starting points in the middle so they don't cover addition problem
-          || c5.contains(point);
+          || c5.contains(point)
+          // also rule out points too close to the screen edge
+          || !rect.containsPoint(point);
     };
     
     // get random start point
