@@ -17,7 +17,7 @@ part 'trialreplay.dart';
 void main() {
 
   // print log messages to console
-  Logger.root.on.record.add((LogRecord record) {
+  Logger.root.onRecord.listen((LogRecord record) {
     print(record.message);
   });
   Logger.root.level = Level.FINE;
