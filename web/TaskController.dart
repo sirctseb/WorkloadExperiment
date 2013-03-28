@@ -336,6 +336,8 @@ class TaskController implements TargetDelegate {
       
       // make sure addition is not already marked correct
       if(query(".addition").classes.contains("correct")) return;
+      // make sure we're not in the first half second of a task
+      if(task.firstHalfSecondOfIteration) return;
       
       // tell task that addition is over
       task.endAdditionEvent();
