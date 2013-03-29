@@ -376,6 +376,13 @@ class TaskController implements TaskEventDelegate {
       
       // move to the next trial
       advanceBlockManagerTrial();
+    } else if(event.which == "x".codeUnitAt(0)) {
+      // x for playground
+      // start a playground
+      Playground playground = new Playground();
+      print('started playground');
+      // stop after 7 seconds
+      new Timer(const Duration(seconds: 7), () {playground.kill();print('killed playground');});
     }
   }
   
