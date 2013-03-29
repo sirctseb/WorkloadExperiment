@@ -12,7 +12,7 @@ part 'block.dart';
 part 'tlxweights.dart';
 part 'mathutility.dart';
 part 'trialreplay.dart';
-
+part 'playground.dart';
 
 void main() {
 
