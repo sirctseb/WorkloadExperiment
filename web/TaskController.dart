@@ -382,7 +382,7 @@ class TaskController implements TaskEventDelegate {
       Playground playground = new Playground();
       print('started playground');
       // stop after 7 seconds
-      new Timer(const Duration(seconds: 7), () {playground.kill();print('killed playground');});
+      new Timer(const Duration(seconds: 100), () {playground.kill();print('killed playground');});
     }
   }
   
