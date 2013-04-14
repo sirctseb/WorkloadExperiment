@@ -104,6 +104,14 @@ assembleData <- function(subject) {
 	# test that loop produces same as flat
 	print("concurrencies equal:")
 	print(all(mainData$concurrency == mainData$concurrency2))
+
+	# return results in a list
+	return(list(
+		main = mainData,
+		addition = additionData,
+		targeting = targetingData,
+		practice = practiceData
+		))
 }
 
 getConcurrencyVec <- function(completionTimes, additionTime, targetTime) {
