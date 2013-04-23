@@ -233,7 +233,7 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 			taskCompleteTimes = append(taskCompleteTimes, time-iterationStartTime)
 			// set flag that tasks are complete
 			tasksComplete = true
-			fmt.Fprintf(os.Stderr, "adding complete time flag %d, time %f\n", len(taskCompleteTimes), taskCompleteTimes[len(taskCompleteTimes)-1])
+			// fmt.Fprintf(os.Stderr, "adding complete time flag %d, time %f\n", len(taskCompleteTimes), taskCompleteTimes[len(taskCompleteTimes)-1])
 		} else if match = iterationEndRE.FindStringSubmatch(line); len(match) > 0 {
 			// check for iteration end
 
@@ -242,7 +242,7 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 			// TODO this depends on 5 second iterations. we should make this look it up
 			if !tasksComplete {
 				taskCompleteTimes = append(taskCompleteTimes, 6.)
-				fmt.Fprintf(os.Stderr, "adding complete time iteration end %d, time %f\n", len(taskCompleteTimes), taskCompleteTimes[len(taskCompleteTimes)-1])
+				// fmt.Fprintf(os.Stderr, "adding complete time iteration end %d, time %f\n", len(taskCompleteTimes), taskCompleteTimes[len(taskCompleteTimes)-1])
 			}
 			// if addition not complete by the time we hit iteration end, set addiion time
 			// to 5
@@ -484,6 +484,7 @@ func main() {
 	var practice bool
 	var blockName string
 	var trialNum int
+	var numIterations int
 
 	// get subject and trial from command line ifassed
 	flag.IntVar(&subject, "s", 5, "The number of the subject")
@@ -492,6 +493,7 @@ func main() {
 	flag.BoolVar(&practice, "practice", false, "set to practice")
 	flag.StringVar(&blockName, "block", "", "Specify a block to output")
 	flag.IntVar(&trialNum, "trial", -1, "Specify a trial to output")
+	flag.IntVar(&numIterations, "i", 12, "The number of iterations expected")
 	flag.Parse()
 
 	var blocks []string
@@ -571,7 +573,7 @@ func main() {
 			// TODO get this to work with practice blocks
 			if levels != nil {
 				var enemyTargets int = int(math.Ceil(float64(levels.TargetNumber) / 2))
-				iterations := 12
+				iterations := numIterations
 				//printHitAndAdditionTimes(lines, targets)
 				times := parseResults(lines, enemyTargets)
 				// fill with zeros if data not present
