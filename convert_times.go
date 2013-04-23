@@ -233,6 +233,7 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 			taskCompleteTimes = append(taskCompleteTimes, time-iterationStartTime)
 			// set flag that tasks are complete
 			tasksComplete = true
+			fmt.Fprintf(os.Stderr, "adding complete time flag %d, time %f\n", len(taskCompleteTimes), taskCompleteTimes[len(taskCompleteTimes)-1])
 		} else if match = iterationEndRE.FindStringSubmatch(line); len(match) > 0 {
 			// check for iteration end
 
@@ -240,19 +241,20 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 			// to 5
 			// TODO this depends on 5 second iterations. we should make this look it up
 			if !tasksComplete {
-				taskCompleteTimes = append(taskCompleteTimes, 5.)
+				taskCompleteTimes = append(taskCompleteTimes, 6.)
+				fmt.Fprintf(os.Stderr, "adding complete time iteration end %d, time %f\n", len(taskCompleteTimes), taskCompleteTimes[len(taskCompleteTimes)-1])
 			}
 			// if addition not complete by the time we hit iteration end, set addiion time
 			// to 5
 			// TODO this depends on 5 second iterations. we should make this look it up
 			if !additionComplete {
-				additionTimes = append(additionTimes, 5.)
+				additionTimes = append(additionTimes, 6.)
 			}
 			// if targeting not complete by the time we hit iteration end, set final hit time
 			// to 5
 			// TODO this depends on 5 second iterations. we should make this look it up
 			if targetsHit < targets {
-				finalHitTimes = append(finalHitTimes, 5.)
+				finalHitTimes = append(finalHitTimes, 6.)
 			}
 
 			// store number of targets hit
@@ -569,6 +571,7 @@ func main() {
 			// TODO get this to work with practice blocks
 			if levels != nil {
 				var enemyTargets int = int(math.Ceil(float64(levels.TargetNumber) / 2))
+				iterations := 12
 				//printHitAndAdditionTimes(lines, targets)
 				times := parseResults(lines, enemyTargets)
 				// fill with zeros if data not present
@@ -578,14 +581,14 @@ func main() {
 				if len(times["finalHit"]) == 0 {
 					times["finalHit"] = []float64{0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.}
 				}
-				if len(times["complete"]) != 12 || len(times["addition"]) != 12 || len(times["finalHit"]) != 12 ||
-					len(times["hits"]) != 12 || len(times["friendHits"]) != 12 || len(times["shots"]) != 12 ||
-					len(times["friendHovers"]) != 12 {
-					panic("one or more variables do not have 12 elements")
+				if len(times["complete"]) != iterations || len(times["addition"]) != iterations || len(times["finalHit"]) != iterations ||
+					len(times["hits"]) != iterations || len(times["friendHits"]) != iterations || len(times["shots"]) != iterations ||
+					len(times["friendHovers"]) != iterations {
+					panic(fmt.Sprintf("one or more variables do not have 12 elements %d", len(times["complete"])))
 				}
 
 				// TODO magic number 12 iterations should be looked up
-				for index := 0; index < 12; index++ {
+				for index := 0; index < iterations; index++ {
 					fmt.Printf("%t, %d, %d, %v, %d, %f, %f, %f, %d, %d, %d, %d\n",
 						levels.Practice,
 						levels.TargetNumber, levels.TargetSpeed, levels.AdditionDifficulty, levels.TargetDifficulty,
