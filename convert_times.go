@@ -404,10 +404,10 @@ func printTaskData(subject int, block, trial string) {
 
 }
 
-func printRHeader() {
+func printRHeader(file *os.File) {
 	// TODO we should really read this from the file in case any of the parameters change
 	//fmt.Println("targets, speed, oprange, et1, et2, et3, et4, et5, et6, et7, et8, et9, et10, et11, et12")
-	fmt.Println("practice, targets, speed, oprange, difficulty, addition, target, complete, hits, friendHits, shots, hovers")
+	fmt.Fprintln(file, "practice, targets, speed, oprange, difficulty, addition, target, complete, hits, friendHits, shots, hovers")
 }
 
 func printAccuracy(contents string) {
@@ -503,8 +503,15 @@ func main() {
 		blocks = []string{blockName}
 	}
 
+	// create output file object
+	result_file, err := os.Create(fmt.Sprintf("output/subject%d/r1.txt", subject))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error creating file output/subject%d/r1.txt", subject)
+		panic("error creating file")
+	}
+
 	// print header
-	printRHeader()
+	printRHeader(result_file)
 
 	var levels *IVLevels
 
@@ -591,7 +598,7 @@ func main() {
 
 				// TODO magic number 12 iterations should be looked up
 				for index := 0; index < iterations; index++ {
-					fmt.Printf("%t, %d, %d, %v, %d, %f, %f, %f, %d, %d, %d, %d\n",
+					fmt.Fprintf(result_file, "%t, %d, %d, %v, %d, %f, %f, %f, %d, %d, %d, %d\n",
 						levels.Practice,
 						levels.TargetNumber, levels.TargetSpeed, levels.AdditionDifficulty, levels.TargetDifficulty,
 						times["addition"][index], times["finalHit"][index], times["complete"][index], int(times["hits"][index]),
@@ -600,6 +607,8 @@ func main() {
 			}
 		}
 	}
+
+	result_file.Close()
 }
 func CountBucket(values []float64, min, max float64) int {
 	count := 0
