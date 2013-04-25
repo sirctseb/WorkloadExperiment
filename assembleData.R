@@ -3,6 +3,7 @@ assembleData <- function(subject) {
 	mainfile <- sprintf("output/subject%d/r1.txt", subject)
 	# read in the data
 	mainData <- read.table(mainfile, header=TRUE, sep=",", strip.white=TRUE)
+	mainData$subject <- subject
 
 	# separate practice data from experimental data
 	practiceData <- mainData[mainData$practice == "true", ]
