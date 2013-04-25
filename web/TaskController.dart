@@ -1,7 +1,7 @@
 part of WorkloadExperiment;
 
 /// [TaskController] oversees the presentation of the whole task
-class TaskController implements TargetDelegate {
+class TaskController implements TaskEventDelegate {
   
   /// The root view of the actual task
   DivElement taskRoot;
@@ -336,6 +336,8 @@ class TaskController implements TargetDelegate {
       
       // make sure addition is not already marked correct
       if(query(".addition").classes.contains("correct")) return;
+      // make sure we're not in the first half second of a task
+      if(task.firstHalfSecondOfIteration) return;
       
       // tell task that addition is over
       task.endAdditionEvent();
@@ -374,6 +376,13 @@ class TaskController implements TargetDelegate {
       
       // move to the next trial
       advanceBlockManagerTrial();
+    } else if(event.which == "x".codeUnitAt(0)) {
+      // x for playground
+      // start a playground
+      Playground playground = new Playground();
+      print('started playground');
+      // stop after 7 seconds
+      new Timer(const Duration(seconds: 100), () {playground.kill();print('killed playground');});
     }
   }
   

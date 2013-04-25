@@ -13,9 +13,16 @@ Map merge(Map m1, Map m2) {
   return result;
 }
 
+abstract class TaskEventDelegate extends TargetDelegate {
+  void onTargetStart(TargetEvent event, int time);
+  void onTargetTimeout(TargetEvent event, int time);
+  void onAdditionStart(AdditionEvent event, int time);
+  void onAdditionEnd(AdditionEvent event, int time);
+}
+
 abstract class TaskEvent {
   /// The task controller
-  TaskController delegate;
+  TaskEventDelegate delegate;
   
   /// The amount of time the event lasts
   num duration;
@@ -28,7 +35,7 @@ abstract class TaskEvent {
   void update(num sinceIterationStart) {
   }
   
-  TaskEvent(TaskController this.delegate, num this.duration);
+  TaskEvent(TaskEventDelegate this.delegate, num this.duration);
 
   Map toJson() {
     return {"duration": duration};
@@ -39,7 +46,7 @@ abstract class TaskEvent {
 abstract class TargetEvent extends TaskEvent {
   Target target;
   
-  TargetEvent(TaskController delegate, num duration, bool enemy) : super(delegate, duration) {
+  TargetEvent(TaskEventDelegate delegate, num duration, bool enemy) : super(delegate, duration) {
     target = new Target(delegate, enemy);
   }
   Map toJson() {
@@ -51,11 +58,11 @@ abstract class TargetEvent extends TaskEvent {
 class FixedTargetEvent extends TargetEvent {
   num x, y;
   
-  FixedTargetEvent(TaskController delegate, duration, this.x, this.y, bool enemy): super(delegate, duration, enemy) {
+  FixedTargetEvent(TaskEventDelegate delegate, duration, this.x, this.y, bool enemy): super(delegate, duration, enemy) {
     target.move(x, y);
   }
   
-  FixedTargetEvent.atRandomPoint(TaskController delegate, duration, bool enemy) : super(delegate, duration, enemy) {
+  FixedTargetEvent.atRandomPoint(TaskEventDelegate delegate, duration, bool enemy) : super(delegate, duration, enemy) {
     Random rng = new Random();
     // put target at random place on screen
     target.move(rng.nextInt(document.body.clientWidth), rng.nextInt(document.body.clientHeight));
@@ -94,14 +101,14 @@ class MovingTargetEvent extends TargetEvent {
     return merge(super.toJson(), {"startX": startX, "startY": startY, "endX": endX, "endY": endY, "duration": duration});
   }
   
-  MovingTargetEvent(TaskController delegate, num duration, bool enemy,
+  MovingTargetEvent(TaskEventDelegate delegate, num duration, bool enemy,
                     this.startX, this.startY,
                     this.endX, this.endY) : super(delegate, duration, enemy) {
     target.move(startX, startY);
     //target.resize(64,64);
   }
   
-  MovingTargetEvent.eventWithLength(TaskController delegate, num duration, bool enemy, num length) 
+  MovingTargetEvent.eventWithLength(TaskEventDelegate delegate, num duration, bool enemy, num length) 
       : super(delegate, duration, enemy) {
     
     // check that movement length is possible
@@ -117,11 +124,19 @@ class MovingTargetEvent extends TargetEvent {
     var c2 = new Circle(new Point(0, document.body.clientHeight), length);
     var c3 = new Circle(new Point(document.body.clientWidth, 0), length);
     var c4 = new Circle(new Point(document.body.clientWidth, document.body.clientHeight), length);
+    var c5 = new Circle(new Point(document.body.clientWidth/2, document.body.clientHeight/2), 300);
+    var rect = new Rectangle(target.width / 2, target.height / 2,
+                             document.body.clientWidth - target.width,
+                             document.body.clientHeight - target.height);
     
     // make function that determines if a point has no other points within the screen at the given distance
     var ineligiblePoint = (x, y) {
       var point = new Point(x,y);
-      return c1.contains(point) && c2.contains(point) && c3.contains(point) && c4.contains(point);
+      return (c1.contains(point) && c2.contains(point) && c3.contains(point) && c4.contains(point))
+          // also rule out starting points in the middle so they don't cover addition problem
+          || c5.contains(point)
+          // also rule out points too close to the screen edge
+          || !rect.containsPoint(point);
     };
     
     // get random start point
@@ -193,11 +208,11 @@ class AdditionEvent extends TaskEvent {
     return merge(super.toJson(), {"op1": op1, "op2": op2});
   }
   
-  AdditionEvent(TaskController delegate, num duration, int this.op1, int this.op2)
+  AdditionEvent(TaskEventDelegate delegate, num duration, int this.op1, int this.op2)
       : super(delegate, duration) {
   }
   
-  AdditionEvent.withRandomOps(TaskController delegate, num duration, int opMin, int opMax)
+  AdditionEvent.withRandomOps(TaskEventDelegate delegate, num duration, int opMin, int opMax)
       : super(delegate, duration) {
     // set ops randomly within max
     Random rng = new Random();
@@ -243,6 +258,7 @@ abstract class Task {
   int iteration = 0;
   int iterationStartTime;
   bool get iterationComplete => currentEvents.isEmpty;
+  bool get firstHalfSecondOfIteration => (stopwatch.elapsedMilliseconds - iterationStartTime) < 500;
   
   /// True if an iteration is currently active; i.e. not complete
   bool iterationTasksCompleted = false;
