@@ -22,13 +22,13 @@ assembleData <- function(subject) {
 	additionData$targets <- NULL
 	
 	# get rid of speed, difficulty, and target columns from addition data
-	additionData$speed <- NULL
-	additionData$difficulty <- NULL
-	additionData$target <- NULL
+	additionData$speed <- NA
+	additionData$difficulty <- NA
+	additionData$target <- NA
 	# get rid of targeting accuracy columns from addition data
-	additionData$hits <- NULL
-	additionData$friendHits <- NULL
-	additionData$shots <- NULL
+	additionData$hits <- NA
+	additionData$friendHits <- NA
+	additionData$shots <- NA
 	# remove empty levels
 	additionData$oprange <- factor(additionData$oprange)
 
@@ -37,6 +37,7 @@ assembleData <- function(subject) {
 	
 	# separate targeting-only trials
 	targetingData <- mainData[mainData$oprange == "[]", ]
+	targetingData$oprange <- NA
 	mainData <- mainData[mainData$oprange != "[]", ]
 
 	# remove empty factors
