@@ -97,18 +97,18 @@ class Server {
                 .readAsString()
                 .then((content) {
                   Logger.root.info("finished reading file, sending to client");
-                  socket.send(stringify({"data": "datafile", "content": content, "block": blockContent}));
+                  socket.add(stringify({"data": "datafile", "content": content, "block": blockContent}));
                 });
             });
         } else if(request["cmd"] == "subjects") {
           // read the list of subjects and respond
-          socket.send(
+          socket.add(
             stringify({"data": "subjects",
               "subjects": new Directory("output").listSync().where((entry) => entry is Directory).map((dir) => {"name": new Path(dir.path).filename}).toList()})
           );
         } else if(request["cmd"] == "blocks") {
           // read the list of blocks and respond
-          socket.send(
+          socket.add(
             stringify({"data": "blocks",
               "blocks": new Directory.fromPath(new Path("output").append(request["subject"]))
                 .listSync().where((entry) => entry is Directory).map(
@@ -122,7 +122,7 @@ class Server {
           );
         } else if(request["cmd"] == "trials") {
           // read the list of trials and respond
-          socket.send(
+          socket.add(
             stringify({"data": "trials",
               "trials": new Directory.fromPath(new Path("output").append(request["subject"]).append(request["block"]))
                 .listSync().where((entry) => entry is Directory).map((dir) =>
