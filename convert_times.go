@@ -550,6 +550,7 @@ func main() {
 			trial_start_regex, _ := regexp.Compile(`TrialStart, (\d{13})`)
 
 			// get string of trial start time
+			fmt.Printf("matching trial start in block %s\n", block)
 			stamp_string := trial_start_regex.FindStringSubmatch(contents)[1]
 
 			// get time object for start time
@@ -585,15 +586,17 @@ func main() {
 				times := parseResults(lines, enemyTargets)
 				// fill with zeros if data not present
 				if len(times["addition"]) == 0 {
-					times["addition"] = []float64{0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.}
+					// times["addition"] = []float64{0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.}
+					times["addition"] = make([]float64, iterations)
 				}
 				if len(times["finalHit"]) == 0 {
-					times["finalHit"] = []float64{0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.}
+					// times["finalHit"] = []float64{0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.}
+					times["finalHit"] = make([]float64, iterations)
 				}
 				if len(times["complete"]) != iterations || len(times["addition"]) != iterations || len(times["finalHit"]) != iterations ||
 					len(times["hits"]) != iterations || len(times["friendHits"]) != iterations || len(times["shots"]) != iterations ||
 					len(times["friendHovers"]) != iterations {
-					panic(fmt.Sprintf("one or more variables do not have 12 elements %d", len(times["complete"])))
+					panic(fmt.Sprintf("one or more variables do not have %d elements %d in block %s", iterations, len(times["complete"]), block))
 				}
 
 				// TODO magic number 12 iterations should be looked up
