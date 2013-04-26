@@ -14,8 +14,8 @@ combineData <- function(data, tablename) {
 	)
 }
 # load subject data into a list
-loadSubjectData <- function(subjlow, subjhigh) {
-	llply(subjlow:subjhigh, assembleData);
+loadSubjectData <- function(subjects) {
+	llply(subjects, assembleData);
 }
 # get a vertical cross section of data
 # i.e. the addition, targeting, and dual-task data for a given subject
