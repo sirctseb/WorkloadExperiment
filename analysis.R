@@ -37,6 +37,10 @@ getVertCase <- function(data, difficultyLevel, speedLevel, oprangeLevel) {
 				 (speed == speedLevel | is.na(speed)) &
 				 (oprange == oprangeLevel | is.na(oprange)));
 }
+# plot the completion times for the addition, targeting, and combined tasks from a vertical case data frame
+plotVert <- function(data) {
+	ggplot(data, aes(complete, fill=type)) + geom_histogram(pos="dodge")
+}
 
 # bind dataframes into one with the columns that they all share
 rmerge <- function(...) {
