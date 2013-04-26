@@ -7,7 +7,7 @@ combineData <- function(data, tablename) {
 	i <- 1
 	ldply(data,
 		function(d) {
-			res <- cbind(getDF(d, tablename), subject = i);
+			res <- cbind(eval(substitute(tablename), d), subject = i);
 			i <<- i + 1
 			res
 		}
