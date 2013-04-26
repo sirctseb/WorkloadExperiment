@@ -48,6 +48,15 @@ rmerge <- function(...) {
 	Reduce(rbind, llply(list(...), function (df) {df[,cols, drop=FALSE]}))
 }
 
+# determine if two operands have a carry
+carry <- function(op1, op2) {
+	(op1 %% 10) + (op2 %% 10) >= 10;
+}
+# determine if result of addition is single digit
+singleDigit <- function(op1, op2) {
+	op1 + op2 < 10;
+}
+
 # load the data for a single subject into separate data frames for addition, targeting, and dual-task,
 # and return them in a list
 assembleData <- function(subject) {
@@ -56,6 +65,11 @@ assembleData <- function(subject) {
 	# read in the data
 	mainData <- read.table(mainfile, header=TRUE, sep=",", strip.white=TRUE)
 	mainData$subject <- subject
+
+	# add addition info
+	mainData$carry <- carry(mainData$op1, mainData$op2)
+	mainData$singleDigit <- singleDigit(mainData$op1, mainData$op2)
+	mainData$bothSingle <- mainData$op1 < 10 & mainData$op2 < 10
 
 	# separate practice data from experimental data
 	practiceData <- mainData[mainData$practice == "true", ]
