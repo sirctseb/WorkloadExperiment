@@ -41,7 +41,65 @@ getVertCase <- function(data, difficultyLevel, speedLevel, oprangeLevel) {
 }
 # plot the completion times for the addition, targeting, and combined tasks from a vertical case data frame
 plotVert <- function(data) {
-	ggplot(data, aes(complete, fill=type)) + geom_histogram(pos="dodge")
+	ggplot(data, aes(complete, fill=type)) + geom_histogram(pos="dodge", xmin=0,xmax=6)
+}
+
+# compare vertical cases between model and subject data
+compareVertCase <- function(humanData, modelData, difficultyLevel, speedLevel, oprangeLevel) {
+	# get vertical data for each
+	humanVert = getVertCase(humanData, difficultyLevel, speedLevel, oprangeLevel)
+	modelVert = getVertCase(modelData, difficultyLevel,speedLevel, oprangeLevel)
+	# plot human
+	print(plotVert(humanVert) + labs(title=paste("Human ", difficultyLevel, speedLevel, oprangeLevel)))
+	# open new window
+	quartz()
+	# plot model
+	print(plotVert(modelVert) + labs(title=paste("Model ", difficultyLevel, speedLevel, oprangeLevel)))
+
+}
+
+getFactorValue <- function(fac, idx) {
+	sapply(strsplit(as.character(fac), "\\."), "[", idx)
+}
+
+# compare all cases between model and subject in separate plots
+compareVertAllSeparate <- function(humanData, modelData) {
+	# get interaction list between difficulty, speed, and oprange
+	# get from only dual task data to avoid NA
+	main = subset(humanData, type=="main")
+	combs = unique(interaction(main$difficulty, main$speed, main$oprange))
+	l_ply(combs,
+		function(inter) {
+			print(paste("doing ", inter))
+			quartz()
+			compareVertCase(humanData, modelData, getFactorValue(inter, 1), getFactorValue(inter,2), getFactorValue(inter,3))
+		}
+	)
+}
+# compare all cases between model and subject in a single plot
+compareVertAll <- function(humanData, modelData) {
+	# combine all data
+	all = rmerge(transform(humanData, perf="Human"), transform(modelData, perf="Model"))
+	# separate dual task, addition, and targeting trials
+	dual = subset(all, type=="main")
+	add = subset(all, type=="addition")
+	targ = subset(all, type=="targeting")
+	# expand addition to create observations for each combination of difficulty and speed
+	add = rmerge(
+		transform(add, difficulty = 0, speed = 0),
+		transform(add, difficulty = 1, speed = 0),
+		transform(add, difficulty = 0, speed = 200),
+		transform(add, difficulty = 1, speed = 200))
+	# expand targeting to create observations for low and high addends
+	targ = rmerge(
+		transform(targ, oprange = "[1 12]"),
+		transform(targ, oprange = "[13 25]"))
+	# recomine data
+	all = rmerge(dual, add, targ)
+	# add an interaction column to store the interaction between cases
+	all$inter = interaction(all$difficulty, all$speed, all$oprange)
+	# plot
+	print(ggplot(all, aes(complete, fill=type)) + geom_histogram(pos="dodge") + facet_grid(perf ~ inter))
 }
 
 # bind dataframes into one with the columns that they all share
