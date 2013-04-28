@@ -32,7 +32,7 @@ getAll <- function(data, subjects) {
 getVertCase <- function(data, difficultyLevel, speedLevel, oprangeLevel) {
 	# be forgiving with level names
 	if(oprangeLevel == 0 | oprangeLevel == "low") oprangeLevel = "[1 12]";
-	if(oprangeLevel == 1 | oprangeLevel == "high") oprangeLevel = "[13 24]";
+	if(oprangeLevel == 1 | oprangeLevel == "high") oprangeLevel = "[13 25]";
 	if(speedLevel == 1 | speedLevel == "high") speedLevel = 200;
 	# get subset
 	subset(data, (difficulty == difficultyLevel | is.na(difficulty)) &
