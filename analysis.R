@@ -1,3 +1,5 @@
+library(ggplot2)
+library(plyr)
 # get a data frame from a table
 getDF <- function(data, tablename) {
 	data[[tablename]]
