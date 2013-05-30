@@ -24,29 +24,23 @@ abstract class TaskEvent {
   /// The task controller
   TaskEventDelegate delegate;
   
-  /// The amount of time the event lasts
-  num duration;
+  void start();
+  void restart();
+  void stop() {}
   
-  /// True iff the event is active
-  bool running = false;
-  
-  void start() { running = true; }
-  void stop([bool timeout = false]) { running = false; }
-  void update(num sinceIterationStart) {
-  }
-  
-  TaskEvent(TaskEventDelegate this.delegate, num this.duration);
+  TaskEvent(TaskEventDelegate this.delegate);
 
   Map toJson() {
-    return {"duration": duration};
+    return {};
   }
 }
 
 /// [TargetEvent] is an [Event] that shows a target
 abstract class TargetEvent extends TaskEvent {
   Target target;
+  bool get running => target.visible;
   
-  TargetEvent(TaskEventDelegate delegate, num duration, bool enemy) : super(delegate, duration) {
+  TargetEvent(TaskEventDelegate delegate, bool enemy) : super(delegate) {
     target = new Target(delegate, enemy);
   }
   Map toJson() {
@@ -57,33 +51,37 @@ abstract class TargetEvent extends TaskEvent {
 /// [FixedTargetEvent] is a [TargetEvent] that shows a target in a fixed position
 class FixedTargetEvent extends TargetEvent {
   num x, y;
-  
-  FixedTargetEvent(TaskEventDelegate delegate, duration, this.x, this.y, bool enemy): super(delegate, duration, enemy) {
+
+  Random rng = new Random();
+  FixedTargetEvent(TaskEventDelegate delegate, this.x, this.y, bool enemy): super(delegate, enemy) {
     target.move(x, y);
   }
   
-  FixedTargetEvent.atRandomPoint(TaskEventDelegate delegate, duration, bool enemy) : super(delegate, duration, enemy) {
-    Random rng = new Random();
-    // put target at random place on screen
-    target.move(rng.nextInt(document.body.clientWidth), rng.nextInt(document.body.clientHeight));
+  FixedTargetEvent.atRandomPoint(TaskEventDelegate delegate, bool enemy) : super(delegate, enemy) {
   }
   
   void start() {
-    running = true;
+    print("starting target event");
+    // put target at random place on screen
+    num x = rng.nextInt(document.body.clientWidth - target.width) + target.width/2;
+    num y = rng.nextInt(document.body.clientHeight - target.height) + target.height/2;
+    target.move(x, y);
     // show the target
     target.show();
     delegate.onTargetStart(this, new DateTime.now().millisecondsSinceEpoch);
   }
-  
-  void stop([bool timeout = false]) {
-    super.stop();
-    
-    // if the target is still visible, it hasn't been dismissed, so remove and update score
-    if(timeout && target.visible) {
-      // remove the target
-      target.timeout();
-      
-      delegate.onTargetTimeout(this, new DateTime.now().millisecondsSinceEpoch);
+  void restart() {
+    print("restarting target event");
+    print("calling stop");
+    stop();
+    print("calling start");
+    start();
+  }
+  void stop() {
+    print("stopping target event");
+    if(target.visible) {
+      print("dismissing because visible");
+      target.dismiss();
     }
   }
   
@@ -92,146 +90,53 @@ class FixedTargetEvent extends TargetEvent {
   }
 }
 
-/// [MovingTargetEvent] is a [TargetEvent] that displays a moving target
-class MovingTargetEvent extends TargetEvent {
-  num startX, startY;
-  num endX, endY;
-  
-  Map toJson() {
-    return merge(super.toJson(), {"startX": startX, "startY": startY, "endX": endX, "endY": endY, "duration": duration});
-  }
-  
-  MovingTargetEvent(TaskEventDelegate delegate, num duration, bool enemy,
-                    this.startX, this.startY,
-                    this.endX, this.endY) : super(delegate, duration, enemy) {
-    target.move(startX, startY);
-    //target.resize(64,64);
-  }
-  
-  MovingTargetEvent.eventWithLength(TaskEventDelegate delegate, num duration, bool enemy, num length) 
-      : super(delegate, duration, enemy) {
-    
-    // check that movement length is possible
-    if(length*length > (document.body.clientWidth*document.body.clientWidth +
-                        document.body.clientHeight*document.body.clientHeight)) {
-      throw new Exception("Target movement length too long for window");
-    }
-    
-    Random rng = new Random();
-    
-    // get circles with radius == length to use for making sure target locations are good
-    var c1 = new Circle(new Point(0, 0), length);
-    var c2 = new Circle(new Point(0, document.body.clientHeight), length);
-    var c3 = new Circle(new Point(document.body.clientWidth, 0), length);
-    var c4 = new Circle(new Point(document.body.clientWidth, document.body.clientHeight), length);
-    var c5 = new Circle(new Point(document.body.clientWidth/2, document.body.clientHeight/2), 300);
-    var rect = new Rectangle(target.width / 2, target.height / 2,
-                             document.body.clientWidth - target.width,
-                             document.body.clientHeight - target.height);
-    
-    // make function that determines if a point has no other points within the screen at the given distance
-    var ineligiblePoint = (x, y) {
-      var point = new Point(x,y);
-      return (c1.contains(point) && c2.contains(point) && c3.contains(point) && c4.contains(point))
-          // also rule out starting points in the middle so they don't cover addition problem
-          || c5.contains(point)
-          // also rule out points too close to the screen edge
-          || !rect.containsPoint(point);
-    };
-    
-    // get random start point
-    startX = rng.nextInt(document.body.clientWidth);
-    startY = rng.nextInt(document.body.clientHeight);
-    
-    // discard starting points that have no other points within the rect a the given distance
-    while(ineligiblePoint(startX, startY)) {
-      startX = rng.nextInt(document.body.clientWidth);
-      startY = rng.nextInt(document.body.clientHeight);
-    }
-    
-    // compute random end point at a given distance
-    Point end = new Circle(new Point(startX, startY), length).randomPointInRect(
-        new Rectangle(0,0, document.body.clientWidth, document.body.clientHeight));
-    
-    target.move(startX, startY);
-    
-    // store in member vars
-    endX = end.x;
-    endY = end.y;
-  }
-  
-  void start() {
-    running = true;
-    
-    // show target
-    target.show();
-    
-    // notify delegate of target start
-    delegate.onTargetStart(this, new DateTime.now().millisecondsSinceEpoch);
-  }
-  
-  void update(num sinceIterationStart) {
-    // if target has not been dismissed, move it
-    if(target.visible) {
-      
-      // find fraction of time elapsed
-      var fraction = sinceIterationStart / duration;
-      
-      // position target
-      target.move(startX + fraction * (endX - startX), startY + fraction * (endY - startY));
-      
-    } else {
-      // stop if target was dismissed
-      stop();
-    }
-  }
-  
-  void stop([bool timeout = false]) {
-    super.stop(timeout);
-    // call for next frame if not done
-    if(timeout && target.visible) {
-      // update score for missed target
-      target.timeout();
-      // notify delegate of target timeout
-      delegate.onTargetTimeout(this, new DateTime.now().millisecondsSinceEpoch);
-      stop();
-    }
-  }
-}
-
 /// [AdditionEvent] is a [TaskEvent] that displays an addition problem on the screen
 class AdditionEvent extends TaskEvent {
   
   int op1, op2;
+  int opMin, opMax;
+  Random rng = new Random();
+  bool firstHalfSecond;
   
   Map toJson() {
     return merge(super.toJson(), {"op1": op1, "op2": op2});
   }
   
-  AdditionEvent(TaskEventDelegate delegate, num duration, int this.op1, int this.op2)
-      : super(delegate, duration) {
+  AdditionEvent(TaskEventDelegate delegate, int this.op1, int this.op2)
+      : super(delegate) {
   }
   
-  AdditionEvent.withRandomOps(TaskEventDelegate delegate, num duration, int opMin, int opMax)
-      : super(delegate, duration) {
-    // set ops randomly within max
-    Random rng = new Random();
-    int range = opMax - opMin;
-    op1 = rng.nextInt(range) + opMin;
-    op2 = rng.nextInt(range) + opMin;
+  AdditionEvent.withRandomOps(TaskEventDelegate delegate, int this.opMin, int this.opMax)
+      : super(delegate) {
   }
   
   void start() {
+    // set ops randomly within max
+    if(opMax != null) {
+      int range = opMax - opMin;
+      op1 = rng.nextInt(range) + opMin;
+      op2 = rng.nextInt(range) + opMin;
+    }
+    
     // display text in addition task problem
     query("#addition").text = "$op1 + $op2";
     
-    running = true;
-    
+    firstHalfSecond = true;
+
     // notify delegate
     delegate.onAdditionStart(this, new DateTime.now().millisecondsSinceEpoch);
+    
+    // set first half second to false in a half second
+    new Timer(new Duration(milliseconds: 500), () => firstHalfSecond = false);
+  }
+  void restart() {
+    // hide the problem for a brief time
+    query("#addition").classes.add("hidden");
+    new Timer(new Duration(milliseconds: 200), () => query("#addition").classes.remove("hidden"));
+    start();
   }
   
-  void stop([bool timeout = false]) {
+  void stop() {
     super.stop();
     delegate.onAdditionEnd(this, new DateTime.now().millisecondsSinceEpoch);
   }
@@ -245,160 +150,72 @@ abstract class Task {
   // the task controller
   TaskController delegate;
   
-  /// A list of task events ordered by time
-  List<List<TaskEvent>> events = [];
-  /// The list of tasks currently executing
-  List<TaskEvent> currentEvents = [];
-  
-  /// the number of iterations of the task to present
-  int iterations = 12;
-  int iterationTime = 5000;
-  
-  /// The current iteration
-  int iteration = 0;
-  int iterationStartTime;
-  bool get iterationComplete => currentEvents.isEmpty;
-  bool get firstHalfSecondOfIteration => (stopwatch.elapsedMilliseconds - iterationStartTime) < 500;
-  
-  /// True if an iteration is currently active; i.e. not complete
-  bool iterationTasksCompleted = false;
+  FixedTargetEvent enemyTargetEvent1;
+  FixedTargetEvent enemyTargetEvent2;
+  FixedTargetEvent friendTargetEvent;
+  AdditionEvent additionEvent;
   
   /// Generate the task events
   void buildEvents();
   
   Map toJson() {
-    return {"events": events, "iterations": iterations, "iterationTime": iterationTime};
+    return {"enemyTargetEvent1": enemyTargetEvent1,
+            "enemyTargetEvent2": enemyTargetEvent2,
+            "friendTargetEvent": friendTargetEvent,
+            "additionEvent": additionEvent};
   }
   
-  /// The index in events that is next to process
-  //int eventIndex = 0;
+  Task(this.delegate);
   
-  /// Stopwatch to keep track of progress
-  Stopwatch stopwatch = new Stopwatch();
-  
-  Task(this.delegate, {int this.iterations: 12, num this.iterationTime: 5000});
+  bool get firstHalfSecondOfAddition => additionEvent == null ? false : additionEvent.firstHalfSecond;
   
   void start() {
     running = true;
-    
-    // start the stopwatch
-    stopwatch.start();
-    
-    // set the initial iteration start time
-    iterationStartTime = 0;
 
     // tell delegate that task started
     delegate.onTrialStart(new DateTime.now().millisecondsSinceEpoch);
     
-    // set current events
-    currentEvents = events[iteration];
-    
-    // start new tasks
-    for(TaskEvent event in currentEvents) {
-      event.start();
+    // start tasks
+    if(enemyTargetEvent1 != null) {
+      enemyTargetEvent1.start();
+      enemyTargetEvent2.start();
+      friendTargetEvent.start();
+    }
+    if(additionEvent != null) {
+      additionEvent.start();
     }
     
-    // manually call first timer event
-    //onTimer(timer);
-    update(null);
+    // stop after 1 minute
+    new Timer(new Duration(minutes:1), stop);
   }
   void stop() {
-    //timer.cancel();
-    stopwatch.stop();
+    // kill tasks
+    if(enemyTargetEvent1 != null) {
+      enemyTargetEvent1.stop();
+      enemyTargetEvent2.stop();
+      friendTargetEvent.stop();
+    }
     
     // tell delegate that task ended
     delegate.onTrialEnd(new DateTime.now().millisecondsSinceEpoch);
     
     running = false;
   }
-  void reset() {
-    stop();
-    stopwatch.reset();
-  }
-  // true if there are events in currentEvents that are not friendly target events
-  bool activeEvents() {
-    // look at each current event
-    for(TaskEvent event in currentEvents) {
-      // check if it is a target event
-      if(event is TargetEvent && event.running) {
-        // if it is, and it is enemy, return true
-        if(event.target.enemy) return true;
-      } else if(event.running) {
-        // if it is not, return true
-        return true;
-      }
-    }
-    // if nothing found, return false
-    return false;
-  }
-  void update(time) {
-    // get the current time since start of trial
-    num currentTime = stopwatch.elapsedMilliseconds;
-    
-    // if time is past iteration duration, move to the next iteration
-    if(currentTime - iterationStartTime > iterationTime) {
-      
-      // kill current tasks
-      for(TaskEvent event in currentEvents) {
-        // TODO make sure tasks timeout correctly if not completed
-        event.stop(true);
-      }
-      
-      // notify delegate
-      delegate.onIterationComplete(new DateTime.now().millisecondsSinceEpoch);
-      
-      // reset tasks completed flag
-      iterationTasksCompleted = false;
-      
-      // increment iteration
-      iteration++;
-      
-      // update iteration startedTime
-      iterationStartTime = currentTime;
-      
-      // update currentEvents if not done
-      if(iteration < iterations) {
-        currentEvents = events[iteration];
-        
-        // start new tasks
-        for(TaskEvent event in currentEvents) {
-          event.start();
-        }
-      } else {
-        // otherwise, just stop here
-        stop();
-      }
-      
-    } else {
-      // otherwise, just update the current tasks
-      for(TaskEvent event in currentEvents) {
-        event.update(currentTime - iterationStartTime);
-      }
-      
-      // if the iterationTasksCompleted flag is not set, but there are no active tasks,
-      // then we must have just finished them, so notify delegate
-      if(!iterationTasksCompleted && !activeEvents()) {
-        // notify delegate
-        delegate.onCompleteTasks(new DateTime.now().millisecondsSinceEpoch, stopwatch.elapsedMilliseconds - iterationStartTime);
-        // set completed
-        iterationTasksCompleted = true;
-      }
-    }
-    
-    if(running) {
-      window.requestAnimationFrame(update);
-    }
-  }
   
   /// End the current addition task
   void endAdditionEvent() {
-    // search current events
-    for(TaskEvent event in currentEvents) {
-      // look for addition event
-      if(event is AdditionEvent) {
-        // stop event
-        event.stop();
-      }
+    // stop the addition event
+    additionEvent.stop();
+    // restart it
+    additionEvent.restart();
+  }
+  /// notification that a target was clicked
+  void targetClicked() {
+    // if enemy targets are both done, restart
+    if(!enemyTargetEvent1.running && !enemyTargetEvent2.running) {
+      enemyTargetEvent1.restart();
+      enemyTargetEvent2.restart();
+      friendTargetEvent.restart();
     }
   }
   
@@ -413,74 +230,43 @@ abstract class TrialTask extends Task {
   int numTargets;
   
   Map toJson() {
-    return merge(super.toJson(), {"iterations": iterations, "iterationTime": iterationTime, "opRange": opRange, "numTargets": numTargets});
+    return merge(super.toJson(), {"opRange": opRange, "numTargets": numTargets});
   }
   
-  TrialTask(TaskController delegate, {int this.numTargets: 1,
-                                      int iterations: 12,
-                                      List<int> this.opRange: const [1, 15],
-                                      int iterationTime: 5000})
-      : super(delegate, iterations: iterations, iterationTime: iterationTime) {
+  TrialTask(TaskController delegate, {int this.numTargets: 3,
+                                      List<int> this.opRange: const [1, 15]})
+      : super(delegate) {
   }
   
   void buildEvents() {
-    // generate the task events if they don't exist yet
-    if(events.length == 0) {
-      // generate task events
-      for(int i = 0; i < iterations; i++) {
-        events.add([]);
-        // generate target events
-        for(int j = 0; j < numTargets; j++) {
-          events[i].add(buildTargetEvent(j));
-        }
-        // only add addition even if we have a valid range
-        // TODO hide addition ui if we don't have addition events
-        if(opRange != null) {
-          // addition event
-          events[i].add(buildAdditionEvent(i));
-        }
-      }
+    if(numTargets != 0) {
+      enemyTargetEvent1 = new FixedTargetEvent.atRandomPoint(delegate, true);
+      enemyTargetEvent2 = new FixedTargetEvent.atRandomPoint(delegate, true);
+      friendTargetEvent = new FixedTargetEvent.atRandomPoint(delegate, false);
     }
-  }
-  
-  TargetEvent buildTargetEvent(int targetNum);
-  AdditionEvent buildAdditionEvent(int index) {
-    return new AdditionEvent.withRandomOps(delegate, iterationTime, opRange[0], opRange[1]);
+    if(opRange != null) {
+      additionEvent = new AdditionEvent.withRandomOps(delegate, opRange[0], opRange[1]);
+    }
   }
 }
 
 // TODO this just adds one parameter to the constructor and a buildTargetEvent method
 class ConfigurableTrialTask extends TrialTask {
-  
-  num targetDist;
+
   int targetSize = 128;
   int targetDifficulty;
   
   Map toJson() {
-    return merge(super.toJson(), {"targetDist": targetDist, "targetSize": targetSize, "targetDifficulty": targetDifficulty});
+    return merge(super.toJson(), {"targetSize": targetSize, "targetDifficulty": targetDifficulty});
   }
   
   ConfigurableTrialTask(TaskController delegate,
       { int numTargets: 1,
-        num this.targetDist: 0,
-        int iterations: 12,
         List<int> opRange: const [1, 15],
-        int iterationTime: 5000,
         int this.targetSize: 128,
         int this.targetDifficulty: 1})
-      : super(delegate, numTargets: numTargets, iterations: iterations, opRange: opRange, iterationTime: iterationTime);
-  
-  TargetEvent buildTargetEvent(int targetNum) {
-    // make ceil(n/2) targets enemies
-    bool enemy = ((targetNum % 2) == 0) ? Target.ENEMY : Target.FRIEND;
-    return new MovingTargetEvent.eventWithLength(delegate, iterationTime, enemy, targetDist)..target.resize(targetSize, targetSize);
-  }
-  
-  void start() {
-    // do normal start
-    super.start();
-  }
-  
+      : super(delegate, numTargets: numTargets, opRange: opRange);
+
   /// Set up UI by added classes based on targeting difficulty and single-task vs dual-task
   void setupUI() {
     // set css based on target difficulty
@@ -509,13 +295,10 @@ class ConfigurableTrialTask extends TrialTask {
 class BlockTrialTask extends ConfigurableTrialTask {
   
   // trial task constants
-  static const int ITERATION_TIME_S = 6;
-  static const int ITERATION_TIME_MS = 6000;
-  static const int ITERATIONS = 12;
   static const int TARGET_SIZE = 128;
   
   BlockTrialTask(TaskController delegate,
       int speed, int target_number, List<int> operand_range, int target_difficulty)
-      : super(delegate, numTargets: target_number, targetDist: speed * ITERATION_TIME_S, iterations: ITERATIONS, opRange: operand_range,
-          iterationTime: ITERATION_TIME_MS, targetSize: TARGET_SIZE, targetDifficulty: target_difficulty);
+      : super(delegate, numTargets: target_number, opRange: operand_range,
+          targetSize: TARGET_SIZE, targetDifficulty: target_difficulty);
 }

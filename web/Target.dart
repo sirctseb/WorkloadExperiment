@@ -98,28 +98,21 @@ class Target {
   // add the element to the task div
   void show() {
     document.body.query("#task").children.add(element);
+    element.classes.remove("dismissed");
+    element.classes.remove("timeout");
     _visible = true;
   }
   // remove the element from the DOM
   void dismiss() {
     element.classes.add("dismissed");
     _visible = false;
-    delayedRemove();
   }
   // remove the element due to it being timed out
   void timeout() {
     element.classes.add("timeout");
     _visible = false;
-    // remove after animation
-    delayedRemove();
   }
-  void delayedRemove() {
-    // remove after 200ms
-    // TODO if animation time changes, change this delay
-    new Timer(const Duration(milliseconds:200), () {
-      element.remove();
-    });
-  }
+  // TODO remove elements when done with task event
   
   /// Create a new [Target]
   Target(this.delegate, bool enemy, {show: false}) {

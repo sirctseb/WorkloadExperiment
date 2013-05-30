@@ -231,10 +231,7 @@ class TaskController implements TaskEventDelegate {
     int targetSize = getInputValue("target-size");
     
     task = new ConfigurableTrialTask(this,
-        iterations: iterations,
-        iterationTime: iterationTime, 
         numTargets: numTargets,
-        targetDist: targetDist,
         opRange: [minOp, maxOp],
         targetSize: targetSize);
     useBlockManager = false;
@@ -333,20 +330,15 @@ class TaskController implements TaskEventDelegate {
       task.stop();
     } else if(event.which == " ".codeUnitAt(0)) {
       // mark correct addition response on space bar
-      
-      // make sure addition is not already marked correct
-      if(query(".addition").classes.contains("correct")) return;
+
       // make sure we're not in the first half second of a task
-      if(task.firstHalfSecondOfIteration) return;
+      if(task.firstHalfSecondOfAddition) return;
       
       // tell task that addition is over
       task.endAdditionEvent();
       
       // log response to server
       ws.send("AdditionCorrect, ${event.timeStamp}");
-      
-      // color operands green?
-      query(".addition").classes.add("correct");
       
       // update score
       score += 100;
@@ -381,8 +373,6 @@ class TaskController implements TaskEventDelegate {
       // start a playground
       Playground playground = new Playground();
       print('started playground');
-      // stop after 7 seconds
-      new Timer(const Duration(seconds: 100), () {playground.kill();print('killed playground');});
     }
   }
   
@@ -492,6 +482,9 @@ class TaskController implements TaskEventDelegate {
       }
     }
     
+    // notify the task
+    task.targetClicked();
+    
     // update score
     if(target.enemy) {
       score += 100;
@@ -545,7 +538,7 @@ class TaskController implements TaskEventDelegate {
   void logTaskInfo() {
     Logger.root.info("Current task info:");
     BlockTrialTask btt = task as BlockTrialTask;
-    Logger.root.info("oprange: ${btt.opRange}, dist: ${btt.targetDist}, diff: ${btt.targetDifficulty}, targets: ${btt.numTargets}");
+    Logger.root.info("oprange: ${btt.opRange}, diff: ${btt.targetDifficulty}, targets: ${btt.numTargets}");
   }
   /// advance the trial in the block manager.
   /// if we finished a block condition and it's not practice, show the survey
@@ -600,49 +593,12 @@ class TaskController implements TaskEventDelegate {
       ws.send("TargetStart, $time, ${te.target.x}, ${te.target.y}, ${te.target.ID}");
     }
   }
-  /*void onTargetMove(MovingTargetEvent te, num time) {
-    // send target move info to data server
-    ws.send("TargetMove, $time, ${te.target.x}, ${te.target.y}, ${te.target.ID}");
-  }*/
   void onTargetTimeout(TargetEvent te, num time) {
     Logger.root.fine("sending timeout to server");
     // send target timeout info to data server
     if(wsReady) {
       ws.send("TargetTimeout, $time, ${te.target.x}, ${te.target.y}, ${te.target.ID}, ${te.target.enemy ? 'enemy' : 'friend'}");
     }
-  }
-  
-  /// The time it took to complete the tasks in the iteration
-  int executionDuration;
-  void onCompleteTasks(num time, num duration) {
-    
-    Logger.root.fine("all task components completed for this iteration");
-    
-    // save the duration
-    executionDuration = duration;
-
-    // log event to server
-    if(wsReady) {
-      ws.send("TasksComplete, $time, $duration");
-    }
-  }
-  
-  void onIterationComplete(num time) {
-    // log iteration end to server
-    if(wsReady) {
-      ws.send("IterationEnd, $time");
-    }
-    
-    // update score based on how much time they took
-    if(executionDuration != null) {
-      score += 100 * (task.iterationTime - executionDuration) / 1000;
-    }
-    
-    // reset duration
-    executionDuration = null;
-    
-    // reset addition correctness style
-    query(".addition").classes.remove("correct");
   }
   
   void onAdditionStart(AdditionEvent ae, num time) {

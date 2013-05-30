@@ -19,7 +19,9 @@ body {
 body.ws-error {
   background-color: #FFDDDD;
 }
-
+.hidden {
+  display: none;
+}
 .task {
   height:100%;
   width:100%;
