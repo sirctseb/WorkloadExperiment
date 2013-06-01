@@ -216,6 +216,8 @@ abstract class Task {
       enemyTargetEvent1.restart();
       enemyTargetEvent2.restart();
       friendTargetEvent.restart();
+      // log targeteting task complete event
+      delegate.onTargetComplete(new DateTime.now().millisecondsSinceEpoch);
     }
   }
   

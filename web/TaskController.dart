@@ -600,6 +600,13 @@ class TaskController implements TaskEventDelegate {
       ws.send("TargetTimeout, $time, ${te.target.x}, ${te.target.y}, ${te.target.ID}, ${te.target.enemy ? 'enemy' : 'friend'}");
     }
   }
+  void onTargetComplete(num time) {
+    Logger.root.fine("got target complete event, sending to server");
+    // send target complet info to data server
+    if(wsReady) {
+      ws.send("TargetComplete, $time");
+    }
+  }
   
   void onAdditionStart(AdditionEvent ae, num time) {
     
