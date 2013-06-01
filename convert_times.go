@@ -152,10 +152,9 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 	// define regexes for target hits and starts
 	hitRE, _ := regexp.Compile(`TargetHit, ([\d\.]+), `)
 	startRE, _ := regexp.Compile(`TargetStart, ([\d\.]+), (\d+), (\d+), (\d+)`)
+	targetCompleteRE, _ := regexp.Compile(`TargetComplete, ([\d\.]+)`)
 	additionStartRE, _ := regexp.Compile(`AdditionStart, ([\d\.]+), (\d*), (\d*)`)
 	additionRE, _ := regexp.Compile(`AdditionCorrect, ([\d\.]+)`)
-	taskCompleteRE, _ := regexp.Compile(`TasksComplete, ([\d\.]+), `)
-	iterationEndRE, _ := regexp.Compile(`IterationEnd, ([\d\.]+)`)
 	mouseMoveRE, _ := regexp.Compile(`MouseMove, ([\d\.]+), (\d+), (\d+)`)
 	friendHitRE, _ := regexp.Compile(`FriendHit, `)
 	shotRE, _ := regexp.Compile(`MouseDown, `)
@@ -165,10 +164,11 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 	hitTimes := make([]float64, 0, 100)
 	// make slice for additiont imes
 	additionTimes := make([]float64, 0, 100)
-	// make slice for task completion times
-	taskCompleteTimes := make([]float64, 0, 100)
 	// make slice for final hit times
 	finalHitTimes := make([]float64, 0, 100)
+	// make slice for task complete times
+	// TODO this is redundant with finalHitTimes
+	targetCompleteTimes := make([]float64, 0, 100)
 	// make slice for number of hits
 	numberHits := make([]float64, 0, 100)
 	// make slice for number of friendly hits
@@ -182,16 +182,16 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 	op2s := make([]float64, 0, 100)
 
 	// variables for accumulating totals and keeping state
-	iterationStartTime := 0.
+	targetStartTime := 0.
+	additionStartTime := 0.
 	lastHitTime := 0.
-	tasksComplete := false
-	additionComplete := false
 	targetsHit := 0
 	friendTargetsHit := 0
 	shots := 0
 	friendHovers := 0
 	overFriend := false
-	additionFound := false
+	op1 := 0
+	op2 := 0
 
 	targetObjs := makeTargets(lines, 0)
 
@@ -217,8 +217,7 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 
 			// get time of event and set lastHitTime
 			lastHitTime, _ = strconv.ParseFloat(startRE.FindStringSubmatch(line)[1], 64)
-			// update the iteration start time when we find a new target start
-			iterationStartTime = lastHitTime
+			targetStartTime = lastHitTime
 
 		} else if match = additionRE.FindStringSubmatch(line); len(match) > 0 {
 			// check for addition task end
@@ -226,15 +225,16 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 			// get time of event
 			time, _ := strconv.ParseFloat(match[1], 64)
 
-			if !additionComplete {
-				// compute and store time since iteration start
-				additionTimes = append(additionTimes, time-iterationStartTime)
-				// set addition complete flag
-				additionComplete = true
-				// fmt.Fprintf(os.Stderr, "adding addition complete flag %d, time %f\n", len(additionTimes), additionTimes[len(additionTimes)-1])
-			} else {
-				fmt.Fprintf(os.Stderr, "Second addition complete in iteration found at %f\n", time)
-			}
+			// create a target complete entry
+			additionEndTime = time - additionStartTime
+			additionTimes = append(additionTimes, additionEndTime)
+			targetCompletetimes = append(targetCompleteTimes, -1)
+			finalHitTimes = append(finalHitTimes, -1)
+			hits = append(hits, -1)
+			friendHits = append(friendHits, -1)
+			numberShots = append(numberShots, -1)
+			op1s = append(op1s, op1)
+			op2s = append(op2s, op2)
 		} else if match = taskCompleteRE.FindStringSubmatch(line); len(match) > 0 {
 			// check for tasks complete
 
@@ -249,68 +249,6 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 			} else {
 				fmt.Fprintf(os.Stderr, "Second tasks complete in iteration found at %f\n", time)
 			}
-		} else if match = iterationEndRE.FindStringSubmatch(line); len(match) > 0 {
-			// check for iteration end
-
-			// if tasks are not complete by the time we hit iteration end, set completion time
-			// to 5
-			// TODO this depends on 5 second iterations. we should make this look it up
-			if !tasksComplete {
-				taskCompleteTimes = append(taskCompleteTimes, 6.)
-				// fmt.Fprintf(os.Stderr, "adding complete time iteration end %d, time %f\n", len(taskCompleteTimes), taskCompleteTimes[len(taskCompleteTimes)-1])
-			}
-			// if addition not complete by the time we hit iteration end, set addiion time
-			// to 5
-			// TODO this depends on 5 second iterations. we should make this look it up
-			if !additionComplete {
-				// t, _ := strconv.ParseFloat(match[1], 64)
-				// fmt.Fprintf(os.Stderr, "addition not complete so adding six second completion time at %f\n", t)
-				additionTimes = append(additionTimes, 6.)
-			}
-			// if targeting not complete by the time we hit iteration end, set final hit time
-			// to 5
-			// TODO this depends on 5 second iterations. we should make this look it up
-			if targetsHit < targets {
-				finalHitTimes = append(finalHitTimes, 6.)
-			}
-			// if no addition, fill with 0
-			if !additionFound {
-				op1s = append(op1s, 0)
-				op2s = append(op2s, 0)
-			}
-
-			// store number of targets hit
-			numberHits = append(numberHits, float64(targetsHit))
-			// store number of friend targets hit
-			numberFriendHits = append(numberFriendHits, float64(friendTargetsHit))
-			// store number of shots taken
-			numberShots = append(numberShots, float64(shots))
-			// store number of friend hovers
-			numberFriendHovers = append(numberFriendHovers, float64(friendHovers))
-
-			// TODO should also fill 5s for incomplete target tasks
-			// reset tasks Complete
-			tasksComplete = false
-			// reset addition complete flag
-			additionComplete = false
-			// reset number of targets hit
-			targetsHit = 0
-			// reset number of friend targets hit
-			friendTargetsHit = 0
-			// reset number of shots taken
-			shots = 0
-			// reset number of friend hovers
-			friendHovers = 0
-			// reset over friend flag
-			overFriend = false
-			// reset addition found flag
-			additionFound = false
-
-			// reset iteration start time
-			iterationStartTime, _ = strconv.ParseFloat(match[1], 64)
-
-			// get new target objects
-			targetObjs = makeTargets(lines, index)
 		} else if friendHitRE.MatchString(line) {
 			friendTargetsHit++
 		} else if shotRE.MatchString(line) {
@@ -350,16 +288,34 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 				friendHovers = curentFriendHovers
 			}
 		} else if match = additionStartRE.FindStringSubmatch(line); match != nil {
-			// store the operand values
-			op1, _ := strconv.ParseFloat(match[2], 64)
-			op2, _ := strconv.ParseFloat(match[3], 64)
-			op1s = append(op1s, op1)
-			op2s = append(op2s, op2)
-			// set addition found flag
-			additionFound = true
+			// store the operand values and start time
+			op1, _ = strconv.ParseFloat(match[2], 64)
+			op2, _ = strconv.ParseFloat(match[3], 64)
+			additionStartTime, _ = strconv.ParseFloat(match[1], 64)
+		} else if match = targetCompleteRE.FindStringSubmatch(line); match != nil {
+			// create a target complete entry
+			additionTimes = append(additionTimes, -1)
+			targetEndTime, _ := strconv.ParseFloat(match[1], 64)
+			targetCompletetimes = append(targetCompleteTimes, targetEndTime)
+			finalHitTimes = append(finalHitTimes, targetEndTime)
+			hits = append(hits, 2)
+			friendHits = append(friendHits, friendTargetsHit)
+			numberShots = append(numberShots, shots)
+			numberFriendHovers = append(numberFriendHovers, friendHovers)
+			op1s = append(op1s, -1)
+			op2s = append(op2s, -2)
+
+			// reset friend hits and shots
+			friendHits = 0
+			numberShots = 0
+			friendHovers = 0
+			overFriend = false
+			hits = 0
+			// get new target objects
+			targetObjs = makeTargets(lines, index)
 		}
 	}
-	return map[string][]float64{"addition": additionTimes, "complete": taskCompleteTimes, "finalHit": finalHitTimes,
+	return map[string][]float64{"addition": additionTimes, "finalHit": finalHitTimes,
 		"hits": numberHits, "friendHits": numberFriendHits, "shots": numberShots, "friendHovers": numberFriendHovers,
 		"op1": op1s, "op2": op2s}
 }
@@ -439,8 +395,7 @@ func printTaskData(subject int, block, trial string) {
 
 func printRHeader(file *os.File) {
 	// TODO we should really read this from the file in case any of the parameters change
-	//fmt.Println("targets, speed, oprange, et1, et2, et3, et4, et5, et6, et7, et8, et9, et10, et11, et12")
-	fmt.Fprintln(file, "practice, targets, speed, oprange, difficulty, addition, target, complete, hits, friendHits, shots, hovers, op1, op2")
+	fmt.Fprintln(file, "practice, targets, speed, oprange, difficulty, addition, target, hits, friendHits, shots, hovers, op1, op2")
 }
 
 func printAccuracy(contents string) {
@@ -526,7 +481,6 @@ func main() {
 	flag.BoolVar(&practice, "practice", false, "set to practice")
 	flag.StringVar(&blockName, "block", "", "Specify a block to output")
 	flag.IntVar(&trialNum, "trial", -1, "Specify a trial to output")
-	flag.IntVar(&numIterations, "i", 12, "The number of iterations expected")
 	flag.Parse()
 
 	var blocks []string
@@ -614,18 +568,9 @@ func main() {
 			// TODO get this to work with practice blocks
 			if levels != nil {
 				var enemyTargets int = int(math.Ceil(float64(levels.TargetNumber) / 2))
-				iterations := numIterations
 				//printHitAndAdditionTimes(lines, targets)
 				times := parseResults(lines, enemyTargets)
-				// fill with zeros if data not present
-				if len(times["addition"]) == 0 {
-					// times["addition"] = []float64{0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.}
-					times["addition"] = make([]float64, iterations)
-				}
-				if len(times["finalHit"]) == 0 {
-					// times["finalHit"] = []float64{0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.}
-					times["finalHit"] = make([]float64, iterations)
-				}
+				iterations := len(times["addition"])
 				// Check lengths of arrays
 				for key, arr := range times {
 					if len(arr) != iterations {
@@ -633,19 +578,14 @@ func main() {
 					}
 				}
 
-				/*if len(times["complete"]) != iterations || len(times["addition"]) != iterations || len(times["finalHit"]) != iterations ||
-					len(times["hits"]) != iterations || len(times["friendHits"]) != iterations || len(times["shots"]) != iterations ||
-					len(times["friendHovers"]) != iterations {
-					panic(fmt.Sprintf("one or more variables do not have %d elements %d in block %s", iterations, len(times["complete"]), block))
-				}*/
-
 				// TODO magic number 12 iterations should be looked up
 				for index := 0; index < iterations; index++ {
-					fmt.Fprintf(result_file, "%t, %d, %d, %v, %d, %f, %f, %f, %d, %d, %d, %d, %d, %d\n",
+					fmt.Fprintf(result_file, "%t, %d, %d, %v, %d, %f, %f, %d, %d, %d, %d, %d, %d\n",
 						levels.Practice,
 						levels.TargetNumber, levels.TargetSpeed, levels.AdditionDifficulty, levels.TargetDifficulty,
-						times["addition"][index], times["finalHit"][index], times["complete"][index], int(times["hits"][index]),
-						int(times["friendHits"][index]), int(times["shots"][index]), int(times["friendHovers"][index]), int(times["op1"][index]), int(times["op2"][index]))
+						times["addition"][index], times["target"][index], int(times["hits"][index]),
+						int(times["friendHits"][index]), int(times["shots"][index]),
+						int(times["friendHovers"][index]), int(times["op1"][index]), int(times["op2"][index]))
 				}
 			}
 		}
