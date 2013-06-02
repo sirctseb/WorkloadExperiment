@@ -329,6 +329,8 @@ class TaskController implements TaskEventDelegate {
       // p for 'pause', stop the task
       task.stop();
     } else if(event.which == " ".codeUnitAt(0)) {
+      // bail if not running
+      if(task != null && !task.running) return;
       // mark correct addition response on space bar
 
       // make sure we're not in the first half second of a task
