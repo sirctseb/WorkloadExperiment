@@ -108,8 +108,8 @@ class Target {
     _visible = false;
   }
   // remove the element due to it being timed out
-  void timeout() {
-    element.classes.add("timeout");
+  void remove() {
+    element.remove();
     _visible = false;
   }
   // TODO remove elements when done with task event

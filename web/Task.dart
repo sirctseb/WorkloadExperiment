@@ -80,8 +80,8 @@ class FixedTargetEvent extends TargetEvent {
   void stop() {
     print("stopping target event");
     if(target.visible) {
-      print("dismissing because visible");
-      target.dismiss();
+      print("removing because visible");
+      target.remove();
     }
   }
   
