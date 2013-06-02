@@ -333,12 +333,12 @@ class TaskController implements TaskEventDelegate {
 
       // make sure we're not in the first half second of a task
       if(task.firstHalfSecondOfAddition) return;
+
+      // log response to server
+      ws.send("AdditionCorrect, ${event.timeStamp}");
       
       // tell task that addition is over
       task.endAdditionEvent();
-      
-      // log response to server
-      ws.send("AdditionCorrect, ${event.timeStamp}");
       
       // update score
       score += 100;

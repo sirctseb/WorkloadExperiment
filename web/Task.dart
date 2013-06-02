@@ -213,11 +213,11 @@ abstract class Task {
   void targetClicked() {
     // if enemy targets are both done, restart
     if(!enemyTargetEvent1.running && !enemyTargetEvent2.running) {
+      // log targeteting task complete event
+      delegate.onTargetComplete(new DateTime.now().millisecondsSinceEpoch);
       enemyTargetEvent1.restart();
       enemyTargetEvent2.restart();
       friendTargetEvent.restart();
-      // log targeteting task complete event
-      delegate.onTargetComplete(new DateTime.now().millisecondsSinceEpoch);
     }
   }
   
