@@ -190,8 +190,8 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 	shots := 0
 	friendHovers := 0
 	overFriend := false
-	op1 := 0
-	op2 := 0
+	var op1 int64 = 0
+	var op2 int64 = 0
 
 	targetObjs := makeTargets(lines, 0)
 
@@ -208,10 +208,6 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 			lastHitTime = time
 			// increment number of targets hit
 			targetsHit++
-			// if this is the last hit of the iteration, append it to last hit array
-			if targetsHit == targets {
-				finalHitTimes = append(finalHitTimes, time-iterationStartTime)
-			}
 		} else if strings.HasPrefix(line, "TargetStart") {
 			// check for target start event
 
@@ -226,29 +222,19 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 			time, _ := strconv.ParseFloat(match[1], 64)
 
 			// create a target complete entry
-			additionEndTime = time - additionStartTime
+			additionEndTime := time - additionStartTime
+			// fmt.Fprintf(os.Stderr, "current time: %f\n", time)
+			// fmt.Fprintf(os.Stderr, "start time: %f\n", additionStartTime)
+			// fmt.Fprintf(os.Stderr, "addition time: %f\n", additionEndTime)
 			additionTimes = append(additionTimes, additionEndTime)
-			targetCompletetimes = append(targetCompleteTimes, -1)
+			targetCompleteTimes = append(targetCompleteTimes, -1)
 			finalHitTimes = append(finalHitTimes, -1)
-			hits = append(hits, -1)
-			friendHits = append(friendHits, -1)
+			numberHits = append(numberHits, -1)
+			numberFriendHits = append(numberFriendHits, -1)
 			numberShots = append(numberShots, -1)
-			op1s = append(op1s, op1)
-			op2s = append(op2s, op2)
-		} else if match = taskCompleteRE.FindStringSubmatch(line); len(match) > 0 {
-			// check for tasks complete
-
-			// get time of event
-			time, _ := strconv.ParseFloat(match[1], 64)
-			if !tasksComplete {
-				// compute and store time since iteration start
-				taskCompleteTimes = append(taskCompleteTimes, time-iterationStartTime)
-				// set flag that tasks are complete
-				tasksComplete = true
-				// fmt.Fprintf(os.Stderr, "adding complete time flag %d, time %f\n", len(taskCompleteTimes), taskCompleteTimes[len(taskCompleteTimes)-1])
-			} else {
-				fmt.Fprintf(os.Stderr, "Second tasks complete in iteration found at %f\n", time)
-			}
+			numberFriendHovers = append(numberFriendHovers, -1)
+			op1s = append(op1s, float64(op1))
+			op2s = append(op2s, float64(op2))
 		} else if friendHitRE.MatchString(line) {
 			friendTargetsHit++
 		} else if shotRE.MatchString(line) {
@@ -263,7 +249,6 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 			for _, target := range targetObjs {
 				// get time and x,y
 				time, _ := strconv.ParseFloat(match[1], 64)
-				//time = time - iterationStartTime
 				x, _ := strconv.ParseFloat(match[2], 64)
 				y, _ := strconv.ParseFloat(match[3], 64)
 				// find out if we're over the target
@@ -289,33 +274,37 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 			}
 		} else if match = additionStartRE.FindStringSubmatch(line); match != nil {
 			// store the operand values and start time
-			op1, _ = strconv.ParseFloat(match[2], 64)
-			op2, _ = strconv.ParseFloat(match[3], 64)
+			op1, _ = strconv.ParseInt(match[2], 10, 64)
+			op2, _ = strconv.ParseInt(match[3], 10, 64)
 			additionStartTime, _ = strconv.ParseFloat(match[1], 64)
 		} else if match = targetCompleteRE.FindStringSubmatch(line); match != nil {
 			// create a target complete entry
 			additionTimes = append(additionTimes, -1)
-			targetEndTime, _ := strconv.ParseFloat(match[1], 64)
-			targetCompletetimes = append(targetCompleteTimes, targetEndTime)
+			time, _ := strconv.ParseFloat(match[1], 64)
+			targetEndTime := time - targetStartTime
+			// fmt.Fprintf(os.Stderr, "end time: %f\n", time)
+			// fmt.Fprintf(os.Stderr, "start time: %f\n", targetStartTime)
+			// fmt.Fprintf(os.Stderr, "target time: %f\n", targetEndTime)
+			targetCompleteTimes = append(targetCompleteTimes, targetEndTime)
 			finalHitTimes = append(finalHitTimes, targetEndTime)
-			hits = append(hits, 2)
-			friendHits = append(friendHits, friendTargetsHit)
-			numberShots = append(numberShots, shots)
-			numberFriendHovers = append(numberFriendHovers, friendHovers)
+			numberHits = append(numberHits, 2)
+			numberFriendHits = append(numberFriendHits, float64(friendTargetsHit))
+			numberShots = append(numberShots, float64(shots))
+			numberFriendHovers = append(numberFriendHovers, float64(friendHovers))
 			op1s = append(op1s, -1)
 			op2s = append(op2s, -2)
 
 			// reset friend hits and shots
-			friendHits = 0
-			numberShots = 0
+			friendTargetsHit = 0
+			shots = 0
 			friendHovers = 0
 			overFriend = false
-			hits = 0
+			targetsHit = 0
 			// get new target objects
 			targetObjs = makeTargets(lines, index)
 		}
 	}
-	return map[string][]float64{"addition": additionTimes, "finalHit": finalHitTimes,
+	return map[string][]float64{"addition": additionTimes, "target": targetCompleteTimes, "finalHit": finalHitTimes,
 		"hits": numberHits, "friendHits": numberFriendHits, "shots": numberShots, "friendHovers": numberFriendHovers,
 		"op1": op1s, "op2": op2s}
 }
@@ -472,7 +461,6 @@ func main() {
 	var practice bool
 	var blockName string
 	var trialNum int
-	var numIterations int
 
 	// get subject and trial from command line ifassed
 	flag.IntVar(&subject, "s", 5, "The number of the subject")
