@@ -590,7 +590,7 @@ class TaskController implements TaskEventDelegate {
   void onTargetStart(TargetEvent te, num time) {
     // send target start info to data server
     if(wsReady) {
-      ws.send("TargetStart, $time, ${te.target.x}, ${te.target.y}, ${te.target.ID}");
+      ws.send("TargetStart, $time, ${te.target.x.toInt()}, ${te.target.y.toInt()}, ${te.target.ID}");
     }
   }
   void onTargetTimeout(TargetEvent te, num time) {
