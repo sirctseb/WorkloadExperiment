@@ -20,6 +20,13 @@ class Server {
   IOSink sink;
   Process recordingProcess;
   
+  /// Map from WebSocket hashes to the type of client they are
+  Map clients = {};
+  /// The client that is showing the addition answers
+  WebSocket cheatClient;
+  /// A regex used to get addition values
+  RegExp additionRE = new RegExp(r"AdditionStart, [\d\.]+, (\d+), (\d+)");
+  
   String get subjectDirStr => "output/subject$subjectNumber";
   String get blockDirStr => "$subjectDirStr/block$blockNumber";
   String get blockDescPathStr => "$blockDirStr/block.txt";
@@ -31,7 +38,7 @@ class Server {
   
   Server() {
     // listen on port 8000
-    HttpServer.bind("127.0.0.1", 8000)
+    HttpServer.bind(InternetAddress.ANY_IP_V4, 8000)
       .then((HttpServer server) {
         // log start of server
         Logger.root.info("server listening on port ${server.port}");
@@ -42,6 +49,7 @@ class Server {
           
           // log new connection to console
           Logger.root.info('new connection');
+          clients[webSocket.hashCode] = "UI";
           
           webSocket.listen((event) {
             handleMessage(event, webSocket);
@@ -53,6 +61,19 @@ class Server {
   void handleMessage(message, WebSocket socket) {
     //var message = event.data;
     Logger.root.finest("data server received message: $message");
+    
+    // TODO this is why all payloads should be json
+    // set client type to cheat if a client requests it
+    try {
+      var map = parse(message);
+      if(map.containsKey("request") && map["request"] == "cheat") {
+        clients[socket.hashCode] = "cheat";
+        // also store the socket in the cheatClient member
+        cheatClient = socket;
+      }
+    } catch(e) {
+      Logger.root.fine("could not parse message at top level");
+    }
     
     if(message.startsWith("end trial")) {
       Logger.root.info("data server received end trial message");
@@ -81,6 +102,14 @@ class Server {
       
       // write event to file
       sink.write("$message\n");
+      
+      // if event is addition start and cheat client exists, send it out
+      if(cheatClient != null) {
+        Match match = additionRE.firstMatch(message);
+        if(match != null) {
+          cheatClient.add(stringify({"addition": int.parse(match[1]) + int.parse(match[2])}));
+        }
+      }
     } else {
       // if we're not running, check for requests for trial replay data
       try {

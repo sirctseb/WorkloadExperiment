@@ -52,6 +52,9 @@ class TaskController implements TaskEventDelegate {
   /// Task properties
   Task task;
   
+  /// True if we are showing answers
+  bool cheat = false;
+  
   /// Web socket to communicate with data server
   String ws_url = "ws://localhost:8000/";
   WebSocket ws;
@@ -75,6 +78,18 @@ class TaskController implements TaskEventDelegate {
   // get element
   AudioElement beep = (query("#beep") as AudioElement);
   
+  void receiveWS(MessageEvent event) {
+    // if showing answers, check for answer update
+    if(cheat) {
+      // parse data
+      Map response = parse(event.data);
+      // make sure it is the addition answer
+      if(response.containsKey("addition")) {
+        // display the answer
+        query("#addition").text = "= ${response['addition']}";
+      }
+    }
+  }
   void WarnWS(Event event) {
     if(wsReady) {
       Logger.root.info("ws ready");
@@ -375,6 +390,14 @@ class TaskController implements TaskEventDelegate {
       // start a playground
       Playground playground = new Playground();
       print('started playground');
+    } else if(event.which == "c".codeUnitAt(0)) {
+      // c for cheat
+      // set up stream for addition answers and show on screen
+      ws = new WebSocket("ws://${query('input#ip').value}:8000/")
+      ..onMessage.listen(receiveWS)
+        ..onOpen.listen((event) {
+          ws.send(stringify({"request": "cheat"}));
+        });
     }
   }
   
