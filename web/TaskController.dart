@@ -79,12 +79,16 @@ class TaskController implements TaskEventDelegate {
   AudioElement beep = (query("#beep") as AudioElement);
   
   void receiveWS(MessageEvent event) {
+    Logger.root.info("got message from server");
     // if showing answers, check for answer update
     if(cheat) {
+      Logger.root.info("we are cheat client");
       // parse data
       Map response = parse(event.data);
+      Logger.root.info("parsed data: $response");
       // make sure it is the addition answer
       if(response.containsKey("addition")) {
+        Logger.root.info("data is addition value");
         // display the answer
         query("#addition").text = "= ${response['addition']}";
       }
@@ -393,9 +397,13 @@ class TaskController implements TaskEventDelegate {
     } else if(event.which == "c".codeUnitAt(0)) {
       // c for cheat
       // set up stream for addition answers and show on screen
-      ws = new WebSocket("ws://${query('input#ip').value}:8000/")
-      ..onMessage.listen(receiveWS)
+      var url = "ws://${query('input#ip').value}:8000/";
+      Logger.root.info("attempting to connect to websocket at $url");
+      ws = new WebSocket(url)
+        ..onMessage.listen(receiveWS)
         ..onOpen.listen((event) {
+          cheat = true;
+          Logger.root.info("requesting cheat values from server");
           ws.send(stringify({"request": "cheat"}));
         });
     }
