@@ -41,7 +41,7 @@ class BlockManager {
   }
   
 
-  static bool random = true;
+  static bool random = false;
   static bool moreRandom = true;
   static List<Block> _allBlocks;
   /// A list of all experiment blocks
@@ -56,33 +56,20 @@ class BlockManager {
     var practiceBlocks = [
       new Block(0, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.LOW_DIFFICULTY, true),
       new Block(0, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.LOW_DIFFICULTY, true),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, null, Block.LOW_DIFFICULTY, true),
       new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, null, Block.HIGH_DIFFICULTY, true),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, null, Block.LOW_DIFFICULTY, true),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, null, Block.HIGH_DIFFICULTY, true),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.LOW_DIFFICULTY, true),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.HIGH_DIFFICULTY, true),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.LOW_DIFFICULTY, true),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY, true),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, Block.LOW_OPERANDS, Block.LOW_DIFFICULTY, true),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, Block.LOW_OPERANDS, Block.HIGH_DIFFICULTY, true),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, Block.HIGH_OPERANDS, Block.LOW_DIFFICULTY, true),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY, true)];
+      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.HIGH_DIFFICULTY),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.HIGH_DIFFICULTY),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY),
+      ];
     var experimentalBlocks = [
       new Block(0, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.LOW_DIFFICULTY),
       new Block(0, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.LOW_DIFFICULTY),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, null, Block.LOW_DIFFICULTY),
       new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, null, Block.HIGH_DIFFICULTY),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, null, Block.LOW_DIFFICULTY),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, null, Block.HIGH_DIFFICULTY),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.LOW_DIFFICULTY),
       new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.HIGH_DIFFICULTY),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.LOW_DIFFICULTY),
       new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, Block.LOW_OPERANDS, Block.LOW_DIFFICULTY),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, Block.LOW_OPERANDS, Block.HIGH_DIFFICULTY),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, Block.HIGH_OPERANDS, Block.LOW_DIFFICULTY),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.HIGH_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY)
+      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.HIGH_DIFFICULTY),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY),
     ];
     if(random) {
       Random rng;
@@ -126,7 +113,7 @@ class Block {
   
   // The number of trials for practice blocks
   static const int PRACTICE_TRIALS = 1;
-  static const int EXPERIMENTAL_TRIALS = 2;
+  static const int EXPERIMENTAL_TRIALS = 1;
   
   Map toJson() {
     return {
