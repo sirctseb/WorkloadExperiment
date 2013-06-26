@@ -225,20 +225,30 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 
 			// get time of event
 			time, _ := strconv.ParseFloat(match[1], 64)
-			// compute and store time since iteration start
-			additionTimes = append(additionTimes, time-iterationStartTime)
-			// set addition complete flag
-			additionComplete = true
+
+			if !additionComplete {
+				// compute and store time since iteration start
+				additionTimes = append(additionTimes, time-iterationStartTime)
+				// set addition complete flag
+				additionComplete = true
+				// fmt.Fprintf(os.Stderr, "adding addition complete flag %d, time %f\n", len(additionTimes), additionTimes[len(additionTimes)-1])
+			} else {
+				fmt.Fprintf(os.Stderr, "Second addition complete in iteration found at %f\n", time)
+			}
 		} else if match = taskCompleteRE.FindStringSubmatch(line); len(match) > 0 {
 			// check for tasks complete
 
 			// get time of event
 			time, _ := strconv.ParseFloat(match[1], 64)
-			// compute and store time since iteration start
-			taskCompleteTimes = append(taskCompleteTimes, time-iterationStartTime)
-			// set flag that tasks are complete
-			tasksComplete = true
-			// fmt.Fprintf(os.Stderr, "adding complete time flag %d, time %f\n", len(taskCompleteTimes), taskCompleteTimes[len(taskCompleteTimes)-1])
+			if !tasksComplete {
+				// compute and store time since iteration start
+				taskCompleteTimes = append(taskCompleteTimes, time-iterationStartTime)
+				// set flag that tasks are complete
+				tasksComplete = true
+				// fmt.Fprintf(os.Stderr, "adding complete time flag %d, time %f\n", len(taskCompleteTimes), taskCompleteTimes[len(taskCompleteTimes)-1])
+			} else {
+				fmt.Fprintf(os.Stderr, "Second tasks complete in iteration found at %f\n", time)
+			}
 		} else if match = iterationEndRE.FindStringSubmatch(line); len(match) > 0 {
 			// check for iteration end
 
@@ -253,6 +263,8 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 			// to 5
 			// TODO this depends on 5 second iterations. we should make this look it up
 			if !additionComplete {
+				// t, _ := strconv.ParseFloat(match[1], 64)
+				// fmt.Fprintf(os.Stderr, "addition not complete so adding six second completion time at %f\n", t)
 				additionTimes = append(additionTimes, 6.)
 			}
 			// if targeting not complete by the time we hit iteration end, set final hit time

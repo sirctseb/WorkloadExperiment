@@ -1,5 +1,159 @@
 library(ggplot2)
 library(plyr)
+library(rjson)
+library(reshape)
+# get block info
+getBlock <- function(subject, block, path = sprintf("output/subject%d/block%d/block.txt", subject, block)) {
+	block = fromJSON(readLines(path))
+	# set addidion difficulty to atomic value representing level
+	if(!is.null(block$additionDifficulty)) {
+		if(block$additionDifficulty[1] == 1) block$additionDifficulty = 0;
+		if(block$additionDifficulty[1] == 13) block$additionDifficulty = 1;
+	} else {
+		block$additionDifficulty = NA
+	}
+	# set NA to target levels when there are no targets
+	if(block$targetNumber == 0) {
+		block[c("targetDifficulty", "targetSpeed")] = NA
+	}
+	block
+}
+# get weights for a given subject
+getWeights <- function(subject) {
+	# get weights
+	data.frame(fromJSON(sub("weights: ", "", paste(readLines(sprintf("output/subject%d/weights.txt",subject)), collapse=""))))
+}
+# get weights for all subjects
+getAllWeights <- function() {
+	ldply(1:20,
+		function(s) {
+			transform(getWeights(s), subject = s)
+		})
+}
+# get workload survey results for a given subject
+getTLX <- function(subject) {
+	# get weights
+	weights = getWeights(subject)
+	# get subdirectories
+	dirs = list.dirs(sprintf("output/subject%d", subject), recursive = FALSE)
+	# build results data frame
+	df = ldply(dirs,
+		function(dir) {
+			# read survey file
+			if(!file.exists(paste(dir,"survey.txt",sep="/"))) {
+				return (NULL)
+			}
+			results = fromJSON(sub("survey: ", "", paste(readLines(paste(dir, "survey.txt", sep="/")), collapse="")))
+			block = getBlock(path=paste(dir, "block.txt", sep="/"))
+			# block = fromJSON(readLines(paste(dir,"block.txt",sep="/")))
+			# if(!is.null(block$additionDifficulty)) {
+			# 	if(block$additionDifficulty[1] == 1) block$additionDifficulty = 0;
+			# 	if(block$additionDifficulty[1] == 13) block$additionDifficulty = 1;
+			# } else {
+			# 	block$additionDifficulty = NA
+			# }
+			res = c(unlist(block[c("targetDifficulty", "targetSpeed", "additionDifficulty")]), unlist(results), sum(unlist(results)), unlist(results) %*% unlist(weights) / 15 )
+			})
+	colnames(df) = c("difficulty", "speed", "oprange", "mental", "physical", "temporal", "performance", "effort", "frustration", "sum", "weighted")
+	df[!is.na(df$oprange) & df$oprange == 0, ]$oprange = "[1 12]"
+	df[!is.na(df$oprange) & df$oprange == 1, ]$oprange = "[13 25]"
+	df
+}
+getAllTLX <- function(subjects) {
+	ldply(subjects,
+		function(s) {
+			transform(getTLX(s), subject = s);
+		})
+}
+flatTLX <- function(tlx) {
+	melt.data.frame(tlx, id.var = c("weighted", "sum"))
+}
+meanTLX <- function(tlx) {
+	res = ddply(tlx,
+		~interaction(difficulty,speed,oprange),
+		function(frame) {
+			res = cbind(
+				rbind(
+					colMeans(
+						subset(frame, select=-c(difficulty,speed,oprange))
+						)
+					),
+				frame[1,c("difficulty", "speed", "oprange")])
+			res$difficulty = as.factor(res$difficulty)
+			res$speed = as.factor(res$speed)
+			res$oprange = as.factor(res$oprange)
+			res
+		})
+	levels(res$oprange) = c("[1 12]", "[13 25]")
+	res
+}
+getModelWorkload <- function(type, block, subject) {
+	blockData = getBlock(subject, block)
+	workloads = read.table(sprintf("output/subject%d/block%d/%s.txt",subject,block,type), header=TRUE, sep=",", strip.white=TRUE)
+	if(type == "module") {
+		colnames(workloads) = c("clock", "vision", "audio", "production", "declarative", "imaginary", "motor", "speech")
+	} else if(type == "subnetwork") {
+		colnames(workloads) = c("clock", "perceptual", "cognitive", "motor")
+	}
+	transform(workloads, difficulty = as.factor(blockData$targetDifficulty), speed = as.factor(blockData$targetSpeed), oprange = as.factor(blockData$additionDifficulty))
+}
+getModule <- function(block, subject) {
+	getModelWorkload("module", block, subject)
+}
+getSubnetwork <- function(block, subject) {
+	getModelWorkload("subnetwork", block, subject)
+}
+getAllModules <- function() {
+	ldply(1:14, getModule)
+}
+getAllSubnetwork <- function() {
+	ldply(1:14, getSubnetwork)
+}
+getOneWorkloadMean <- function(workload) {
+	# make array of factor names
+	factors = c("difficulty", "speed", "oprange")
+	# take means
+	res = cbind(rbind(colMeans(subset(workload, select=-c(difficulty, speed, oprange)))), workload[1,factors])
+	res$difficult = as.factor(res$difficulty)
+	res$oprange = as.factor(res$oprange)
+	res$speed = as.factor(res$speed)
+	res
+}
+getWorkloadMean <- function(type, subject) {
+	res = ldply(1:14,
+		function(block) {
+			# get module loads for block
+			module = getModelWorkload(type,block,subject)
+			# make array of factor names
+			factors = c("difficulty", "speed", "oprange")
+			# take means
+			res = cbind(rbind(colMeans(subset(module, select=-c(difficulty, speed, oprange)))), module[1,factors])
+			res$difficult = as.factor(res$difficulty)
+			res$oprange = as.factor(res$oprange)
+			res$speed = as.factor(res$speed)
+			res
+			})
+	levels(res$oprange) = c("[1 12]", "[13 25]")
+	res
+}
+getModuleMean <- function() {
+	getWorkloadMean("module")
+}
+getSubnetworkMean <- function() {
+	getWorkloadMean("subnetwork")
+}
+combWorkload <- function(expression, data) {
+	transform(data, results = eval(expression, data))
+}
+compareWorkload <- function(tlxExpression = quote(weighted), modelExpression, modelType = "subnetwork", subject) {
+	both = rmerge(transform(combWorkload(substitute(modelExpression), getWorkloadMean(modelType, subject)), perf="model"),
+					transform(combWorkload(substitute(tlxExpression), meanTLX(getAllTLX(1:20))), perf="human"))
+	ggplot(subset(both, !is.na(difficulty) & !is.na(oprange) & !is.na(speed)), aes(x=interaction(difficulty,speed,oprange), y=results, fill=perf)) + geom_bar(pos="dodge",stat="identity")
+}
+
+plotWeighted <- function(tlx) {
+	ggplot(tlx, aes(interaction(difficulty,speed,oprange),weighted)) + stat_summary(fun.y=mean, geom="bar")
+}
 # get a data frame from a table
 getDF <- function(data, tablename) {
 	data[[tablename]]
@@ -8,11 +162,37 @@ getDF <- function(data, tablename) {
 combineData <- function(data, tablename) {
 	i <- 1
 	ldply(data,
-		function(d) {
-			res <- cbind(eval(substitute(tablename), d), subject = i);
+		function(d,t) {
+			res <- cbind(eval(t, d), subject = i);
 			i <<- i + 1
 			res
-		}
+		},
+		substitute(tablename)
+	)
+}
+# get a list of data by type and case
+byCase <- function(vertData) {
+	l = subset(vertData, oprange == "[1 12]")
+	h = subset(vertData, oprange == "[13 25]")
+	es = subset(vertData, difficulty == 0 & speed == 0)
+	hs = subset(vertData, difficulty == 1 & speed == 0)
+	ef = subset(vertData, difficulty == 0 & speed == 200)
+	hf = subset(vertData, difficulty == 1 & speed == 200)
+	list(
+		al = subset(l, type == "addition"),
+		ah = subset(h, type == "addition"),
+		tes = subset(es, type == "targeting"),
+		ths = subset(hs, type == "targeting"),
+		tef = subset(ef, type == "targeting"),
+		thf = subset(hf, type == "targeting"),
+		desl = subset(es, type == "main" & oprange == "[1 12]"),
+		dhsl = subset(hs, type == "main" & oprange == "[1 12]"),
+		defl = subset(ef, type == "main" & oprange == "[1 12]"),
+		dhfl = subset(hf, type == "main" & oprange == "[1 12]"),
+		desh = subset(es, type == "main" & oprange == "[13 25]"),
+		dhsh = subset(hs, type == "main" & oprange == "[13 25]"),
+		defh = subset(ef, type == "main" & oprange == "[13 25]"),
+		dhfh = subset(hf, type == "main" & oprange == "[13 25]")
 	)
 }
 # load subject data into a list
@@ -41,7 +221,7 @@ getVertCase <- function(data, difficultyLevel, speedLevel, oprangeLevel) {
 }
 # plot the completion times for the addition, targeting, and combined tasks from a vertical case data frame
 plotVert <- function(data) {
-	ggplot(data, aes(complete, fill=type)) + geom_histogram(pos="dodge", xmin=0,xmax=6)
+	ggplot(data, aes(complete, fill=type,xmin=0,xmax=6)) + geom_histogram(pos="dodge", xmin=0,xmax=6)
 }
 
 # compare vertical cases between model and subject data
@@ -102,10 +282,73 @@ compareVertAll <- function(humanData, modelData) {
 	print(ggplot(all, aes(complete, fill=type)) + geom_histogram(pos="dodge") + facet_grid(perf ~ inter))
 }
 
+# get concurrency for a given condition
+getConcurrencyCase = function(vertData, agg=mean, ...) {
+	case = getVertCase(vertData, ...)
+	getConcurrency(case, agg)
+}
+# get concurrency for data that is already filtered for condition
+getConcurrency = function(vertData, agg=mean) {
+	addmean = agg(subset(vertData,type="addition")$complete)
+	targetingmean = agg(subset(vertData,type=="targeting")$complete)
+	dualmean = agg(subset(vertData,type=="main")$complete)
+	(addmean + targetingmean - dualmean) / (max(addmean, targetingmean))
+}
+# get concurrency for population by calculating separately for each subject, then combining
+getPopConcurrency = function(vertData, agg=mean, ...) {
+	case = getVertCase(vertData, ...)
+	agg(daply(case, .(subject), function(df) {
+		getConcurrency(df)
+		}))
+}
+# produce a data frame of concurrency for human data and model data in all cases
+compareConcurrency = function(humanData, modelData, agg=mean) {
+	casesDF = expand.grid(c(0,1),c(0,1),c(0,1))
+	colnames(casesDF) = c("oprange", "speed", "difficulty")
+	ddply(casesDF, .(difficulty,speed,oprange), function(df) {
+		transform(df,
+			model = getConcurrencyCase(modelData, agg, df$difficulty, df$speed, df$oprange),
+			human = getPopConcurrency(humanData, agg, df$difficulty, df$speed, df$oprange),
+			humanAll = getConcurrencyCase(humanData, agg, df$difficulty, df$speed, df$oprange)
+			)
+		})
+}
+# plot concurrency comparison
+plotConcurrency = function(humanData, modelData, agg=mean) {
+	df = compareConcurrency(humanData, modelData, agg);
+	ggplot(melt(df, id.var = c("difficulty", "speed", "oprange")),
+		aes(fill=variable,x=interaction(difficulty,speed,oprange),y=value)) + geom_bar(pos="dodge", stat="identity")
+}
+# plot concurrency distribution for one case
+plotConcurrencyCase = function(humanData, modelData,...) {
+	ggplot(subset(getVertCase(rbind(humanData, modelData),...), type == "main"), aes(concurrency, fill=perf)) + geom_histogram(pos="dodge")
+}
+
+# show plots of addition for each df provided
+compareAddition = function(...) {
+	l_ply(list(...), function(df) {
+		quartz();
+		print(
+			ggplot(subset(df, type=="addition" & complete <= 4),
+				aes(complete, fill=oprange,xmin=0,xmax=4))
+			+ geom_histogram(pos="dodge",xmin=0,xmax=4) + labs(title=df$perf[[1]]))
+		})
+}
+# load model results and assign to normal variable names
+loadModel = function(num) {
+	d = assembleData(num)
+	.GlobalEnv[[paste0("d",num)]] = d
+	v = getAll(list(d),1)
+	v$perf = paste0("model",num)
+	.GlobalEnv[[paste0("vert",num)]] = v
+	.GlobalEnv[[paste0("case",num)]] = byCase(v)
+}
+
 # bind dataframes into one with the columns that they all share
 rmerge <- function(...) {
-	cols <- Reduce(intersect, llply(list(...), colnames))
-	Reduce(rbind, llply(list(...), function (df) {df[,cols, drop=FALSE]}))
+	rbind.fill(...)
+	# cols <- Reduce(intersect, llply(list(...), colnames))
+	# Reduce(rbind, llply(list(...), function (df) {df[,cols, drop=FALSE]}))
 }
 
 # determine if two operands have a carry
@@ -131,6 +374,13 @@ assembleData <- function(subject) {
 	mainData$singleDigit <- singleDigit(mainData$op1, mainData$op2)
 	mainData$bothSingle <- mainData$op1 < 10 & mainData$op2 < 10
 
+	# add misses
+	mainData$misses = mainData$shots - mainData$hits - mainData$friendHits
+
+	# make factor columns
+	factorColumns <- c("practice", "speed", "oprange", "difficulty", "op1", "op2", "subject")
+	mainData[factorColumns] = llply(mainData[factorColumns], as.factor)
+
 	# separate practice data from experimental data
 	practiceData <- mainData[mainData$practice == "true", ]
 	mainData <- mainData[mainData$practice == "false", ]
@@ -148,8 +398,8 @@ assembleData <- function(subject) {
 	additionData$targets <- NULL
 	
 	# get rid of speed, difficulty, and target columns from addition data
-	additionData$speed <- NA
-	additionData$difficulty <- NA
+	additionData$speed <- as.factor(NA)
+	additionData$difficulty <- as.factor(NA)
 	additionData$target <- NA
 	# get rid of targeting accuracy columns from addition data
 	additionData$hits <- NA

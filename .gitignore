@@ -3,3 +3,5 @@ bin/packages
 packages
 pubspec.lock
 web/packages
+*.RData
+*.RHistory

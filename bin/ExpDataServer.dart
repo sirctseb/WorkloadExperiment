@@ -217,7 +217,7 @@ class Server {
       
       // start recording
       Logger.root.info("starting recording");
-      Logger.root.info("cwd: ${new Directory.current().toString()}");
+      Logger.root.info("cwd: ${Directory.current.toString()}");
       Process.start("/opt/local/bin/sox", ["-d", "$trialDirStr/audio.mp3"])
       .then((Process process) {
         Logger.root.info("recording started");
