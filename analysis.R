@@ -237,6 +237,33 @@ compareVertCase <- function(humanData, modelData, difficultyLevel, speedLevel, o
 	print(plotVert(modelVert) + labs(title=paste("Model ", difficultyLevel, speedLevel, oprangeLevel)))
 
 }
+# put comparison charts on facet grid
+compareVertCaseFacet <- function(humanData, modelData, difficultyLevel, speedLevel, oprangeLevel) {
+	# get vertical data for each
+	humanVert = getVertCase(humanData, difficultyLevel, speedLevel, oprangeLevel)
+	modelVert = getVertCase(modelData, difficultyLevel,speedLevel, oprangeLevel)
+	# combine and add separating column
+	combined = rbind(within(humanVert, perf<-"Human"), within(modelVert, perf<-"Model"))
+	# plot
+	p = plotVert(combined)
+	# facet
+	p + facet_grid(perf ~ .)
+}
+compareDualTimes <- function(humanData, modelData, difficultyLevel, speedLevel, oprangeLevel) {
+	# get vertical data for each
+	humanVert = getVertCase(humanData, difficultyLevel, speedLevel, oprangeLevel)
+	modelVert = getVertCase(modelData, difficultyLevel,speedLevel, oprangeLevel)
+	# combine and add separating column
+	combined = subset(rbind(within(humanVert, perf<-"Human"), within(modelVert, perf<-"Model")), type=="main")
+	# melt addition and targeting times
+	melted = melt(combined, measure.var = c("addition", "target"))
+	# plot
+	p = ggplot(melted, aes(value, fill=variable),xmin=0,xmax=6) + geom_histogram(pos="dodge", xmin=0,xmax=6) +
+	# facet
+	facet_grid(perf ~ .) +
+	# labels
+	labs(x="Time", fill="Task")
+}
 
 getFactorValue <- function(fac, idx) {
 	sapply(strsplit(as.character(fac), "\\."), "[", idx)
@@ -281,6 +308,11 @@ compareVertAll <- function(humanData, modelData) {
 	# plot
 	print(ggplot(all, aes(complete, fill=type)) + geom_histogram(pos="dodge") + facet_grid(perf ~ inter))
 }
+# plot human vs model on one case
+compareCase <- function(humanData, modelData, case) {
+	ggplot(rbind(within(humanData[[case]], perf<-"Human"), within(modelData[[case]], perf<-"Model")),
+		aes(complete, fill=perf)) + geom_histogram(pos="dodge") + labs(title=case)
+}
 
 # get concurrency for a given condition
 getConcurrencyCase = function(vertData, agg=mean, ...) {
@@ -308,8 +340,8 @@ compareConcurrency = function(humanData, modelData, agg=mean) {
 	ddply(casesDF, .(difficulty,speed,oprange), function(df) {
 		transform(df,
 			model = getConcurrencyCase(modelData, agg, df$difficulty, df$speed, df$oprange),
-			human = getPopConcurrency(humanData, agg, df$difficulty, df$speed, df$oprange),
-			humanAll = getConcurrencyCase(humanData, agg, df$difficulty, df$speed, df$oprange)
+			human = getPopConcurrency(humanData, agg, df$difficulty, df$speed, df$oprange)
+			# humanAll = getConcurrencyCase(humanData, agg, df$difficulty, df$speed, df$oprange)
 			)
 		})
 }
@@ -317,7 +349,9 @@ compareConcurrency = function(humanData, modelData, agg=mean) {
 plotConcurrency = function(humanData, modelData, agg=mean) {
 	df = compareConcurrency(humanData, modelData, agg);
 	ggplot(melt(df, id.var = c("difficulty", "speed", "oprange")),
-		aes(fill=variable,x=interaction(difficulty,speed,oprange),y=value)) + geom_bar(pos="dodge", stat="identity")
+		aes(fill=variable,x=interaction(difficulty,speed,oprange),y=value,ymin=0.4)) +
+	geom_bar(pos="dodge", stat="identity") +
+	labs(x="Difficuly, Speed, Range", y="Concurrency", fill="Subject")
 }
 # plot concurrency distribution for one case
 plotConcurrencyCase = function(humanData, modelData,...) {
