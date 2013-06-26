@@ -281,6 +281,11 @@ compareVertAll <- function(humanData, modelData) {
 	# plot
 	print(ggplot(all, aes(complete, fill=type)) + geom_histogram(pos="dodge") + facet_grid(perf ~ inter))
 }
+# plot human vs model on one case
+compareCase <- function(humanData, modelData, case) {
+	ggplot(rbind(within(humanData[[case]], perf<-"Human"), within(modelData[[case]], perf<-"Model")),
+		aes(complete, fill=perf)) + geom_histogram(pos="dodge") + labs(title=case)
+}
 
 # get concurrency for a given condition
 getConcurrencyCase = function(vertData, agg=mean, ...) {
