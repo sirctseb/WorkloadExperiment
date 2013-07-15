@@ -258,11 +258,79 @@ compareDualTimes <- function(humanData, modelData, difficultyLevel, speedLevel, 
 	# melt addition and targeting times
 	melted = melt(combined, measure.var = c("addition", "target"))
 	# plot
-	p = ggplot(melted, aes(value, fill=variable),xmin=0,xmax=6) + geom_histogram(pos="dodge", xmin=0,xmax=6) +
+	ggplot(melted, aes(value, fill=variable,xmin=0,xmax=6)) + geom_histogram(pos="dodge", xmin=0,xmax=6) +
 	# facet
 	facet_grid(perf ~ .) +
 	# labels
 	labs(x="Time", fill="Task")
+}
+compareDualToSingle <- function(d, difficultyLevel, speedLevel, oprangeLevel) {
+	# get vertical data
+	vert = getVertCase(d, difficultyLevel, speedLevel, oprangeLevel)
+	# melt addition and targeting times
+	melted = melt(vert, measure.var = c("addition", "target"))
+	# label single vs dual
+	melted = within(melted, mode <- ifelse(type=="addition" | type=="targeting", "single", "dual"))
+	# remove NA
+	# melted = subset(melted, !is.na(value))
+	# plot
+	ggplot(melted, aes(value, fill=variable,xmin=0,xmax=6)) + geom_histogram(pos="dodge") +
+	# facet
+	facet_grid(mode ~ .) +
+	# labels
+	labs(x="Time", fill="Task")
+}
+compareSingleTasks <- function(human, model) {
+	# separate data
+	human = within(human, perf <- "human")
+	model = within(model, perf <- "model")
+	f = dlply(subset(rbind(human,model), type != "main"), .(type, speed, difficulty, oprange),
+		function(df) {
+			i <- sapply(df, is.factor)
+			df[i] <- lapply(df[i], as.character)
+			# df[,c("type","speed", "difficulty", "oprange")] <- as.character(df[,c("type","speed", "difficulty", "oprange")])
+			quartz();
+			print(
+				ggplot(df, aes(complete, fill=perf)) +
+				geom_histogram(pos="dodge") +
+				labs(title = paste0(df[1,c("type","speed","difficulty","oprange")],collapse=" "))
+			)
+		})
+}
+compareSingleTaskValue <- function(human, model, value) {
+	# separate data
+	combined = rbind(within(human, perf <- "human"), within(model, perf <- "model"))
+	varName = substitute(value)
+
+	# addition
+	print(
+		ggplot(subset(combined, type == "addition"), eval(substitute(aes(var, fill=perf), list(var = varName)))) +
+			geom_histogram(pos="dodge") +
+			facet_grid(oprange~.)
+	)
+
+	# targeting
+	quartz();
+	print(
+		ggplot(subset(combined, type == "targeting"), eval(substitute(aes(var, fill=perf), list(var = varName)))) +
+			geom_histogram(pos="dodge") +
+			facet_grid(speed~difficulty)
+	)
+}
+compareDualTaskValue <- function(human, model, value) {
+	# separate data
+	combined = rbind(within(human, perf <- "human"), within(model, perf <- "model"))
+	varName = substitute(value)
+
+	# addition
+	print(
+		ggplot(subset(combined, type == "main"), eval(substitute(aes(var, fill=perf), list(var = varName)))) +
+			geom_histogram(pos="dodge") +
+			facet_grid(oprange~difficulty~speed)
+	)
+}
+getDualCase <- function(data, diff, speed, oprange) {
+	subset(getVertCase(data, diff, speed, oprange), type == "main")
 }
 
 getFactorValue <- function(fac, idx) {
@@ -313,6 +381,44 @@ compareCase <- function(humanData, modelData, case) {
 	ggplot(rbind(within(humanData[[case]], perf<-"Human"), within(modelData[[case]], perf<-"Model")),
 		aes(complete, fill=perf)) + geom_histogram(pos="dodge") + labs(title=case)
 }
+compareGender <- function(data) {
+	#### completion times ####
+	# get just dual task data
+	dual = subset(data, type == "main")
+	# box plot by interaction and gender
+	print(
+		ggplot(dual, aes(interaction(speed, difficulty, oprange), complete, color=gender)) +
+		geom_boxplot(notch=TRUE) +
+		labs(title = "Dual Task Completion Time by Gender")
+	)
+	# get just addition data
+	addition = subset(data, type == "addition")
+	# box plot by level and gender
+	quartz();
+	print(
+		ggplot(addition, aes(oprange, complete, color = gender)) +
+		geom_boxplot(notch=TRUE) +
+		labs(title = "Single Task Addition Completion Time by Gender")
+	)
+	# get just targeting data
+	targeting = subset(data, type == "targeting")
+	# box plot by interaction and gender
+	quartz();
+	print(
+		ggplot(targeting, aes(interaction(speed, difficulty), complete, color = gender)) +
+		geom_boxplot(notch=TRUE) +
+		labs(title = "Single Task Targeting Completion Time by Gender")
+	)
+
+	#### concurrency values ####
+	# box plot by interaction and gender
+	quartz();
+	print(
+		ggplot(dual, aes(interaction(speed, difficulty, oprange), concurrency, color = gender)) +
+		geom_boxplot(notch=TRUE) +
+		labs(title = "Dual Task Concurrency by Gender")
+	)
+}
 
 # get concurrency for a given condition
 getConcurrencyCase = function(vertData, agg=mean, ...) {
@@ -321,10 +427,10 @@ getConcurrencyCase = function(vertData, agg=mean, ...) {
 }
 # get concurrency for data that is already filtered for condition
 getConcurrency = function(vertData, agg=mean) {
-	addmean = agg(subset(vertData,type="addition")$complete)
+	addmean = agg(subset(vertData,type=="addition")$complete)
 	targetingmean = agg(subset(vertData,type=="targeting")$complete)
 	dualmean = agg(subset(vertData,type=="main")$complete)
-	(addmean + targetingmean - dualmean) / (max(addmean, targetingmean))
+	(addmean + targetingmean - dualmean) / min(addmean, targetingmean)
 }
 # get concurrency for population by calculating separately for each subject, then combining
 getPopConcurrency = function(vertData, agg=mean, ...) {
@@ -339,8 +445,8 @@ compareConcurrency = function(humanData, modelData, agg=mean) {
 	colnames(casesDF) = c("oprange", "speed", "difficulty")
 	ddply(casesDF, .(difficulty,speed,oprange), function(df) {
 		transform(df,
-			model = getConcurrencyCase(modelData, agg, df$difficulty, df$speed, df$oprange),
-			human = getPopConcurrency(humanData, agg, df$difficulty, df$speed, df$oprange)
+			human = getPopConcurrency(humanData, agg, df$difficulty, df$speed, df$oprange),
+			model = getConcurrencyCase(modelData, agg, df$difficulty, df$speed, df$oprange)
 			# humanAll = getConcurrencyCase(humanData, agg, df$difficulty, df$speed, df$oprange)
 			)
 		})
@@ -351,11 +457,21 @@ plotConcurrency = function(humanData, modelData, agg=mean) {
 	ggplot(melt(df, id.var = c("difficulty", "speed", "oprange")),
 		aes(fill=variable,x=interaction(difficulty,speed,oprange),y=value,ymin=0.4)) +
 	geom_bar(pos="dodge", stat="identity") +
-	labs(x="Difficuly, Speed, Range", y="Concurrency", fill="Subject")
+	labs(x="Difficulty, Speed, Range", y="Concurrency", fill="Subject")
 }
 # plot concurrency distribution for one case
 plotConcurrencyCase = function(humanData, modelData,...) {
 	ggplot(subset(getVertCase(rbind(humanData, modelData),...), type == "main"), aes(concurrency, fill=perf)) + geom_histogram(pos="dodge")
+}
+
+compareSubjects = function(human, model, name) {
+	model = within(model, perf<-"model")
+	namesub = substitute(name)
+	# ggplot(subset(combined, type == "addition"), eval(substitute(aes(var, fill=perf), list(var = varName)))) +
+	ddply(human, .(subject), function(df) {
+		new = eval(substitute(wilcox.test(namevar~perf,rbind(within(df, perf<-"human"), model)), list(namevar=namesub)))$p.value
+		data.frame(subject = df$subject[[1]], p = new)
+	});
 }
 
 # show plots of addition for each df provided
@@ -397,11 +513,16 @@ singleDigit <- function(op1, op2) {
 # load the data for a single subject into separate data frames for addition, targeting, and dual-task,
 # and return them in a list
 assembleData <- function(subject) {
+	# hard coded gender array from subject number to gender
+	genders = c("male", "female")
+	gender = aaply(c(2,1,2,1,2,1,1,2,1,2,1,2,1,1,1,1,2,2,2,2),1,function(g) {genders[g]})
+
 	# get the filename for the main file
 	mainfile <- sprintf("output/subject%d/r1.txt", subject)
 	# read in the data
 	mainData <- read.table(mainfile, header=TRUE, sep=",", strip.white=TRUE)
 	mainData$subject <- subject
+	mainData$gender = as.factor(gender[subject])
 
 	# add addition info
 	mainData$carry <- carry(mainData$op1, mainData$op2)
@@ -448,6 +569,7 @@ assembleData <- function(subject) {
 	# separate targeting-only trials
 	targetingData <- mainData[mainData$oprange == "[]", ]
 	targetingData$oprange <- NA
+	targetingData$addition <- NA
 	mainData <- mainData[mainData$oprange != "[]", ]
 
 	# remove empty factors
@@ -539,5 +661,5 @@ getConcurrencyVec <- function(completionTimes, additionTime, targetTime) {
 	low = max(additionTime, targetTime)
 	# high value
 	high = additionTime + targetTime
-	return ((completionTimes - high) / (low - high))
+	((completionTimes - high) / (low - high))
 }
