@@ -1,4 +1,9 @@
 #!/bin/bash
+
+# usage: putmodel.sh BLOCK_NUMBER SUBJECT_NUMBER
+
+# copies the model file for the given subject and block to Research/temp in the root directory below
+
 root=/Volumes/home
 # root=~/Google\ Drive
 # root=~/Desktop/unision-transfer

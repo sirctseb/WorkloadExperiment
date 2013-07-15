@@ -9,6 +9,7 @@ void main() {
   Logger.root.onRecord.listen((LogRecord record) {
     print(record.message);
   });
+  Logger.root.level = Level.FINE;
 }
 
 class Server {
@@ -53,7 +54,9 @@ class Server {
           
           webSocket.listen((event) {
             handleMessage(event, webSocket);
-          }, onDone: () { handleClose(webSocket.closeCode, webSocket.closeReason); });
+          }, onDone: () {
+            handleClose(webSocket);
+            });
         });
       });
   }
@@ -106,9 +109,13 @@ class Server {
       // if event is addition start and cheat client exists, send it out
       if(cheatClient != null) {
         Match match = additionRE.firstMatch(message);
+        Logger.root.fine("testing for addition message to pass to cheat client");
         if(match != null) {
+          Logger.root.info("sending ${int.parse(match[1]) + int.parse(match[2])} to cheat client");
           cheatClient.add(stringify({"addition": int.parse(match[1]) + int.parse(match[2])}));
         }
+      } else {
+        Logger.root.fine("cheat client is null, not testing for addition");
       }
     } else {
       // if we're not running, check for requests for trial replay data
@@ -271,8 +278,14 @@ class Server {
   // TODO this happens when the web socket closes, not when the client disconnects.
   // TODO how to detect client disconnect?
   // TODO also, we don't really need to
-  void handleClose(int closeCode, String closeReason) {
+  void handleClose(WebSocket socket) {
+    var closeCode = socket.closeCode;
+    var closeReason = socket.closeReason;
     Logger.root.info('closed with ${closeCode} for ${closeReason}');
     Logger.root.info(new DateTime.now().toString());
+    // if cheat client, set to null
+    if(socket == cheatClient) {
+      cheatClient = null;
+    }
   }
 }
