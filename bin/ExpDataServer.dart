@@ -20,14 +20,14 @@ class Server {
   bool logEvents = false;
   IOSink sink;
   Process recordingProcess;
-  
+
   /// Map from WebSocket hashes to the type of client they are
-  Map clients = {};
+  Map<int, String> clients = new Map<int, String>();
   /// The client that is showing the addition answers
   WebSocket cheatClient;
   /// A regex used to get addition values
   RegExp additionRE = new RegExp(r"AdditionStart, [\d\.]+, (\d+), (\d+)");
-  
+
   String get subjectDirStr => "output/subject$subjectNumber";
   String get blockDirStr => "$subjectDirStr/block$blockNumber";
   String get blockDescPathStr => "$blockDirStr/block.txt";
@@ -36,22 +36,22 @@ class Server {
   String get dataFilePathStr => "$trialDirStr/data.txt";
   String get surveyPathStr => "$blockDirStr/survey.txt";
   String get weightsPathStr => "$subjectDirStr/weights.txt";
-  
+
   Server() {
     // listen on port 8000
     HttpServer.bind(InternetAddress.ANY_IP_V4, 8000)
       .then((HttpServer server) {
         // log start of server
         Logger.root.info("server listening on port ${server.port}");
-        
+
         // watch for web socket connections
         server.transform(new WebSocketTransformer())
         .listen((WebSocket webSocket) {
-          
+
           // log new connection to console
           Logger.root.info('new connection');
           clients[webSocket.hashCode] = "UI";
-          
+
           webSocket.listen((event) {
             handleMessage(event, webSocket);
           }, onDone: () {
@@ -60,11 +60,11 @@ class Server {
         });
       });
   }
-    
+
   void handleMessage(message, WebSocket socket) {
     //var message = event.data;
     Logger.root.finest("data server received message: $message");
-    
+
     // TODO this is why all payloads should be json
     // set client type to cheat if a client requests it
     try {
@@ -77,16 +77,16 @@ class Server {
     } catch(e) {
       Logger.root.fine("could not parse message at top level");
     }
-    
+
     if(message.startsWith("end trial")) {
       Logger.root.info("data server received end trial message");
-      
+
       // set log events flag to stop logging
       logEvents = false;
-      
+
       // close stream
       sink.close();
-      
+
       // stop recording
       if(recordingProcess != null) {
         Logger.root.info("killing recording");
@@ -99,13 +99,13 @@ class Server {
         recordingProcess = null;
       }
     }
-    
+
     if(logEvents) {
       Logger.root.finest("data server logging message");
-      
+
       // write event to file
       sink.write("$message\n");
-      
+
       // if event is addition start and cheat client exists, send it out
       if(cheatClient != null) {
         Match match = additionRE.firstMatch(message);
@@ -169,10 +169,10 @@ class Server {
         // don't do anything
       }
     }
-    
+
     // check for subject number command
     if(message.startsWith("set: ")) {
-      
+
       // get subject number
       Map info = parse(message.substring("set: ".length));
       // read subject if it was sent
@@ -187,17 +187,17 @@ class Server {
         // write block description if it was sent
         if(info.containsKey("blockDesc")) {
           Logger.root.info("data server got block description");
-          
+
           // make file object
           File blockDescFile = new File.fromPath(new Path(blockDescPathStr));
-          
+
           Logger.root.info("made block desc file object; ensuring dir exists");
-          
+
           // make sure directory exists
           new Directory(blockDirStr).createSync(recursive:true);
-          
+
           Logger.root.info("ensured dir exists, writing file contents");
-          
+
           // write block description to file
           blockDescFile.writeAsStringSync(stringify(info["blockDesc"]));
           Logger.root.info("data server wrote block description to file");
@@ -209,48 +209,48 @@ class Server {
         Logger.root.info("data server got trial number $trialNumber");
       }
     }
-    
+
     if(message.startsWith("survey: ")) {
       Logger.root.info("data server received survey results");
-      
+
       // TODO make sure directory exists?
-      
+
       // create file object
       File surveyFile = new File.fromPath(new Path(surveyPathStr));
-      
+
       // write survey to file
       surveyFile.writeAsString(message);
-      
+
     }
-    
+
     if(message.startsWith("weights: ")) {
       Logger.root.info("data serve received weights");
-      
+
       // TODO make sure directory exists?
-      
+
       // create file object
       File weightsFile = new File.fromPath(new Path(weightsPathStr));
-      
+
       // write weights to file
       weightsFile.writeAsString(message);
     }
-    
+
     if(message.startsWith("start trial")) {
       Logger.root.info("data server received start trial message");
-      
+
       // create data file object
       Path dataFilePath = new Path(dataFilePathStr);
       dataFile = new File.fromPath(dataFilePath);
-      
+
       // create directory
       new Directory(trialDirStr).createSync(recursive:true);
-      
+
       // open file stream
       sink = dataFile.openWrite();
-      
+
       // write task description to separate file
       new File.fromPath(dataFilePath.directoryPath.append("task.txt")).writeAsString(message);
-      
+
       // start recording
       Logger.root.info("starting recording");
       Logger.root.info("cwd: ${Directory.current.toString()}");
@@ -269,12 +269,12 @@ class Server {
         // TODO send message to client that recording started
         // TODO on error send message that we're not recording
       });
-      
+
       // set log event flag
       logEvents = true;
     }
   }
-  
+
   // TODO this happens when the web socket closes, not when the client disconnects.
   // TODO how to detect client disconnect?
   // TODO also, we don't really need to

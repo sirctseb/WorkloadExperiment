@@ -2,27 +2,27 @@ part of WorkloadExperiment;
 
 /// Maintains trial / block state and provides block info to the controller
 class BlockManager {
-  
+
   // The number of the block we're on.
   int _blockNumber = 0;
-  
+
   /// Access the number of the block.
   int get blockNumber => _blockNumber;
 
   /// Access to the current block object
   Block get block => allBlocks[blockNumber];
-  
+
   /// The number of blocks
   int get numBlocks => allBlocks.length;
-  
+
   /// True iff we are in the practice blocks
   bool get practicing => blockNumber < 0;
-  
+
   bool get finished => _blockNumber >= numBlocks;
-  
+
   /// Trial state
   int trialNumber = 0;
-  
+
   /// advance the trial. returns true iff we advance to a new block
   bool advance() {
     // increment trial
@@ -35,11 +35,11 @@ class BlockManager {
     }
     return false;
   }
-  
+
   Task getTask(TaskController controller) {
     return block.createTask(controller);
   }
-  
+
 
   static bool random = false;
   static bool moreRandom = true;
@@ -110,11 +110,11 @@ class Block {
   // The levels of the targeting difficulty
   static const int LOW_DIFFICULTY = 0;
   static const int HIGH_DIFFICULTY = 1;
-  
+
   // The number of trials for practice blocks
   static const int PRACTICE_TRIALS = 1;
   static const int EXPERIMENTAL_TRIALS = 1;
-  
+
   Map toJson() {
     return {
       "trials": trials,
@@ -125,7 +125,7 @@ class Block {
       "targetDifficulty": targetDiff,
     };
   }
-  
+
   /// The target number level
   int targetNumber;
   /// The target speed level
@@ -134,7 +134,7 @@ class Block {
   List<int> additionDiff;
   /// The target difficulty level
   int targetDiff;
-  
+
   Block(int this.targetNumber, int this.targetSpeed, List<int> this.additionDiff, int this.targetDiff, [this.practice = false, this.trials]) {
     trials = practice ? PRACTICE_TRIALS : EXPERIMENTAL_TRIALS;
   }
@@ -144,7 +144,7 @@ class Block {
     additionDiff = lowAddition == null ? null : lowAddition ? Block.LOW_OPERANDS : Block.HIGH_OPERANDS;
     targetDiff = lowDiff ? Block.LOW_DIFFICULTY : Block.HIGH_DIFFICULTY;
   }
-  
+
   Task createTask(TaskController controller) {
     return new BlockTrialTask(controller,
         targetSpeed,
