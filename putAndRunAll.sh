@@ -6,6 +6,7 @@
 # then waitOnLog.sh is called with the block, SUBJECT_NUM, and the optional auto parameter
 # after all of these, the convert_times.go script is run for SUBJECT_NUM and 240 trials are assumed
 BLOCKS=${3:-1 2 3 4 5 6 7 8 9 10 11 12 13 14}
+TRIALS=${4:-480}
 
 for block in $BLOCKS; do
 	growlnotify -m "putting block $block"
@@ -18,6 +19,6 @@ done
 
 echo aggregating
 growlnotify -m "ran all blocks, aggregating"
-go run convert_times.go -s $1 -i 240
+go run convert_times.go -s $1 -i $TRIALS
 
 growlnotify -m "totally done"
