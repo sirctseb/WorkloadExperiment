@@ -329,6 +329,18 @@ compareDualTaskValue <- function(human, model, value) {
 			facet_grid(oprange~difficulty~speed)
 	)
 }
+boxDualTaskValue <- function(human, model, value) {
+	# separate data
+	combined = rbind(within(human, perf <- "human"), within(model, perf <- "model"))
+	varName = substitute(value)
+
+	# addition
+	print(
+		ggplot(subset(combined, type == "main"), eval(substitute(aes(x=interaction(oprange,difficulty,speed), y=var,fill=perf), list(var = varName)))) +
+			geom_boxplot(notch=TRUE)# +
+			# facet_grid(oprange~difficulty~speed)
+	)
+}
 getDualCase <- function(data, diff, speed, oprange) {
 	subset(getVertCase(data, diff, speed, oprange), type == "main")
 }
@@ -459,9 +471,71 @@ plotConcurrency = function(humanData, modelData, agg=mean) {
 	geom_bar(pos="dodge", stat="identity") +
 	labs(x="Difficulty, Speed, Range", y="Concurrency", fill="Subject")
 }
+plotConcurrencyBox <- function(humanData, modelData) {
+	# get separate concurrencies for each subject
+	# casesDF = expand.grid(c(0,1), c(0,1), c(0,1))
+	# colnames(casesDF) = c("oprange", "speed", "difficulty")
+	# ddply(casesDF, .(difficulty,speed,oprange), function(df) {
+	# 	realdf = getVertCase(humanData, df$difficulty, df$speed, df$oprange)
+	# 	ddply(realdf, .(subject), function(dfsubj) {
+	# 		dfsubj$concurrency
+	# 		})
+	# 	})
+	# get separate concurrencies for each subject
+	casesDF = expand.grid(c(0,1), c(0,1), c(0,1))
+	colnames(casesDF) = c("oprange", "speed", "difficulty")
+	means=ddply(casesDF, .(difficulty,speed,oprange), function(df) {
+		transform(df,
+			human = mean(subset(getVertCase(humanData, df$difficulty, df$speed, df$oprange),type=="main")$concurrency),
+			model = mean(subset(getVertCase(modelData, df$difficulty, df$speed, df$oprange),type=="main")$concurrency))
+		})
+	ggplot(melt(means, id.var = c("difficulty", "speed", "oprange")),
+		aes(fill=variable,x=interaction(difficulty,speed,oprange),y=value)) +
+	geom_bar(pos="dodge", stat="identity") +
+	labs(x="Difficulty, Speed, Range", y="Concurrency", fill="Subject")
+}
 # plot concurrency distribution for one case
 plotConcurrencyCase = function(humanData, modelData,...) {
 	ggplot(subset(getVertCase(rbind(humanData, modelData),...), type == "main"), aes(concurrency, fill=perf)) + geom_histogram(pos="dodge")
+}
+plotCaseMeans <- function(humanData, modelData, expr) {
+	exprsub = substitute(expr)
+	# combine data
+	combined = rbind(within(humanData, perf<-"human"), within(modelData, perf <- "model"));
+	eval(substitute(
+		ggplot(combined, aes(x=interaction(difficulty, speed, oprange), expression, fill=perf)) +
+			geom_boxplot(notch=TRUE),
+		list(expression = exprsub)))
+}
+getCombined <- function(human, model) {
+	rbind(within(human, perf<-"human"), within(model, perf<-"model"))
+}
+boxSingleTask <- function(human, model, expr) {
+	# separate data
+	combined = rbind(within(human, perf <- "human"), within(model, perf <- "model"))
+	varName = substitute(expr)
+
+	# addition
+	print(
+		ggplot(subset(combined, type == "addition"), eval(substitute(aes(oprange, var, fill=perf), list(var = varName)))) +
+			geom_boxplot(notch=TRUE) +
+			facet_grid(oprange~.)
+	)
+
+	# targeting
+	quartz();
+	print(
+		ggplot(subset(combined, type == "targeting"), eval(substitute(aes(oprange, var, fill=perf), list(var = varName)))) +
+			geom_boxplot(notch=TRUE) +
+			facet_grid(speed~difficulty)
+	)
+}
+removeOutliers <- function(data, expr) {
+	exprsub = substitute(expr)
+	eval(substitute(
+		data[which(!data$expression %in% boxplot.stats(data$expression)$out),]
+		, list(expression = exprsub)
+	))
 }
 
 compareSubjects = function(human, model, name) {
