@@ -380,9 +380,6 @@ class TaskController implements TaskEventDelegate {
       if(task != null && !task.running) return;
       // mark correct addition response on space bar
 
-      // make sure we're not in the first half second of a task
-      if(task.firstHalfSecondOfAddition) return;
-
       // log response to server
       ws.send("AdditionCorrect, ${event.timeStamp}");
 
