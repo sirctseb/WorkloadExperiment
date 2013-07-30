@@ -24,15 +24,22 @@ class TaskController implements TaskEventDelegate {
   /// The trial replay manager
   TrialReplay trialReplay;
 
+  bool get score_eligible => blockManager != null && !blockManager.block.practice && blockManager.block.incentive;
+  num get miss_deduction => score_eligible ? 0.02 : 0;
+  num get hit_score => score_eligible ? 0.05 : 0;
+  num get add_score => score_eligible ? 0.1 : 0;
+
   /// Task state
   bool taskRunning = false;
   num _score = 0;
   num get score => _score;
   set score(num s) {
+    // noop is value doesn't change
+    if(_score == s) return;
     bool increase = s > score;
     _score = s;
     // update html
-    taskRoot.query("#score-content").text = s.toStringAsFixed(0);
+    taskRoot.query("#score-content").text = s.toStringAsFixed(2);
     // animate color of score text
     query(".score").classes.add(increase ? "increase" : "decrease");
     // remove the class in 400ms
@@ -48,6 +55,8 @@ class TaskController implements TaskEventDelegate {
     // update html
     taskRoot.query("#score-content").text = s.toStringAsFixed(0);
   }
+
+  num totalScore = 0;
 
   /// Task properties
   Task task;
@@ -343,7 +352,7 @@ class TaskController implements TaskEventDelegate {
       ws.send("MouseDown, ${event.timeStamp}, ${event.client.x}, ${event.client.y}, ${hit?'HIT':'MISS'}");
     }
     if(!hit) {
-      score -= 20;
+      score -= miss_deduction;
     }
   }
 
@@ -381,7 +390,7 @@ class TaskController implements TaskEventDelegate {
       task.endAdditionEvent();
 
       // update score
-      score += 100;
+      score += add_score;
     } else if(event.which == "n".codeUnitAt(0)) {
       // n for nasa-tlx
 
@@ -524,9 +533,9 @@ class TaskController implements TaskEventDelegate {
 
     // update score
     if(target.enemy) {
-      score += 100;
+      score += hit_score;
     } else {
-      score -= 100;
+      score -= hit_score;
     }
 
     // don't propagate mouse down so body won't react to it
@@ -560,6 +569,9 @@ class TaskController implements TaskEventDelegate {
 
     // show task view
     showTask();
+
+    // show final score
+    query("#addition").text = "\$${totalScore.toStringAsFixed(2)}";
   }
 
   void onTrialStart(num time) {
@@ -614,6 +626,9 @@ class TaskController implements TaskEventDelegate {
     }
   }
   void onTrialEnd(num time) {
+    // update total score
+    totalScore += score;
+
     // send trial end to data server
     if(wsReady) {
       ws.send("FinalScore, $score");
