@@ -2,6 +2,20 @@ library(ggplot2)
 library(plyr)
 library(rjson)
 library(reshape)
+# count completes
+countCompletes <- function(data) {
+	ddply(data, .(block),
+		function(df) {
+			add = sum(df$addition != -1, na.rm=TRUE)
+			targ = sum(df$target != -1, na.rm=TRUE)
+			data.frame(oprange = df$oprange[1],
+						addition = add,
+						targeting = targ,
+						'a+t/2' = add + targ/2,
+						'a+t' = add + targ,
+						'100(a+t/2)' = 100*(add + targ/2))
+		});
+}
 # get block info
 getBlock <- function(subject, block, path = sprintf("output/subject%d/block%d/block.txt", subject, block)) {
 	block = fromJSON(readLines(path))
