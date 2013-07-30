@@ -174,6 +174,14 @@ class TaskController implements TaskEventDelegate {
       task.setupUI();
       // log task info
       logTaskInfo();
+
+      if(wsReady) {
+        if(blockManager.trialNumber == 0) {
+          Logger.root.info("sending block info");
+          ws.send("set: ${stringify({'block': blockManager.blockNumber, 'blockDesc': blockManager.block})}");
+          Logger.root.info("sent block info");
+        }
+      }
     });
 
     // add handler to survey submission
@@ -577,9 +585,19 @@ class TaskController implements TaskEventDelegate {
 
     bool practice = blockManager.block.practice;
     // tell manager to advance trial
-    if(blockManager.advance() && !practice) {
-      // if block advanced and it wasn't a practice trial, show workload survey
-      showSurvey();
+    if(blockManager.advance()) {
+      if(!practice) {
+        // if block advanced and it wasn't a practice trial, show workload survey
+        showSurvey();
+      } else {
+        if(wsReady) {
+          if(blockManager.trialNumber == 0) {
+            Logger.root.info("sending block info");
+            ws.send("set: ${stringify({'block': blockManager.blockNumber, 'blockDesc': blockManager.block})}");
+            Logger.root.info("sent block info");
+          }
+        }
+      }
     }
     if(!blockManager.finished) {
       task = blockManager.getTask(this);
