@@ -99,7 +99,7 @@ body:not(.high-targeting-difficulty) .target.enemy {
   background-image: url('img/target-enemy.png');
 }
 
-/* show green target when hovering over friend target*/ 
+/* show green target when hovering over friend target*/
 body.high-targeting-difficulty .target.friend:hover {
   background-image: url('img/target-friend.png');
 }
@@ -150,7 +150,7 @@ body.high-targeting-difficulty .target.friend:hover {
   position:absolute;
   top:0px;
   right:0px;
-  font-size: 28px;
+  font-size: 48px;
   color: black;
 }
 
