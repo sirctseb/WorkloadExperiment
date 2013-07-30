@@ -2,28 +2,28 @@ part of WorkloadExperiment;
 
 /// [TaskController] oversees the presentation of the whole task
 class TaskController implements TaskEventDelegate {
-  
+
   /// The root view of the actual task
   DivElement taskRoot;
-  
+
   /// The root view of the settings screen
   DivElement settingsRoot;
-  
+
   /// The root view of the survey screen
   DivElement surveyRoot;
-  
+
   /// The root view of the weights screen
   DivElement weightsRoot;
-  
+
   /// The weights manager
   TlxWeights weights;
-  
+
   /// The block manager
   BlockManager blockManager;
-  
+
   /// The trial replay manager
   TrialReplay trialReplay;
-  
+
   /// Task state
   bool taskRunning = false;
   num _score = 0;
@@ -48,13 +48,13 @@ class TaskController implements TaskEventDelegate {
     // update html
     taskRoot.query("#score-content").text = s.toStringAsFixed(0);
   }
-  
+
   /// Task properties
   Task task;
-  
+
   /// True if we are showing answers
   bool cheat = false;
-  
+
   /// Web socket to communicate with data server
   String ws_url = "ws://localhost:8000/";
   WebSocket ws;
@@ -69,7 +69,7 @@ class TaskController implements TaskEventDelegate {
   }
   void notifyWSStart() { ws.send("start trial: ${stringify(task)}"); }
   void notifyWSEnd() { ws.send("end trial"); }
-  
+
   /// An element to show feedback when a click occurs
   DivElement shotElement = new DivElement()..classes.add("shot");
 
@@ -77,7 +77,7 @@ class TaskController implements TaskEventDelegate {
   int countdown = 2;
   // get element
   AudioElement beep = (query("#beep") as AudioElement);
-  
+
   void receiveWS(MessageEvent event) {
     Logger.root.info("got message from server");
     // if showing answers, check for answer update
@@ -91,6 +91,9 @@ class TaskController implements TaskEventDelegate {
         Logger.root.info("data is addition value");
         // display the answer
         query("#addition").text = "= ${response['addition']}";
+      } else if(response.containsKey('block')) {
+        // indicate which block is occurring
+        query("#cheat").text = response['block'].toString();
       }
     }
   }
@@ -115,51 +118,51 @@ class TaskController implements TaskEventDelegate {
   int blockNumber = 0;
   /// The block created when setting block parameters in UI
   Block block;
-  
+
   /// Create a task controller
   TaskController() {
     // connect to server
     openWS();
-    
+
     // store task and settings root elements
     taskRoot = document.body.query("#task");
     settingsRoot = document.body.query("#settings");
     surveyRoot = document.body.query("#nasa-tlx");
     weightsRoot = document.query("#weights");
-    
+
     // make weights manager
     weights = new TlxWeights(this);
-    
+
     // make block manager
     blockManager = new BlockManager();
-    
+
     // make trial replay
     trialReplay = new TrialReplay();
-    
+
     // register for keyboard input
     window.onKeyPress.listen(handleKeyPress);
-    
+
     // create a task
     task = new BlockTrialTask(this,
         Block.LOW_SPEED,
         Block.LOW_TARGET_NUMBER,
         Block.LOW_OPERANDS,
         Block.HIGH_DIFFICULTY);
-    
+
     // add handler to body for missed target clicks
     document.query(".task").onMouseDown.listen(onBodyDown);
-    
+
     // add handler to body for mouse moves
     document.body.onMouseMove.listen(onBodyMove);
-    
+
     document.body.children.add(shotElement);
-    
+
     // add handler on button click
     document.query("#set-params").onClick.listen(settingChanged);
-    
+
     // add handler to block trial button click
     document.query("#block-set-params").onClick.listen(blockTrialSet);
-    
+
     // add handler to start all blocks
     document.query("#all-blocks").onClick.listen((event) {
       Logger.root.fine("starting block sequence");
@@ -172,7 +175,7 @@ class TaskController implements TaskEventDelegate {
       // log task info
       logTaskInfo();
     });
-    
+
     // add handler to survey submission
     query("#tlx-submit").onClick.listen((event) {
       // get response values
@@ -184,34 +187,42 @@ class TaskController implements TaskEventDelegate {
         "effort": getInputValue("effort"),
         "frustration": getInputValue("frustration")
       };
-      
+
       // send values to data server
       if(wsReady) {
         ws.send("survey: ${stringify(responses)}");
       }
-      
+
       // reset slider states
       for(InputElement slider in surveyRoot.queryAll("input")) {
         slider.value = "0";
       }
-      
+
       // if using block manager and blocks are done, show weights
       if(useBlockManager && blockManager.finished) {
         showWeights();
       } else {
         // go to task view
         showTask();
+
+        if(wsReady) {
+          if(blockManager.trialNumber == 0) {
+            Logger.root.info("sending block info");
+            ws.send("set: ${stringify({'block': blockManager.blockNumber, 'blockDesc': blockManager.block})}");
+            Logger.root.info("sent block info");
+          }
+        }
       }
     });
-    
+
     // add handler for setting subject number
     document.query("#set-subject-number").onClick.listen(setSubjectNumber);
-    
+
     // add handler to button to start trial
     query(".start-button").onClick.listen((event) {
       startTrial();
     });
-    
+
     // start trial at the start of the final beep
     beep.onPlay.listen((Event) {
       if(countdown == 0) {
@@ -229,11 +240,11 @@ class TaskController implements TaskEventDelegate {
         });
       }
     });
-    
+
     // show task on startup
     showTask();
   }
-  
+
   void setSubjectNumber(Event event) {
     // send subject number message
     ws.send("set: ${stringify({'subject': int.parse((document.query('#subject-number') as InputElement).value)})}");
@@ -248,7 +259,7 @@ class TaskController implements TaskEventDelegate {
     num minOp = getInputValue("min-op");
     num maxOp = getInputValue("max-op");
     int targetSize = getInputValue("target-size");
-    
+
     task = new ConfigurableTrialTask(this,
         numTargets: numTargets,
         opRange: [minOp, maxOp],
@@ -256,32 +267,32 @@ class TaskController implements TaskEventDelegate {
     useBlockManager = false;
   }
   void blockTrialSet(Event event) {
-    
+
     // increment block number
     blockNumber++;
-    
+
     // set trial to 0
     trial = 0;
-    
+
     // create block
     block = new Block.flags(lowSetting("block-num-targets"),
         lowSetting("block-target-dist"),
         lowSetting("block-operand-range"),
         lowSetting("block-target-difficulty"));
-    
+
     // notify server of block number and description
     if(wsReady) {
       ws.send("set: ${stringify({'block': blockNumber, 'blockDesc': block})}");
     }
-    
+
     // create a task in the block
     setTaskByBlockSettings();
   }
   void setTaskByBlockSettings() {
     task = block.createTask(this);
-    
+
     task.setupUI();
-    
+
     useBlockManager = false;
   }
   bool lowSetting(String name) {
@@ -292,29 +303,29 @@ class TaskController implements TaskEventDelegate {
     // return true if value is low
     return el.value == "low";
   }
-  
+
   static int getInputValue(String id) {
     return int.parse((query("#$id") as InputElement).value);
   }
-  
+
   void onBodyDown(MouseEvent event) {
     // ignore if on settings screen
     if(settingsRoot.style.display == "block") return;
     // ignore if task is not active
     if(!query(".task").classes.contains("active")) return;
-    
+
     // show miss feedback
     // first remove from DOM so that animation will start again when it is added back
     shotElement.remove();
-    
+
     // set location
     // TODO magic numbers
     shotElement.style.left = "${event.client.x - 15}px";
     shotElement.style.top = "${event.client.y - 15}px";
-    
+
     // add back to DOM
     document.body.children.add(shotElement);
-    
+
     logMouseDown(event, false);
   }
   void logMouseDown(MouseEvent event, bool hit) {
@@ -327,7 +338,7 @@ class TaskController implements TaskEventDelegate {
       score -= 20;
     }
   }
-  
+
   void onBodyMove(MouseEvent event) {
     // set info to data server
     if(wsReady) {
@@ -357,27 +368,27 @@ class TaskController implements TaskEventDelegate {
 
       // log response to server
       ws.send("AdditionCorrect, ${event.timeStamp}");
-      
+
       // tell task that addition is over
       task.endAdditionEvent();
-      
+
       // update score
       score += 100;
     } else if(event.which == "n".codeUnitAt(0)) {
       // n for nasa-tlx
-      
+
       // show the survey root
       showSurvey();
-      
+
       // TODO on button click, record responses
     } else if(event.which == "w".codeUnitAt(0)) {
       // w for weights
-      
+
       // show the weights root
       showWeights();
     } else if(event.which == "r".codeUnitAt(0)) {
       // r for replay
-      
+
       // load an arbitrary trial for replay
       //trialReplay.loadTrial("output/subject8/block1/trial0");
       // show replay ui
@@ -386,7 +397,7 @@ class TaskController implements TaskEventDelegate {
       trialReplay.init();
     } else if(event.which == "k".codeUnitAt(0)) {
       // k for skip
-      
+
       // move to the next trial
       advanceBlockManagerTrial();
     } else if(event.which == "x".codeUnitAt(0)) {
@@ -408,104 +419,89 @@ class TaskController implements TaskEventDelegate {
         });
     }
   }
-  
+
   void startTrial() {
     // add the active class to the trial
     query(".task").classes.add("active");
-    
+
     // tell task to actually generate task events
     task.buildEvents();
-    
+
     // g for 'go', start the task
     // play chirps and then start
     countdown = 2;
-    
-    // send trial number to server
-    if(wsReady) {
-      ws.send("set: ${stringify({'trial': useBlockManager ? blockManager.trialNumber : trial})}");
-    }
-    // if we're doing block sequence and we're on a new block, send block description
-    if(useBlockManager) {
-      if(wsReady) {
-        if(blockManager.trialNumber == 0) {
-          Logger.root.info("sending block info");
-          ws.send("set: ${stringify({'block': blockManager.blockNumber, 'blockDesc': blockManager.block})}");
-          Logger.root.info("sent block info");
-        }
-      }
-    }
 
     // tell the data server we're starting so it can start recording
     notifyWSStart();
-    
+
     // play first tone
     beep.play();
   }
-  
+
   void showSettings() {
     // hide weights root
     weightsRoot.style.display = "none";
-    
+
     // hide task root
     taskRoot.style.display = "none";
-    
+
     // hide survey root
     surveyRoot.style.display = "none";
-    
+
     // show settings root
     settingsRoot.style.display = "block";
   }
-  
+
   void showTask() {
     // hide weights root
     weightsRoot.style.display = "none";
-    
+
     // hide settings root
     settingsRoot.style.display = "none";
-    
+
     // hide survey root
     surveyRoot.style.display = "none";
-    
+
     // show task root
     taskRoot.style.display = "block";
   }
-  
+
   void showSurvey() {
     // hide weights root
     weightsRoot.style.display = "none";
-    
+
     // hide settings root
     settingsRoot.style.display = "none";
-    
+
     // hide task root
     taskRoot.style.display = "none";
-    
+
     // show survey root
     surveyRoot.style.display = "block";
   }
-  
+
   void showWeights() {
     // hide settings root
     settingsRoot.style.display = "none";
-    
+
     // hide task root
     taskRoot.style.display = "none";
-    
+
     // hide survey root
     surveyRoot.style.display = "none";
-    
+
     // show weights root
     weightsRoot.style.display = "block";
   }
-  
+
   /* TargetDelegate implementation */
   void TargetClicked(Target target, MouseEvent event) {
     // dismiss the target
     target.dismiss();
-    
+
     // log the mouse down so we also get the exact mouse location
     logMouseDown(event, true);
-    
+
     // notify data server
     if(wsReady) {
       if(target.enemy) {
@@ -514,17 +510,17 @@ class TaskController implements TaskEventDelegate {
         ws.send("FriendHit, ${event.timeStamp}, ${target.x}, ${target.y}, ${target.ID}");
       }
     }
-    
+
     // notify the task
     task.targetClicked();
-    
+
     // update score
     if(target.enemy) {
       score += 100;
     } else {
       score -= 100;
     }
-    
+
     // don't propagate mouse down so body won't react to it
     event.stopPropagation();
   }
@@ -540,7 +536,7 @@ class TaskController implements TaskEventDelegate {
       ws.send("TargetOut, ${event.timeStamp}, ${event.client.x}, ${event.client.y}, ${target.ID}, ${target.enemy ? 'enemy' : 'friend'}");
     }
   }
-  
+
   void weightsCollected(Iterable<Scale> scales) {
     // send weights to data server
     if(wsReady) {
@@ -550,14 +546,14 @@ class TaskController implements TaskEventDelegate {
       }
       ws.send("weights: ${stringify(counts)}");
     }
-    
+
     // reset weights
     weights.reset();
-    
+
     // show task view
     showTask();
   }
-  
+
   void onTrialStart(num time) {
     // ensure score is at zero
     score = 0;
@@ -566,7 +562,7 @@ class TaskController implements TaskEventDelegate {
       ws.send("TrialStart, $time");
     }
   }
-  
+
   /// log the task info for the current task
   void logTaskInfo() {
     Logger.root.info("Current task info:");
@@ -578,7 +574,7 @@ class TaskController implements TaskEventDelegate {
   /// get the new task, set up the ui, and log the task info
   void advanceBlockManagerTrial() {
     Logger.root.fine("trial over, incrementing trial");
-    
+
     bool practice = blockManager.block.practice;
     // tell manager to advance trial
     if(blockManager.advance() && !practice) {
@@ -587,11 +583,16 @@ class TaskController implements TaskEventDelegate {
     }
     if(!blockManager.finished) {
       task = blockManager.getTask(this);
-      
+
       // set up the interface based on the new task
       task.setupUI();
-      
+
       logTaskInfo();
+
+      // send trial number to server
+      if(wsReady) {
+        ws.send("set: ${stringify({'trial': useBlockManager ? blockManager.trialNumber : trial})}");
+      }
     }
   }
   void onTrialEnd(num time) {
@@ -604,7 +605,7 @@ class TaskController implements TaskEventDelegate {
     }
     // reset addition task placeholder text
     query("#addition").text = "X + Y";
-    
+
     // if we are using all blocks, increment trial / block and create new task
     if(useBlockManager) {
       advanceBlockManagerTrial();
@@ -615,11 +616,11 @@ class TaskController implements TaskEventDelegate {
       // TODO this assumes we did block settings and not all settings
       setTaskByBlockSettings();
     }
-    
+
     // remove active class from trial display
     query(".task").classes.remove("active");
   }
-  
+
   void onTargetStart(TargetEvent te, num time) {
     // send target start info to data server
     if(wsReady) {
@@ -640,15 +641,15 @@ class TaskController implements TaskEventDelegate {
       ws.send("TargetComplete, $time");
     }
   }
-  
+
   void onAdditionStart(AdditionEvent ae, num time) {
-    
+
     // send info to the data server
     if(wsReady) {
       ws.send("AdditionStart, $time, ${ae.op1}, ${ae.op2}");
     }
   }
-  
+
   void onAdditionEnd(AdditionEvent ae, num time) {
     // send info to the data server
     if(wsReady) {

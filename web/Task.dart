@@ -186,7 +186,7 @@ abstract class Task {
     }
 
     // stop after 1 minute
-    new Timer(new Duration(minutes:1, seconds: 30), stop);
+    new Timer(new Duration(minutes:0, seconds: 5), stop);
   }
   void stop() {
     // kill tasks

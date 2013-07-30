@@ -54,6 +54,22 @@ class BlockManager {
   static void _generateAllBlocks() {
     _allBlocks = [];
     var practiceBlocks = [
+      new Block(0, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.LOW_DIFFICULTY, false, true),
+      new Block(0, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.LOW_DIFFICULTY, false, true),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, null, Block.HIGH_DIFFICULTY, false, true),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.HIGH_DIFFICULTY, false, true),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY, false, true),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.HIGH_DIFFICULTY, false, true),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY, false, true),
+      ];
+    var experimentalBlocks = [
+      new Block(0, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.LOW_DIFFICULTY, false),
+      new Block(0, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.LOW_DIFFICULTY, false),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, null, Block.HIGH_DIFFICULTY, false),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.HIGH_DIFFICULTY, false),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY, false),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.HIGH_DIFFICULTY, false),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY, false),
       new Block(0, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.LOW_DIFFICULTY, true),
       new Block(0, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.LOW_DIFFICULTY, true),
       new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, null, Block.HIGH_DIFFICULTY, true),
@@ -61,15 +77,6 @@ class BlockManager {
       new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY, true),
       new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.HIGH_DIFFICULTY, true),
       new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY, true),
-      ];
-    var experimentalBlocks = [
-      new Block(0, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.LOW_DIFFICULTY),
-      new Block(0, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.LOW_DIFFICULTY),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, null, Block.HIGH_DIFFICULTY),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.HIGH_DIFFICULTY),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.HIGH_DIFFICULTY),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY),
     ];
     if(random) {
       Random rng;
@@ -123,6 +130,7 @@ class Block {
       "targetSpeed": targetSpeed,
       "additionDifficulty": additionDiff,
       "targetDifficulty": targetDiff,
+      "incentive": incentive
     };
   }
 
@@ -134,8 +142,10 @@ class Block {
   List<int> additionDiff;
   /// The target difficulty level
   int targetDiff;
+  /// Whether there is an incentive
+  bool incentive;
 
-  Block(int this.targetNumber, int this.targetSpeed, List<int> this.additionDiff, int this.targetDiff, [this.practice = false, this.trials]) {
+  Block(int this.targetNumber, int this.targetSpeed, List<int> this.additionDiff, int this.targetDiff, bool this.incentive, [this.practice = false, this.trials]) {
     trials = practice ? PRACTICE_TRIALS : EXPERIMENTAL_TRIALS;
   }
   Block.flags(bool lowTargetNumber, bool lowSpeed, bool lowAddition, bool lowDiff) {

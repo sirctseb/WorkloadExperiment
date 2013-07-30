@@ -201,6 +201,16 @@ class Server {
           // write block description to file
           blockDescFile.writeAsStringSync(stringify(info["blockDesc"]));
           Logger.root.info("data server wrote block description to file");
+
+          // send block description to cheat client
+          if(cheatClient != null) {
+            cheatClient.add(stringify({
+              'block': {
+                'number': blockNumber,
+                'desc': info['blockDesc']
+              }
+            }));
+          }
         }
       }
       // read trial if it was sent
