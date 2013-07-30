@@ -224,6 +224,41 @@ plotVert <- function(data) {
 	ggplot(data, aes(complete, fill=type,xmin=0,xmax=6)) + geom_histogram(pos="dodge", xmin=0,xmax=6)
 }
 
+exp_hist <- function(human, model, xvar, fillvar, facet, difficulty, speed, oprange) {
+	if(hasArg(human)) {
+		human = within(human, perf <- "human");
+	}
+	if(hasArg(model)) {
+		model = within(model, perf <- "model");
+	}
+	combined = rbind(human, model);
+	if(hasArg(difficulty)) {
+		combined = subset(combined, difficulty == difficulty);
+	}
+	if(hasArg(speed)) {
+		if(speed == 1) speed = 200;
+		combined = subset(combined, speed == speed);
+	}
+	if(hasArg(oprange)) {
+		if(oprange == 1) oprange = "[13 25]";
+		if(oprange == 0) oprange = "[1 12]";
+		combined = subset(combined, oprange == oprange);
+	}
+	if(!hasArg(fillvar)) fillvar = NULL;
+	eval(substitute(
+		g <- ggplot(combined, aes(xvar_, fill=fillvar_)) +
+			geom_histogram(pos="dodge"),
+		list(xvar_ = substitute(xvar), fillvar_ = substitute(fillvar))
+	));
+	if(hasArg(facet)) {
+		eval(substitute(
+			g <- g + facet_grid(facet_),
+			list(facet_ = substitute(facet))
+		));
+	}
+	g
+}
+
 # compare vertical cases between model and subject data
 compareVertCase <- function(humanData, modelData, difficultyLevel, speedLevel, oprangeLevel) {
 	# get vertical data for each
@@ -340,6 +375,31 @@ boxDualTaskValue <- function(human, model, value) {
 			geom_boxplot(notch=TRUE)# +
 			# facet_grid(oprange~difficulty~speed)
 	)
+}
+barDualTaskValue <-function(human, model, value) {
+	# combine data
+	combined = rbind(within(human, perf <- "human"), within(model, perf <- "model"))
+	varName = substitute(value)
+
+	names = levels(interaction(human$oprange, human$difficulty, human$speed));
+	labs = dlply(expand.grid(c(0,1), c(0,1), c(0,1)), .(Var1, Var2, Var3), function(df) {
+		toString(df);
+	});
+	names(labs) = names;
+
+	stats <- summarySE(combined, toString(substitute(value)), groupvars=c("oprange","difficulty","speed","perf"))
+	# eval(substitute(
+	# 	# stats <- ddply(combined, c("oprange", "difficulty", "speed", "perf"), function(df)j
+	# 	# 	return(c(avg=mean(df$expression), sd=sd(df$expression)))),
+	# 	list(expression = varName)
+	# ));
+	eval(substitute(
+		ggplot(stats, aes(x=interaction(oprange, difficulty, speed), y=expression, fill=perf)) +
+			geom_bar(pos="dodge", stat="identity") +
+			geom_errorbar(aes(ymin=expression-se, ymax=expression+se), width=0.2, position=position_dodge(0.9)) +
+			scale_x_discrete("Addition, Difficulty, Speed", labels = labs),
+		list(expression=varName)
+	));
 }
 getDualCase <- function(data, diff, speed, oprange) {
 	subset(getVertCase(data, diff, speed, oprange), type == "main")
@@ -736,4 +796,46 @@ getConcurrencyVec <- function(completionTimes, additionTime, targetTime) {
 	# high value
 	high = additionTime + targetTime
 	((completionTimes - high) / (low - high))
+}
+
+## Summarizes data.
+## Gives count, mean, standard deviation, standard error of the mean, and confidence interval (default 95%).
+##   data: a data frame.
+##   measurevar: the name of a column that contains the variable to be summariezed
+##   groupvars: a vector containing names of columns that contain grouping variables
+##   na.rm: a boolean that indicates whether to ignore NA's
+##   conf.interval: the percent range of the confidence interval (default is 95%)
+summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
+                      conf.interval=.95, .drop=TRUE) {
+
+    # New version of length which can handle NA's: if na.rm==T, don't count them
+    length2 <- function (x, na.rm=FALSE) {
+        if (na.rm) sum(!is.na(x))
+        else       length(x)
+    }
+
+    # This is does the summary; it's not easy to understand...
+    datac <- ddply(data, groupvars, .drop=.drop,
+                   .fun= function(xx, col, na.rm) {
+                           c( N    = length2(xx[,col], na.rm=na.rm),
+                              mean = mean   (xx[,col], na.rm=na.rm),
+                              sd   = sd     (xx[,col], na.rm=na.rm)
+                              )
+                          },
+                    measurevar,
+                    na.rm
+             )
+
+    # Rename the "mean" column    
+    datac <- rename(datac, c("mean"=measurevar))
+
+    datac$se <- datac$sd / sqrt(datac$N)  # Calculate standard error of the mean
+
+    # Confidence interval multiplier for standard error
+    # Calculate t-statistic for confidence interval: 
+    # e.g., if conf.interval is .95, use .975 (above/below), and use df=N-1
+    ciMult <- qt(conf.interval/2 + .5, datac$N-1)
+    datac$ci <- datac$se * ciMult
+
+    return(datac)
 }
