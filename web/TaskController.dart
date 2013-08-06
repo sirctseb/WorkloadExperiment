@@ -431,6 +431,10 @@ class TaskController implements TaskEventDelegate {
           Logger.root.info("requesting cheat values from server");
           ws.send(stringify({"request": "cheat"}));
         });
+    } else if(event.which == "q".codeUnitAt(0)) {
+      if(wsReady) {
+        ws.send("AdditionWrong, ${event.timeStamp}");
+      }
     }
   }
 
