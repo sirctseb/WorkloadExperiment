@@ -69,8 +69,8 @@ class FixedTargetEvent extends TargetEvent {
 
     // discard starting points that have no other points within the rect a the given distance
     while(additionCircle.contains(new Point(x, y))) {
-      x = rng.nextInt(document.body.clientWidth);
-      y = rng.nextInt(document.body.clientHeight);
+      x = rng.nextInt(document.body.clientWidth - target.width) + target.width/2;
+      y = rng.nextInt(document.body.clientHeight - target.height) + target.height/2;
     }
 
     print("starting target event");
