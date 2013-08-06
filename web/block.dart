@@ -58,9 +58,7 @@ class BlockManager {
       new Block(0, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY, false, true),
       new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, null, Block.HIGH_DIFFICULTY, false, true),
       new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.HIGH_DIFFICULTY, false, true),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY, false, true),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.HIGH_DIFFICULTY, false, true),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY, false, true),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY, false, true)
       ];
     var experimentalBlocks = [
       new Block(0, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.HIGH_DIFFICULTY, false),
@@ -68,15 +66,11 @@ class BlockManager {
       new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, null, Block.HIGH_DIFFICULTY, false),
       new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.HIGH_DIFFICULTY, false),
       new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY, false),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.HIGH_DIFFICULTY, false),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY, false),
       new Block(0, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.HIGH_DIFFICULTY, true),
       new Block(0, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY, true),
       new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, null, Block.HIGH_DIFFICULTY, true),
       new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.HIGH_DIFFICULTY, true),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY, true),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.LOW_OPERANDS, Block.HIGH_DIFFICULTY, true),
-      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY, true),
+      new Block(Block.HIGH_TARGET_NUMBER, Block.LOW_SPEED, Block.HIGH_OPERANDS, Block.HIGH_DIFFICULTY, true)
     ];
     if(random) {
       Random rng;
