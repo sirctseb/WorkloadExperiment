@@ -61,10 +61,19 @@ class FixedTargetEvent extends TargetEvent {
   }
 
   void start() {
+    var additionCircle = new Circle(new Point(document.body.clientWidth/2, document.body.clientHeight/2), 300);
+
+    // get random start point
+    x = rng.nextInt(document.body.clientWidth - target.width) + target.width/2;
+    y = rng.nextInt(document.body.clientHeight - target.height) + target.height/2;
+
+    // discard starting points that have no other points within the rect a the given distance
+    while(additionCircle.contains(new Point(x, y))) {
+      x = rng.nextInt(document.body.clientWidth);
+      y = rng.nextInt(document.body.clientHeight);
+    }
+
     print("starting target event");
-    // put target at random place on screen
-    num x = rng.nextInt(document.body.clientWidth - target.width) + target.width/2;
-    num y = rng.nextInt(document.body.clientHeight - target.height) + target.height/2;
     target.move(x, y);
     // show the target
     target.show();
