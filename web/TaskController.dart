@@ -572,6 +572,8 @@ class TaskController implements TaskEventDelegate {
     showTask();
 
     // show final score
+    // make sure addition isn't hidden when last trial is targeting only by removing that class
+    document.body.classes.remove("targeting-only");
     query("#addition").text = "\$${totalScore.toStringAsFixed(2)}";
   }
 
