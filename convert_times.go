@@ -154,7 +154,7 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 	startRE, _ := regexp.Compile(`TargetStart, ([\d\.]+), (\d+), (\d+), (\d+)`)
 	targetCompleteRE, _ := regexp.Compile(`TargetComplete, ([\d\.]+)`)
 	additionStartRE, _ := regexp.Compile(`AdditionStart, ([\d\.]+), (\d*), (\d*)`)
-	additionRE, _ := regexp.Compile(`AdditionCorrect, ([\d\.]+)`)
+	additionRE, _ := regexp.Compile(`AdditionEnd, ([\d\.]+)`)
 	mouseMoveRE, _ := regexp.Compile(`MouseMove, ([\d\.]+), (\d+), (\d+)`)
 	friendHitRE, _ := regexp.Compile(`FriendHit, `)
 	shotRE, _ := regexp.Compile(`MouseDown, `)
