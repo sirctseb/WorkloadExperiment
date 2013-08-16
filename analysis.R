@@ -223,15 +223,14 @@ getAll <- function(data, subjects) {
 	do.call(rmerge, llply(subjects, function(subject) {getVertical(data, subject)}));
 }
 # get the addition, targeting, and dual-task data for a given (oprange, speed, difficulty) condition
-getVertCase <- function(data, difficultyLevel, speedLevel, oprangeLevel) {
+getVertCase <- function(data, oprangeLevel, incentiveLevel) {
 	# be forgiving with level names
 	if(oprangeLevel == 0 | oprangeLevel == "low") oprangeLevel = "[1 12]";
 	if(oprangeLevel == 1 | oprangeLevel == "high") oprangeLevel = "[13 25]";
-	if(speedLevel == 1 | speedLevel == "high") speedLevel = 200;
+	# force to string
+	incentiveLevel = ifelse(!!incentiveLevel, "true", "false")
 	# get subset
-	subset(data, (difficulty == difficultyLevel | is.na(difficulty)) &
-				 (speed == speedLevel | is.na(speed)) &
-				 (oprange == oprangeLevel | is.na(oprange)));
+	subset(data, (incentive == incentiveLevel) & (oprange == oprangeLevel | is.na(oprange)));
 }
 # plot the completion times for the addition, targeting, and combined tasks from a vertical case data frame
 plotVert <- function(data) {
