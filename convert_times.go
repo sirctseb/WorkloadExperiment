@@ -384,7 +384,7 @@ func printTaskData(subject int, block, trial string) {
 
 func printRHeader(file *os.File) {
 	// TODO we should really read this from the file in case any of the parameters change
-	fmt.Fprintln(file, "practice, targets, speed, oprange, difficulty, addition, target, hits, friendHits, shots, hovers, op1, op2, block")
+	fmt.Fprintln(file, "practice, targets, speed, oprange, difficulty, addition, target, hits, friendHits, shots, hovers, op1, op2, block, incentive")
 }
 
 func printAccuracy(contents string) {
@@ -434,6 +434,7 @@ type IVLevels struct {
 	AdditionDifficulty []int
 	TargetDifficulty   int
 	Practice           bool
+	Incentive          bool
 }
 
 func getBlockIVLevels(subject int, block string) *IVLevels {
@@ -568,13 +569,13 @@ func main() {
 
 				// TODO magic number 12 iterations should be looked up
 				for index := 0; index < iterations; index++ {
-					fmt.Fprintf(result_file, "%t, %d, %d, %v, %d, %f, %f, %d, %d, %d, %d, %d, %d, %s\n",
+					fmt.Fprintf(result_file, "%t, %d, %d, %v, %d, %f, %f, %d, %d, %d, %d, %d, %d, %s, %t\n",
 						levels.Practice,
 						levels.TargetNumber, levels.TargetSpeed, levels.AdditionDifficulty, levels.TargetDifficulty,
 						times["addition"][index], times["target"][index], int(times["hits"][index]),
 						int(times["friendHits"][index]), int(times["shots"][index]),
 						int(times["friendHovers"][index]), int(times["op1"][index]), int(times["op2"][index]),
-						block)
+						block, levels.Incentive)
 				}
 			}
 		}
