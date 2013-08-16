@@ -616,6 +616,10 @@ assembleData <- function(subject) {
 	mainData$singleDigit <- singleDigit(mainData$op1, mainData$op2)
 	mainData$bothSingle <- mainData$op1 < 10 & mainData$op2 < 10
 
+	# change -1 indicators to NA
+	mainData$addition[mainData$addition == -1] <- NA
+	mainData$target[mainData$target == -1] <- NA
+
 	# add misses
 	mainData$misses = mainData$shots - mainData$hits - mainData$friendHits
 
