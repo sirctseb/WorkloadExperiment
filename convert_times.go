@@ -437,9 +437,9 @@ type IVLevels struct {
 	Incentive          bool
 }
 
-func getBlockIVLevels(subject int, block string) *IVLevels {
+func getBlockIVLevels(subject int, block string, rootDir string) *IVLevels {
 	// get file object
-	if fi, err := os.Open(fmt.Sprintf("output/subject%d/%s/block.txt", subject, block)); err == nil {
+	if fi, err := os.Open(fmt.Sprintf("%soutput/subject%d/%s/block.txt", rootDir, subject, block)); err == nil {
 		//decoder := json.NewDecoder(bufio.NewReader(fi))
 		bytes, _ := ioutil.ReadAll(bufio.NewReader(fi))
 
@@ -462,6 +462,7 @@ func main() {
 	var practice bool
 	var blockName string
 	var trialNum int
+	var rootDir string
 
 	// get subject and trial from command line ifassed
 	flag.IntVar(&subject, "s", 5, "The number of the subject")
@@ -470,19 +471,21 @@ func main() {
 	flag.BoolVar(&practice, "practice", false, "set to practice")
 	flag.StringVar(&blockName, "block", "", "Specify a block to output")
 	flag.IntVar(&trialNum, "trial", -1, "Specify a trial to output")
+	flag.StringVar(&rootDir, "root", ".", "Specify the directory that contains output/")
 	flag.Parse()
+	rootDir = fmt.Sprint(rootDir, "/")
 
 	var blocks []string
 	if blockName == "" {
-		blocks = blocksInDir(fmt.Sprintf("output/subject%d", subject))
+		blocks = blocksInDir(fmt.Sprintf("%soutput/subject%d", rootDir, subject))
 	} else {
 		blocks = []string{blockName}
 	}
 
 	// create output file object
-	result_file, err := os.Create(fmt.Sprintf("output/subject%d/r1.txt", subject))
+	result_file, err := os.Create(fmt.Sprintf("%soutput/subject%d/r1.txt", rootDir, subject))
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error creating file output/subject%d/r1.txt", subject)
+		fmt.Fprintf(os.Stderr, "error creating file %soutput/subject%d/r1.txt", rootDir, subject)
 		panic("error creating file")
 	}
 
@@ -494,12 +497,12 @@ func main() {
 	for _, block := range blocks {
 
 		// get block IV levels now if we're not in practice block
-		levels = getBlockIVLevels(subject, block)
+		levels = getBlockIVLevels(subject, block, rootDir)
 
 		//	trials := []int{1,2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
 		var trials []string
 		if trialNum == -1 {
-			trials = trialsInDir(fmt.Sprintf("output/subject%d/%s", subject, block))
+			trials = trialsInDir(fmt.Sprintf("%soutput/subject%d/%s", rootDir, subject, block))
 		} else {
 			trials = []string{fmt.Sprintf("trial%d", trialNum)}
 		}
@@ -510,7 +513,7 @@ func main() {
 			//fmt.Printf("subject, %d, block %s, trial, %s\n", subject, block, trial)
 
 			// make file object
-			file, _ := os.Open(fmt.Sprintf("output/subject%d/%s/%s/data.txt", subject, block, trial))
+			file, _ := os.Open(fmt.Sprintf("%soutput/subject%d/%s/%s/data.txt", rootDir, subject, block, trial))
 
 			// get file contents
 			buffer, _ := ioutil.ReadAll(bufio.NewReader(file))
