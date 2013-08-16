@@ -701,43 +701,6 @@ assembleData <- function(subject) {
 			mean = c(targetLowLowMean, targetLowHighMean, targetHighLowMean, targetHighHighMean))
 	}
 
-	if(nrow(targetingData) > 0 & nrow(additionData) > 0) {
-
-		# compute concurrency
-		mainData$concurrency[mainData$difficulty==difficultyLow & mainData$speed==speedLow & mainData$oprange==oprangeLow] <-
-			getConcurrencyVec(mainData$complete[mainData$difficulty==difficultyLow & mainData$speed==speedLow & mainData$oprange==oprangeLow], additionLowMean, targetLowLowMean)
-		mainData$concurrency[mainData$difficulty==difficultyHigh & mainData$speed==speedLow & mainData$oprange==oprangeLow] <-
-			getConcurrencyVec(mainData$complete[mainData$difficulty==difficultyHigh & mainData$speed==speedLow & mainData$oprange==oprangeLow], additionLowMean, targetLowHighMean)
-		mainData$concurrency[mainData$difficulty==difficultyLow & mainData$speed==speedHigh & mainData$oprange==oprangeLow] <-
-			getConcurrencyVec(mainData$complete[mainData$difficulty==difficultyLow & mainData$speed==speedHigh & mainData$oprange==oprangeLow], additionLowMean, targetHighLowMean)
-		mainData$concurrency[mainData$difficulty==difficultyHigh & mainData$speed==speedHigh & mainData$oprange==oprangeLow] <-
-			getConcurrencyVec(mainData$complete[mainData$difficulty==difficultyHigh & mainData$speed==speedHigh & mainData$oprange==oprangeLow], additionLowMean, targetHighHighMean)
-		mainData$concurrency[mainData$difficulty==difficultyLow & mainData$speed==speedLow & mainData$oprange==oprangeHigh] <-
-			getConcurrencyVec(mainData$complete[mainData$difficulty==difficultyLow & mainData$speed==speedLow & mainData$oprange==oprangeHigh], additionHighMean, targetLowLowMean)
-		mainData$concurrency[mainData$difficulty==difficultyHigh & mainData$speed==speedLow & mainData$oprange==oprangeHigh] <-
-			getConcurrencyVec(mainData$complete[mainData$difficulty==difficultyHigh & mainData$speed==speedLow & mainData$oprange==oprangeHigh], additionHighMean, targetLowHighMean)
-		mainData$concurrency[mainData$difficulty==difficultyLow & mainData$speed==speedHigh & mainData$oprange==oprangeHigh] <-
-			getConcurrencyVec(mainData$complete[mainData$difficulty==difficultyLow & mainData$speed==speedHigh & mainData$oprange==oprangeHigh], additionHighMean, targetHighLowMean)
-		mainData$concurrency[mainData$difficulty==difficultyHigh & mainData$speed==speedHigh & mainData$oprange==oprangeHigh] <-
-			getConcurrencyVec(mainData$complete[mainData$difficulty==difficultyHigh & mainData$speed==speedHigh & mainData$oprange==oprangeHigh], additionHighMean, targetHighHighMean)
-
-		# compute concurrency in a loop
-		for(o in unique(mainData$oprange)) {
-			for(d in unique(mainData$difficulty)) {
-				for(s in unique(mainData$speed)) {
-					mainData$concurrency2[mainData$oprange == o & mainData$difficulty == d & mainData$speed == s] <-
-					getConcurrencyVec(mainData$complete[mainData$oprange == o & mainData$difficulty == d & mainData$speed == s],
-						additionMeans$mean[additionMeans$oprange == o],
-						targetMeans$mean[targetMeans$speed == s & targetMeans$difficulty == d])
-				}
-			}
-		}
-
-		# test that loop produces same as flat
-		print("concurrencies equal:")
-		print(all(mainData$concurrency == mainData$concurrency2))
-	}
-
 	# return results in a list
 	return(list(
 		main = mainData,
@@ -747,10 +710,36 @@ assembleData <- function(subject) {
 		))
 }
 
-getConcurrencyVec <- function(completionTimes, additionTime, targetTime) {
-	# low value
-	low = max(additionTime, targetTime)
-	# high value
-	high = additionTime + targetTime
-	((completionTimes - high) / (low - high))
+concurrency <- function(vert) {
+	cases = expand.grid(c(0,1), c(0,1))
+	names(cases) = c("oprange", "incentive")
+	ddply(cases, .(incentive, oprange), function(df) {
+		datadf = getVertCase(vert, df$oprange, df$incentive)
+		data.frame(incentive = datadf$incentive[1],
+			oprange = datadf$oprange[1],
+			concurrency = concByCase(datadf),
+			additionSingle = mean(subset(datadf, type == "addition")$addition),
+			additionDual = mean(subset(datadf, type == "main")$addition, na.rm = TRUE),
+			targetSingle = mean(subset(datadf, type == "targeting")$target),
+			targetDual = mean(subset(datadf, type == "main")$target, na.rm = TRUE))
+	})
+}
+concByCase <- function(caseData, vertData, oprange, incentive) {
+	if(is.null(caseData)) {
+		caseData <- getVertCase(vertData, oprange, incentive)
+	}
+	targeting = subset(caseData, type == "targeting")
+	addition = subset(caseData, type == "addition")
+	main = subset(caseData, type == "main")
+	AT = mean(addition$addition, na.rm = TRUE)
+	TT = mean(targeting$target, na.rm = TRUE)
+	DAT = mean(main$addition, na.rm = TRUE)
+	DTT = mean(main$target, na.rm = TRUE)
+	# EAT = DAT - AT
+	# ETT = DTT - AT
+	# WAT = DAT - EAT
+	# WTT = DTT - ETT
+	# 1 - (EAT + ETT / (WAT + WTT))
+	# TODO double check that these are equivalent
+	1 - ((DAT + DTT - AT - TT) / (AT + TT))
 }
