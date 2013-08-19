@@ -297,7 +297,7 @@ compareSingleTasks <- function(human, model) {
 	# separate data
 	human = within(human, perf <- "human")
 	model = within(model, perf <- "model")
-	f = dlply(subset(rbind(human,model), type != "main"), .(type, speed, difficulty, oprange),
+	f = dlply(subset(rbind(human,model), type != "main"), .(type, oprange),
 		function(df) {
 			i <- sapply(df, is.factor)
 			df[i] <- lapply(df[i], as.character)
@@ -306,7 +306,7 @@ compareSingleTasks <- function(human, model) {
 			print(
 				ggplot(df, aes(complete, fill=perf)) +
 				geom_histogram(pos="dodge") +
-				labs(title = paste0(df[1,c("type","speed","difficulty","oprange")],collapse=" "))
+				labs(title = paste0(df[1,c("type","oprange")],collapse=" "))
 			)
 		})
 }
