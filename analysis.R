@@ -711,12 +711,11 @@ assembleData <- function(subject) {
 }
 
 concurrency <- function(vert) {
-	cases = expand.grid(c(0,1), c(0,1))
-	names(cases) = c("oprange", "incentive")
-	ddply(cases, .(incentive, oprange), function(df) {
-		datadf = getVertCase(vert, df$oprange, df$incentive)
-		data.frame(incentive = datadf$incentive[1],
-			oprange = datadf$oprange[1],
+	cases = expand.grid(c(0,1), c(0,1), levels(vert$subject))
+	names(cases) = c("oprange", "incentive", "subject")
+	ddply(cases, .(incentive, oprange, subject), function(df) {
+		datadf = subset(getVertCase(vert, df$oprange, df$incentive), subject == df$subject)
+		data.frame(
 			concurrency = concByCase(datadf),
 			additionSingle = mean(subset(datadf, type == "addition")$addition),
 			additionDual = mean(subset(datadf, type == "main")$addition, na.rm = TRUE),
