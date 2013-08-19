@@ -742,3 +742,67 @@ concByCase <- function(caseData, vertData, oprange, incentive) {
 	# TODO double check that these are equivalent
 	1 - ((DAT + DTT - AT - TT) / (AT + TT))
 }
+
+exp2Results <-function(data) {
+	ret = list()
+	# incentive / oprange effects on single task execution time
+	ret$single = singleTaskIVEffects(data);
+	# incentive / oprange effects on dual task execution time
+	ret$dual = dualTaskIVEffects(data);
+	# incentive effect on concurrency
+	ret$concurrency = incentiveConcurrency(data);
+	# TODO investigative things explaining lack of concurrency increase
+
+	ret
+}
+singleTaskIVEffects <- function(data) {
+	ret = list()
+
+	ret$addition = list()
+	# addition time aov by oprange and incentive
+	# TODO subject in anova?
+	ret$addition$aov = aov(addition~oprange*incentive, subset(data, type == "addition"))
+	# t tests of addition times by incentive in each difficulty case
+	ret$addition$lowByIncentive = t.test(addition~incentive, subset(data, type == "addition" & oprange == "[1 12]"))
+	ret$addition$highByIncentive = t.test(addition~incentive, subset(data, type == "addition" & oprange == "[13 25]"))
+
+	ret$targeting = list()
+	ret$targeting$aov = aov(target~incentive, subset(data, type == "targeting"))
+
+	ret
+}
+dualTaskIVEffects <- function(data) {
+	ret = list()
+
+	ret$addition = list()
+	ret$addition$aov = aov(addition~oprange*incentive, subset(data, type == "main"))
+	ret$addition$lowByIncetive = t.test(addition~incentive, subset(data, type == "main" & oprange == "[1 12]"))
+	ret$addition$highByIncentive = t.test(addition~incentive, subset(data, type == "main" & oprange == "[13 25]"))
+
+	ret$targeting = list()
+	ret$targeting$aov = aov(target~incentive, subset(data, type == "main"))
+
+	# calculate target and addition mean by subjectxblock
+	ret$tradeoff = ddply(subset(data, type == "main"), .(subject, block, incentive, oprange), function(df) {
+		data.frame(addition = mean(df$addition, na.rm = TRUE), target = mean(df$target, na.rm = TRUE))
+		})
+	ret$tradeoff.plot = ggplot(ret$tradeoff, aes(addition, target, shape=incentive, color=subject)) + geom_point()
+
+	# effect of completion times on incentive effect:
+	# create a dataframe with the mean addition and target times for unincentivized block by subjectxoprange
+	# and add a column with the addition and target time differences between incentivization added together
+	# this is to look at whether absolute performance effects increase in performance from incentivization
+	ret$command = ddply(ret$tradeoff, .(subject, oprange), function(df) {
+		within(df[df$incentive == 'false',], {
+			incentiveEffect <- sum(df[1,c('addition', 'target')]-df[2,c('addition','target')])
+			additionIncentive <- df[df$incentive == 'true', 'addition']
+			targetIncentive <- df[df$incentive == 'true', 'target']})
+	})
+	ret$command.plot = ret$tradeoff.plot + geom_segment(data = ret$command,
+		aes(x = addition, xend = additionIncentive, y = target, yend = targetIncentive))
+
+	ret
+}
+incentiveConcurrency <- function(data) {
+	0
+}
