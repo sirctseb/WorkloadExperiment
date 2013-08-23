@@ -2,6 +2,7 @@ library DataServer;
 import "dart:io";
 import "dart:json";
 import "package:logging/logging.dart";
+import "package:path/path.dart";
 
 void main() {
   Server server = new Server();
@@ -125,11 +126,12 @@ class Server {
         if(request["cmd"] == "replay" && request["data"] == "datafile") {
           Logger.root.info("got request for data file in ${request['path']}");
           // load the block description file
-          new File.fromPath(new Path(request["path"]).directoryPath.append("block.txt"))
+          // TODO should use path.join for these but it works as is
+          new File('${request["path"]}/block.txt')
             .readAsString()
             .then((blockContent) {
               // load the data file and send contents back
-              new File.fromPath(new Path(request["path"]).append("data.txt"))
+              new File('${request["path"]}/data.txt')
                 .readAsString()
                 .then((content) {
                   Logger.root.info("finished reading file, sending to client");
@@ -140,18 +142,18 @@ class Server {
           // read the list of subjects and respond
           socket.add(
             stringify({"data": "subjects",
-              "subjects": new Directory("output").listSync().where((entry) => entry is Directory).map((dir) => {"name": new Path(dir.path).filename}).toList()})
+              "subjects": new Directory("output").listSync().where((entry) => entry is Directory).map((dir) => {"name": basename(dir.path)}).toList()})
           );
         } else if(request["cmd"] == "blocks") {
           // read the list of blocks and respond
           socket.add(
             stringify({"data": "blocks",
-              "blocks": new Directory.fromPath(new Path("output").append(request["subject"]))
+              "blocks": new Directory("output/${request['subject']}")
                 .listSync().where((entry) => entry is Directory).map(
                     (dir) {
                       // read the block description file
-                      var blockDesc = parse(new File.fromPath(new Path("${dir.path}/block.txt")).readAsStringSync());
-                      return {"name": new Path(dir.path).filename, "subject": request["subject"],
+                      var blockDesc = parse(new File('${dir.path}/block.txt').readAsStringSync());
+                      return {"name": basename(dir.path), "subject": request["subject"],
                         "blockDesc": blockDesc};
                     }
                  ).toList()})
@@ -160,9 +162,9 @@ class Server {
           // read the list of trials and respond
           socket.add(
             stringify({"data": "trials",
-              "trials": new Directory.fromPath(new Path("output").append(request["subject"]).append(request["block"]))
+              "trials": new Directory('output/' + request['subject'] + '/' + request['block'])
                 .listSync().where((entry) => entry is Directory).map((dir) =>
-                    {"name": new Path(dir.path).filename, "subject": request["subject"], "block": request["block"]}).toList()})
+                    {"name": basename(dir.path), "subject": request["subject"], "block": request["block"]}).toList()})
           );
         }
       } on FormatException catch(e) {
@@ -189,7 +191,7 @@ class Server {
           Logger.root.info("data server got block description");
 
           // make file object
-          File blockDescFile = new File.fromPath(new Path(blockDescPathStr));
+          File blockDescFile = new File(blockDescPathStr);
 
           Logger.root.info("made block desc file object; ensuring dir exists");
 
@@ -226,7 +228,7 @@ class Server {
       // TODO make sure directory exists?
 
       // create file object
-      File surveyFile = new File.fromPath(new Path(surveyPathStr));
+      File surveyFile = new File(surveyPathStr);
 
       // write survey to file
       surveyFile.writeAsString(message);
@@ -239,7 +241,7 @@ class Server {
       // TODO make sure directory exists?
 
       // create file object
-      File weightsFile = new File.fromPath(new Path(weightsPathStr));
+      File weightsFile = new File(weightsPathStr);
 
       // write weights to file
       weightsFile.writeAsString(message);
@@ -249,8 +251,7 @@ class Server {
       Logger.root.info("data server received start trial message");
 
       // create data file object
-      Path dataFilePath = new Path(dataFilePathStr);
-      dataFile = new File.fromPath(dataFilePath);
+      dataFile = new File(dataFilePathStr);
 
       // create directory
       new Directory(trialDirStr).createSync(recursive:true);
@@ -259,7 +260,7 @@ class Server {
       sink = dataFile.openWrite();
 
       // write task description to separate file
-      new File.fromPath(dataFilePath.directoryPath.append("task.txt")).writeAsString(message);
+      new File(dirname(dataFilePathStr) + '/task.txt').writeAsString(message);
 
       // start recording
       Logger.root.info("starting recording");

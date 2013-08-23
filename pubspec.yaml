@@ -1,9 +1,7 @@
 name: WorkloadTask
 description: A sample application
 dependencies:
-  unittest: any
   browser: any
   logging: any
-
-#dependencies:
-#  unittest: { sdk: unittest }
+  path: any
+  unittest: any
