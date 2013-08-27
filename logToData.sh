@@ -1,6 +1,6 @@
 #!/bin/bash
 
-root=/Volumes/home
+root=/Volumes/cjbest
 # root=~/Google\ Drive
 # root=~/Desktop/unison-transfer
 
