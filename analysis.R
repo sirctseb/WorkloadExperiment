@@ -710,13 +710,20 @@ assembleData <- function(subject) {
 		))
 }
 
+se <- function(data) {
+	sqrt(var(data, na.rm = TRUE)/length(data))
+}
 concurrency <- function(vert) {
 	cases = expand.grid(c(0,1), c(0,1), levels(vert$subject))
 	names(cases) = c("oprange", "incentive", "subject")
 	ddply(cases, .(incentive, oprange, subject), function(df) {
 		datadf = subset(getVertCase(vert, df$oprange, df$incentive), subject == df$subject)
+		conc <- concByCase(datadf)
 		data.frame(
-			concurrency = concByCase(datadf),
+			concurrency = conc$concurrency,
+			concurrencySE = conc$se,
+			concLow = conc$concurrency - 2*conc$se,
+			concHigh = conc$concurrency + 2*conc$se,
 			additionSingle = mean(subset(datadf, type == "addition")$addition),
 			additionDual = mean(subset(datadf, type == "main")$addition, na.rm = TRUE),
 			targetSingle = mean(subset(datadf, type == "targeting")$target),
@@ -724,6 +731,7 @@ concurrency <- function(vert) {
 	})
 }
 concByCase <- function(caseData, vertData, oprange, incentive) {
+	ret = list()
 	if(is.null(caseData)) {
 		caseData <- getVertCase(vertData, oprange, incentive)
 	}
@@ -731,16 +739,24 @@ concByCase <- function(caseData, vertData, oprange, incentive) {
 	addition = subset(caseData, type == "addition")
 	main = subset(caseData, type == "main")
 	AT = mean(addition$addition, na.rm = TRUE)
+	ATse <- se(addition$addition)
 	TT = mean(targeting$target, na.rm = TRUE)
+	TTse <- se(targeting$target)
 	DAT = mean(main$addition, na.rm = TRUE)
+	DATse <- se(main$addition)
 	DTT = mean(main$target, na.rm = TRUE)
+	DTTse <- se(main$target)
 	# EAT = DAT - AT
 	# ETT = DTT - AT
 	# WAT = DAT - EAT
 	# WTT = DTT - ETT
 	# 1 - (EAT + ETT / (WAT + WTT))
 	# TODO double check that these are equivalent
-	1 - ((DAT + DTT - AT - TT) / (AT + TT))
+	ret$concurrency <- 1 - ((DAT + DTT - AT - TT) / (AT + TT))
+	numse <- sqrt(sum(c(DATse, DTTse, ATse, TTse)^2))
+	dense <- sqrt(sum(c(ATse, TTse)^2))
+	ret$se <- ((DAT + DTT - AT - TT) / (AT + TT)) * sqrt(sum(c(numse/(DAT + DTT - AT - TT), dense / (AT + TT))^2))
+	ret
 }
 
 exp2Results <-function(data) {
