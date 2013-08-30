@@ -66,9 +66,9 @@ getTLX <- function(subject) {
 			# } else {
 			# 	block$additionDifficulty = NA
 			# }
-			res = c(unlist(block[c("targetDifficulty", "targetSpeed", "additionDifficulty")]), unlist(results), sum(unlist(results)), unlist(results) %*% unlist(weights) / 15 )
+			res = c(unlist(block[c("targetDifficulty", "incentive", "additionDifficulty")]), unlist(results), sum(unlist(results)), unlist(results) %*% unlist(weights) / 15 )
 			})
-	colnames(df) = c("difficulty", "speed", "oprange", "mental", "physical", "temporal", "performance", "effort", "frustration", "sum", "weighted")
+	colnames(df) = c("difficulty", "incentive", "oprange", "mental", "physical", "temporal", "performance", "effort", "frustration", "sum", "weighted")
 	df[!is.na(df$oprange) & df$oprange == 0, ]$oprange = "[1 12]"
 	df[!is.na(df$oprange) & df$oprange == 1, ]$oprange = "[13 25]"
 	df
@@ -782,8 +782,32 @@ singleTaskIVEffects <- function(data) {
 	ret$addition$lowByIncentive = t.test(addition~incentive, subset(data, type == "addition" & oprange == "[1 12]"))
 	ret$addition$highByIncentive = t.test(addition~incentive, subset(data, type == "addition" & oprange == "[13 25]"))
 
+	# effect is negative when the unincentivized trials have higher times, so the effect is strong
+	ret$addition$skill.low <- ddply(subset(data, type == 'addition' & oprange == '[1 12]'), .(subject), function(df) {
+		data.frame(skill = mean(df$addition),
+					effect = mean(df[df$incentive == 'true','addition']) - mean(df[df$incentive == 'false', 'addition']))
+	})
+	ret$addition$skill.low.plot = ggplot(ret$addition$skill.low, aes(x = skill, y = effect, color=subject)) + geom_point()
+
+	ret$addition$skill.high = ddply(subset(data, type == 'addition' & oprange == '[13 25]'), .(subject), function(df) {
+		data.frame(skill = mean(df$addition),
+					effect = mean(df[df$incentive == 'true', 'addition']) - mean(df[df$incentive == 'false', 'addition']))
+	})
+	ret$addition$skill.high.plot = ggplot(ret$addition$skill.high, aes(x = skill, y = effect, color=subject)) + geom_point()
+
 	ret$targeting = list()
 	ret$targeting$aov = aov(target~incentive, subset(data, type == "targeting"))
+
+	ret$tradeoff = ddply(subset(data, type != 'main'), .(subject, incentive), function(df) {
+		data.frame(additionLow = mean(subset(df, oprange == '[1 12]')$addition, na.rm = TRUE),
+					additionHigh = mean(subset(df, oprange == '[13 25]')$addition, na.rm = TRUE),
+					target = mean(df$target, na.rm = TRUE))
+		})
+
+	ret$tradeoffLow.plot = ggplot(ret$tradeoff, aes(additionLow, target, shape=incentive, color=subject)) +
+		geom_point()
+	ret$tradeoffHigh.plot = ggplot(ret$tradeoff, aes(additionHigh, target, shape=incentive, color=subject)) +
+		geom_point()
 
 	ret
 }
@@ -792,7 +816,7 @@ dualTaskIVEffects <- function(data) {
 
 	ret$addition = list()
 	ret$addition$aov = aov(addition~oprange*incentive, subset(data, type == "main"))
-	ret$addition$lowByIncetive = t.test(addition~incentive, subset(data, type == "main" & oprange == "[1 12]"))
+	ret$addition$lowByIncentive = t.test(addition~incentive, subset(data, type == "main" & oprange == "[1 12]"))
 	ret$addition$highByIncentive = t.test(addition~incentive, subset(data, type == "main" & oprange == "[13 25]"))
 
 	ret$targeting = list()
@@ -802,20 +826,23 @@ dualTaskIVEffects <- function(data) {
 	ret$tradeoff = ddply(subset(data, type == "main"), .(subject, block, incentive, oprange), function(df) {
 		data.frame(addition = mean(df$addition, na.rm = TRUE), target = mean(df$target, na.rm = TRUE))
 		})
-	ret$tradeoff.plot = ggplot(ret$tradeoff, aes(addition, target, shape=incentive, color=subject)) + geom_point()
-
 	# effect of completion times on incentive effect:
 	# create a dataframe with the mean addition and target times for unincentivized block by subjectxoprange
 	# and add a column with the addition and target time differences between incentivization added together
 	# this is to look at whether absolute performance effects increase in performance from incentivization
+	# incentiveEffect is positive when subjects do better with incentive
 	ret$command = ddply(ret$tradeoff, .(subject, oprange), function(df) {
 		within(df[df$incentive == 'false',], {
-			incentiveEffect <- sum(df[1,c('addition', 'target')]-df[2,c('addition','target')])
+			incentiveEffect <- sum(df[df$incentive == 'false',c('addition', 'target')]-df[df$incentive == 'true',c('addition','target')])
 			additionIncentive <- df[df$incentive == 'true', 'addition']
-			targetIncentive <- df[df$incentive == 'true', 'target']})
+			targetIncentive <- df[df$incentive == 'true', 'target']
+			meanTime <- mean(c(df[, c('addition', 'target')],recursive=TRUE))
+			})
 	})
-	ret$command.plot = ret$tradeoff.plot + geom_segment(data = ret$command,
-		aes(x = addition, xend = additionIncentive, y = target, yend = targetIncentive))
+	ret$tradeoff.plot = ggplot(ret$tradeoff, aes(addition, target, shape=incentive, color=subject)) +
+		geom_point() +
+		geom_segment(data = ret$command,
+			aes(x = addition, xend = additionIncentive, y = target, yend = targetIncentive))
 
 	ret
 }
