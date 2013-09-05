@@ -213,10 +213,12 @@ abstract class Task {
 
   /// End the current addition task
   void endAdditionEvent() {
-    // stop the addition event
-    additionEvent.stop();
-    // restart it
-    additionEvent.restart();
+    if(additionEvent != null) {
+      // stop the addition event
+      additionEvent.stop();
+      // restart it
+      additionEvent.restart();
+    }
   }
   /// notification that a target was clicked
   void targetClicked() {
