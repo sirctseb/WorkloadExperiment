@@ -74,7 +74,10 @@ class TaskController implements TaskEventDelegate {
     // update warning on state changes
     ..onOpen.listen(WarnWS)
     ..onError.listen(WarnWS)
-    ..onClose.listen(WarnWS);
+    ..onClose.listen(WarnWS, onError:(err) {
+      // TODO error notification
+      Logger.root.info("server crashed");
+    });
   }
   void notifyWSStart() { ws.send("start trial: ${stringify(task)}"); }
   void notifyWSEnd() { ws.send("end trial"); }
