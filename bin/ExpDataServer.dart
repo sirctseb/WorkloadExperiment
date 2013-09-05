@@ -10,7 +10,7 @@ void main() {
   Logger.root.onRecord.listen((LogRecord record) {
     print(record.message);
   });
-  Logger.root.level = Level.FINE;
+  Logger.root.level = Level.SEVERE;
 }
 
 class Server {
@@ -57,7 +57,12 @@ class Server {
             handleMessage(event, webSocket);
           }, onDone: () {
             handleClose(webSocket);
-            });
+          }, onError: (err) {
+            Logger.root.severe("error in listener handler: $err");
+          });
+          webSocket.done.catchError((err) {
+            Logger.root.severe("error on websocket: $err");
+          });
         });
       });
   }
