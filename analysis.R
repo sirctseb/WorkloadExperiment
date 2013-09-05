@@ -713,6 +713,24 @@ assembleData <- function(subject) {
 se <- function(data) {
 	sqrt(var(data, na.rm = TRUE)/length(data))
 }
+# concurrency not split by subject
+concurrencyAll <- function (vert) {
+	cases = expand.grid(c(0,1), c(0,1))
+	names(cases) = c("oprange", "incentive")
+	ddply(cases, .(incentive, oprange), function(df) {
+		datadf = getVertCase(vert, df$oprange, df$incentive)
+		conc <- concByCase(datadf)
+		data.frame(
+			concurrency = conc$concurrency,
+			concurrencySE = conc$se,
+			concLow = conc$concurrency - 2*conc$se,
+			concHigh = conc$concurrency + 2*conc$se,
+			additionSingle = mean(subset(datadf, type == "addition")$addition),
+			additionDual = mean(subset(datadf, type == "main")$addition, na.rm = TRUE),
+			targetSingle = mean(subset(datadf, type == "targeting")$target),
+			targetDual = mean(subset(datadf, type == "main")$target, na.rm = TRUE))
+	})
+}
 concurrency <- function(vert) {
 	cases = expand.grid(c(0,1), c(0,1), levels(vert$subject))
 	names(cases) = c("oprange", "incentive", "subject")
@@ -759,7 +777,7 @@ concByCase <- function(caseData, vertData, oprange, incentive) {
 	ret
 }
 
-exp2Results <-function(data) {
+exp2Results <-function(data, modelData) {
 	ret = list()
 	# incentive / oprange effects on single task execution time
 	ret$single = singleTaskIVEffects(data);
@@ -768,6 +786,8 @@ exp2Results <-function(data) {
 	# incentive effect on concurrency
 	ret$concurrency = incentiveConcurrency(data);
 	# TODO investigative things explaining lack of concurrency increase
+
+	ret$model = modelValidation(data, modelData)
 
 	ret
 }
@@ -779,8 +799,8 @@ singleTaskIVEffects <- function(data) {
 	# TODO subject in anova?
 	ret$addition$aov = aov(addition~oprange*incentive, subset(data, type == "addition"))
 	# t tests of addition times by incentive in each difficulty case
-	ret$addition$lowByIncentive = t.test(addition~incentive, subset(data, type == "addition" & oprange == "[1 12]"))
-	ret$addition$highByIncentive = t.test(addition~incentive, subset(data, type == "addition" & oprange == "[13 25]"))
+	ret$addition$low.by.incentive = t.test(addition~incentive, subset(data, type == "addition" & oprange == "[1 12]"))
+	ret$addition$high.by.incentive = t.test(addition~incentive, subset(data, type == "addition" & oprange == "[13 25]"))
 
 	# effect is negative when the unincentivized trials have higher times, so the effect is strong
 	ret$addition$skill.low <- ddply(subset(data, type == 'addition' & oprange == '[1 12]'), .(subject), function(df) {
@@ -798,16 +818,16 @@ singleTaskIVEffects <- function(data) {
 	ret$targeting = list()
 	ret$targeting$aov = aov(target~incentive, subset(data, type == "targeting"))
 
-	ret$tradeoff = ddply(subset(data, type != 'main'), .(subject, incentive), function(df) {
-		data.frame(additionLow = mean(subset(df, oprange == '[1 12]')$addition, na.rm = TRUE),
-					additionHigh = mean(subset(df, oprange == '[13 25]')$addition, na.rm = TRUE),
-					target = mean(df$target, na.rm = TRUE))
+	ret$addition$incentive <- ddply(subset(data, type != 'main'), .(subject, incentive), function(df) {
+		data.frame(addition.low = mean(subset(df, oprange == '[1 12]')$addition, na.rm = TRUE),
+					addition.high = mean(subset(df, oprange == '[13 25]')$addition, na.rm = TRUE))
 		})
+	ret$addition$incentive.flat <- recast(ret$addition$incentive, measure.var = c("addition.low", "addition.high"), subject~incentive*variable)
 
-	ret$tradeoffLow.plot = ggplot(ret$tradeoff, aes(additionLow, target, shape=incentive, color=subject)) +
-		geom_point()
-	ret$tradeoffHigh.plot = ggplot(ret$tradeoff, aes(additionHigh, target, shape=incentive, color=subject)) +
-		geom_point()
+	ret$addition$incentive.plot <- ggplot(ret$addition$incentive, aes(addition.low, addition.high, color = subject)) +
+		geom_point(aes(shape = incentive)) +
+		geom_segment(data = ret$addition$incentive.flat,
+			aes(x = false_addition.low, xend = true_addition.low, y = false_addition.high, yend = true_addition.high))
 
 	ret
 }
@@ -816,14 +836,16 @@ dualTaskIVEffects <- function(data) {
 
 	ret$addition = list()
 	ret$addition$aov = aov(addition~oprange*incentive, subset(data, type == "main"))
-	ret$addition$lowByIncentive = t.test(addition~incentive, subset(data, type == "main" & oprange == "[1 12]"))
-	ret$addition$highByIncentive = t.test(addition~incentive, subset(data, type == "main" & oprange == "[13 25]"))
+	ret$addition$low.by.incentive = t.test(addition~incentive, subset(data, type == "main" & oprange == "[1 12]"))
+	ret$addition$high.by.incentive = t.test(addition~incentive, subset(data, type == "main" & oprange == "[13 25]"))
 
 	ret$targeting = list()
-	ret$targeting$aov = aov(target~incentive, subset(data, type == "main"))
+	ret$targeting$aov = aov(target~oprange*incentive, subset(data, type == "main"))
+	ret$targeting$low.by.incentive = t.test(target~incentive, subset(data, type == 'main' & oprange == '[1 12]'))
+	ret$targeting$high.by.incentive = t.test(target~incentive, subset(data, type == 'main' & oprange == '[13 25]'))
 
 	# calculate target and addition mean by subjectxblock
-	ret$tradeoff = ddply(subset(data, type == "main"), .(subject, block, incentive, oprange), function(df) {
+	ret$tradeoff = ddply(subset(data, type == "main"), .(subject, incentive, oprange), function(df) {
 		data.frame(addition = mean(df$addition, na.rm = TRUE), target = mean(df$target, na.rm = TRUE))
 		})
 	# effect of completion times on incentive effect:
@@ -844,8 +866,50 @@ dualTaskIVEffects <- function(data) {
 		geom_segment(data = ret$command,
 			aes(x = addition, xend = additionIncentive, y = target, yend = targetIncentive))
 
+	# TODO bar plot with error bars of addition and targeting times by oprange and incentive like in the concurrency plot
+	# this will show time improvement as opposed to concurrency improvement
+
 	ret
 }
 incentiveConcurrency <- function(data) {
-	0
+	ret = list()
+
+	ret$concurrency.by.subj <- concurrency(data)
+	ret$concurrency.by.subj.plot <- ggplot(ret$concurrency.by.subj, aes(interaction(incentive, oprange), concurrency, fill = subject)) +
+		geom_bar(stat='identity', pos='dodge') +
+		geom_errorbar(aes(ymin = concLow, ymax = concHigh), pos='dodge')
+
+	ret$concurrency <- concurrencyAll(data)
+	ret$concurrency.plot <- ggplot(ret$concurrency, aes(y=concurrency, fill = interaction(incentive, oprange))) +
+		geom_bar(stat = 'identity', pos='dodge') +
+		geom_errorbar(aes(ymin = concLow, ymax = concHigh))
+
+	ret
+}
+modelValidation <- function(data, modelData) {
+	ret = list()
+
+	# combine data
+	combined <- rbind(within(data, perf <- "human"), within(modelData, perf <- "model"))
+
+	# comparison plots by condition
+	ret$single$addition$low$incentive.plot <-
+		ggplot(subset(combined, type == 'addition' & oprange == '[1 12]' & incentive == 'true'),
+			aes(x = addition, fill = perf)) + geom_histogram(pos='dodge')
+	ret$single$addition$low$unincentive.plot <-
+		ggplot(subset(combined, type == 'addition' & oprange == '[1 12]' & incentive == 'false'),
+			aes(x = addition, fill = perf)) + geom_histogram(pos='dodge')
+	ret$single$addition$high$incentive.plot <-
+		ggplot(subset(combined, type == 'addition' & oprange == '[13 25]' & incentive == 'true'),
+			aes(x = addition, fill = perf)) + geom_histogram(pos='dodge')
+	ret$single$addition$high$unincentive.plot <-
+		ggplot(subset(combined, type == 'addition' & oprange == '[13 25]' & incentive == 'false'),
+			aes(x = addition, fill = perf)) + geom_histogram(pos='dodge')
+	ret$single$target$incentive.plot <-
+		ggplot(subset(combined, type == 'targeting' & incentive == 'true'),
+			aes(x = target, fill = perf)) + geom_histogram(pos='dodge')
+
+	# TODO dual tasks
+
+	ret
 }
