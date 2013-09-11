@@ -783,7 +783,7 @@ concByCase <- function(caseData, vertData, oprange, incentive) {
 exp2Results <-function(data, modelData) {
 	ret = list()
 	# incentive / oprange effects on single task execution time
-	ret$single = singleTaskIVEffects(data);
+	ret$single = singleTaskIVEffects(data, modelData);
 	# incentive / oprange effects on dual task execution time
 	ret$dual = dualTaskIVEffects(data);
 	# incentive effect on concurrency
@@ -794,7 +794,7 @@ exp2Results <-function(data, modelData) {
 
 	ret
 }
-singleTaskIVEffects <- function(data) {
+singleTaskIVEffects <- function(data, model) {
 	ret = list()
 
 	ret$addition = list()
@@ -818,6 +818,21 @@ singleTaskIVEffects <- function(data) {
 	})
 	ret$addition$skill.high.plot = ggplot(ret$addition$skill.high, aes(x = skill, y = effect, color=as.factor(subject))) + geom_point()
 
+	ret$addition$model$vert <- subset(rbind(within(data, perf <- 'human'), model), type == 'addition')
+	ret$addition$model$agg <- ddply(ret$addition$model$vert, .(oprange, incentive, perf), function(df) {
+			# TODO remove outliers?
+			add <- mean(df$addition)
+			add.se <- se(df$addition)
+			data.frame(
+				addition = add,
+				addition.se = add.se,
+				addition.low = add - 2*add.se,
+				addition.high = add + 2*add.se
+				)
+		})
+	ret$addition$model$plot <- plotBars(ret$addition$model$agg, interaction(incentive, oprange), addition, addition.low, addition.high) +
+		facet_grid(.~perf)
+
 	ret$targeting = list()
 	ret$targeting$aov = aov(target~incentive, subset(data, type == "targeting"))
 	ret$targeting$by.incentive <- t.test(target~incentive, subset(data, type == "targeting"))
@@ -826,6 +841,20 @@ singleTaskIVEffects <- function(data) {
 					effect = mean(df[df$incentive == 'true', 'target']) - mean(df[df$incentive == 'false', 'target']))
 		})
 	ret$targeting$skill.plot = ggplot(ret$targeting$skill, aes(x = skill, y = effect, color = as.factor(subject))) + geom_point()
+
+	ret$targeting$model$vert <- subset(rbind(within(data, perf <- 'human'), model), type == 'targeting')
+	ret$targeting$model$agg <- ddply(ret$targeting$model$vert, .(incentive, perf), function(df) {
+		# TODO remove outliers?
+		targ <- mean(df$target)
+		targ.se <- se(df$target)
+		data.frame(
+			target = targ,
+			target.se = targ.se,
+			target.low = targ - 2*targ.se,
+			target.high = targ + 2*targ.se)
+		})
+	ret$targeting$model$plot <- plotBars(ret$targeting$model$agg, incentive, target, target.low, target.high) +
+		facet_grid(.~perf)
 
 	ret$addition$incentive <- ddply(subset(data, type != 'main'), .(subject, incentive), function(df) {
 		data.frame(addition.low = mean(subset(df, oprange == '[1 12]')$addition, na.rm = TRUE),
