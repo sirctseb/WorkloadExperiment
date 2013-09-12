@@ -663,3 +663,103 @@ getConcurrencyVec <- function(completionTimes, additionTime, targetTime) {
 	high = additionTime + targetTime
 	((completionTimes - high) / (low - high))
 }
+
+exp1Results <- function(data, modelData) {
+	ret <- list()
+
+	ret$single <- singleResults(data)
+	ret$dual <- dualResults(data)
+	ret$model <- modelResults(data, modelData)
+
+	ret
+}
+
+singleResults <- function(data) {
+	ret <- list()
+
+	ret$addition$data <- subset(data, type == 'addition')
+	# TODO this should be a bar plot to be consistent with all the other things
+	ret$addition$plot <- ggplot(ret$addition$data, aes(addition, fill=oprange)) +
+		geom_histogram(pos='dodge') +
+		labs(title='Addition single-task execution times',
+			y='Count',
+			x='Execution time (s)') +
+		scale_fill_discrete('Addend range')
+	ret$addition$plot$latex.label = 'figure.exp1-single-addition-dist'
+
+	ret$targeting$data <- ddply(subset(data, type == 'targeting'), .(speed, difficulty),
+		function(df) {
+			# TODO remove outliers?
+			targ <- mean(df$target)
+			targ.se <- se(df$target)
+			data.frame(
+				target = targ,
+				target.se = targ.se,
+				target.low = targ - 2*targ.se,
+				target.high = targ + 2*targ.se)
+		})
+	# ret$targeting$data <- subset(data, type == 'targeting')
+	ret$targeting$plot <- ggplot(ret$targeting$data, aes(difficulty, target, fill=speed)) +
+		geom_bar(stat='identity', pos='dodge') +
+		geom_errorbar(aes(ymin=target.low, ymax=target.high), pos=position_dodge(width=0.9), width = 0.25) +
+		labs(title='Targeting single-task execution time',
+			x='Difficulty',
+			y='Execution time (s)') +
+		scale_fill_discrete('Speed\n(pixels/s)')
+	ret$targeting$plot$latex.lable = 'figure.exp1-single-target-dist'
+
+	ret
+}
+
+dualResults <- function(data) {
+	ret <- list()
+
+	ret$agg$data <- ddply(subset(data, type == 'main'), .(difficulty, oprange),
+		function(df) {
+			# TODO remove outliers?
+			complete <- mean(df$complete)
+			complete.se <- se(df$complete)
+			data.frame(
+				complete = complete,
+				complete.se = complete.se,
+				complete.low = complete - 2*complete.se,
+				complete.high = complete + 2*complete.se)
+			})
+	ret$agg$plot <- ggplot(ret$agg$data, aes(difficulty, complete, fill=oprange)) +
+		geom_bar(stat='identity', pos='dodge') +
+		geom_errorbar(aes(ymin=complete.low, ymax=complete.high), pos=position_dodge(width=0.9), width=0.25) +
+		labs(title='Dual-task execution time',
+			x='Targeting difficulty',
+			y='Execution time (s)') +
+		scale_fill_discrete('Addend range')
+	ret$agg$plot$latex.label = 'exp1-dual-times-iv'
+
+	ret
+}
+
+modelResults <- function(data, model) {
+	ret <- list()
+
+	combined <- rbind(within(data, perf <- 'human'), model)
+
+	ret$single$addition$data <- ddply(subset(combined, type == 'addition'), .(oprange, perf),
+		function(df) {
+			# TODO remove outliers?
+			add <- mean(df$addition)
+			add.se <- se(df$addition)
+			data.frame(
+				addition = add,
+				addition.se = add.se,
+				addition.low = add - 2*add.se,
+				addition.high = add + 2*add.se)
+			})
+	ret$single$addition$plot <- ggplot(ret$single$addition$data, aes(oprange, addition, fill=perf)) +
+		geom_bar(stat='identity', pos='dodge') +
+		geom_errorbar(aes(ymin=addition.low, ymax=addition.high), pos=position_dodge(width=0.9))
+
+	ret$single$addition$boxplot <- ggplot(subset(combined, type == 'addition'),
+		aes(oprange, addition, fill=perf)) +
+		geom_boxplot(notch=TRUE)
+
+	ret
+}
