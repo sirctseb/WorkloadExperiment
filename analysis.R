@@ -663,6 +663,9 @@ getConcurrencyVec <- function(completionTimes, additionTime, targetTime) {
 	high = additionTime + targetTime
 	((completionTimes - high) / (low - high))
 }
+se <- function(data) {
+	sqrt(var(data, na.rm = TRUE)/length(data))
+}
 
 exp1Results <- function(data, modelData) {
 	ret <- list()
