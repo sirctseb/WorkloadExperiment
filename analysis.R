@@ -802,8 +802,8 @@ singleTaskIVEffects <- function(data, model) {
 	# TODO subject in anova?
 	ret$addition$aov = aov(addition~oprange*incentive, subset(data, type == "addition"))
 	# t tests of addition times by incentive in each difficulty case
-	ret$addition$low.by.incentive = t.test(addition~incentive, subset(data, type == "addition" & oprange == "[1 12]"))
-	ret$addition$high.by.incentive = t.test(addition~incentive, subset(data, type == "addition" & oprange == "[13 25]"))
+	ret$addition$low.by.incentive = wilcox.test(addition~incentive, subset(data, type == "addition" & oprange == "[1 12]"))
+	ret$addition$high.by.incentive = wilcox.test(addition~incentive, subset(data, type == "addition" & oprange == "[13 25]"))
 
 	# effect is negative when the unincentivized trials have higher times, so the effect is strong
 	ret$addition$skill.low <- ddply(subset(data, type == 'addition' & oprange == '[1 12]'), .(subject), function(df) {
@@ -835,7 +835,7 @@ singleTaskIVEffects <- function(data, model) {
 
 	ret$targeting = list()
 	ret$targeting$aov = aov(target~incentive, subset(data, type == "targeting"))
-	ret$targeting$by.incentive <- t.test(target~incentive, subset(data, type == "targeting"))
+	ret$targeting$by.incentive <- wilcox.test(target~incentive, subset(data, type == "targeting"))
 	ret$targeting$skill = ddply(subset(data, type == 'targeting'), .(subject), function(df) {
 		data.frame(skill = mean(df$target),
 					effect = mean(df[df$incentive == 'true', 'target']) - mean(df[df$incentive == 'false', 'target']))
@@ -901,13 +901,13 @@ dualTaskIVEffects <- function(data) {
 
 	ret$addition = list()
 	ret$addition$aov = aov(addition~oprange*incentive, subset(data, type == "main"))
-	ret$addition$low.by.incentive = t.test(addition~incentive, subset(data, type == "main" & oprange == "[1 12]"))
-	ret$addition$high.by.incentive = t.test(addition~incentive, subset(data, type == "main" & oprange == "[13 25]"))
+	ret$addition$low.by.incentive = wilcox.test(addition~incentive, subset(data, type == "main" & oprange == "[1 12]"))
+	ret$addition$high.by.incentive = wilcox.test(addition~incentive, subset(data, type == "main" & oprange == "[13 25]"))
 
 	ret$targeting = list()
 	ret$targeting$aov = aov(target~oprange*incentive, subset(data, type == "main"))
-	ret$targeting$low.by.incentive = t.test(target~incentive, subset(data, type == 'main' & oprange == '[1 12]'))
-	ret$targeting$high.by.incentive = t.test(target~incentive, subset(data, type == 'main' & oprange == '[13 25]'))
+	ret$targeting$low.by.incentive = wilcox.test(target~incentive, subset(data, type == 'main' & oprange == '[1 12]'))
+	ret$targeting$high.by.incentive = wilcox.test(target~incentive, subset(data, type == 'main' & oprange == '[13 25]'))
 
 	# calculate target and addition mean by subjectxblock
 	ret$tradeoff = ddply(subset(data, type == "main"), .(subject, incentive, oprange), function(df) {
