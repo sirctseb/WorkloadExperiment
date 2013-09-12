@@ -359,6 +359,9 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 			additionFound = true
 		}
 	}
+	// crop ops to length of addition
+	op1s = op1s[:len(additionTimes)]
+	op2s = op2s[:len(additionTimes)]
 	return map[string][]float64{"addition": additionTimes, "complete": taskCompleteTimes, "finalHit": finalHitTimes,
 		"hits": numberHits, "friendHits": numberFriendHits, "shots": numberShots, "friendHovers": numberFriendHovers,
 		"op1": op1s, "op2": op2s}
