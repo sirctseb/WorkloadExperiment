@@ -1056,3 +1056,21 @@ modelValidation <- function(data, modelData) {
 
 	ret
 }
+
+maxdepth = 7
+saveLatexPlots <- function(results) {
+	# search through results to find plots with $latex.labels and save them
+	scanObjectForPlots(results, 0)
+}
+scanObjectForPlots <- function(object, depth) {
+	# if object has a latex label save the plot
+	if('latex.label' %in% names(object)) {
+		ggsave(paste0('images/',object$latex.label, '.pdf'), object)
+	} else {
+		if(depth < maxdepth & is.list(object) & !is.data.frame(object)) {
+			for(n in names(object)) {
+				scanObjectForPlots(object[[n]], depth + 1)
+			}
+		}
+	}
+}
