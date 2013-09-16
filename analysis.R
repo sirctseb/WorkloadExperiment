@@ -791,7 +791,6 @@ singleResults <- function(data) {
 			y='Count',
 			x='Execution time (s)') +
 		scale_fill_discrete('Addend range')
-	ret$addition$plot$latex.label = 'figure.exp1-single-addition-dist'
 
 	if(nrow(subset(data, type == 'targeting')) > 0) {
 
@@ -814,7 +813,6 @@ singleResults <- function(data) {
 				x='Difficulty',
 				y='Execution time (s)') +
 			scale_fill_discrete('Speed\n(pixels/s)')
-		ret$targeting$plot$latex.label = 'figure.exp1-single-target-dist'
 	}
 
 	ret
@@ -885,7 +883,12 @@ modelResults <- function(data, model) {
 	ret$single$addition$dist <- ggplot(subset(combined, type == 'addition'),
 		aes(addition, fill=perf)) +
 		geom_histogram(pos='dodge') +
-		facet_grid(.~oprange)
+		labs(title="Execution time distributions",
+			x='Execution time (s)',
+			y='Count') +
+		perf_fill_scale +
+		facet_grid(oprange~.)
+	ret$single$addition$dist$latex.label = 'exp1-single-addition-dist'
 
 	ret$single$targeting$data <- ddply(subset(combined, type == 'targeting'), .(speed, difficulty, perf),
 		function(df) {
@@ -904,7 +907,7 @@ modelResults <- function(data, model) {
 		geom_bar(stat='identity', pos='dodge') +
 		geom_errorbar(aes(ymin=target.low, ymax=target.high), pos=position_dodge(width=0.9), width=0.25) +
 		labs(title="Targeting single-task execution times",
-			x="Speed, difficulty interaction", # TODO set labels on x axis
+			x="Speed, difficulty interaction",
 			y="Execution time(s)") +
 		perf_fill_scale
 	ret$single$targeting$plot$latex.label <- 'exp1-single-target-bar'
@@ -912,7 +915,24 @@ modelResults <- function(data, model) {
 	ret$single$targeting$dist <- ggplot(subset(combined, type == 'targeting'),
 		aes(target, fill=perf)) +
 		geom_histogram(pos='dodge') +
-		facet_grid(speed~difficulty)
+		labs(title="Execution time distributions",
+			x='Execution time (s)',
+			y='Count') +
+		perf_fill_scale +
+		facet_grid(speed~difficulty, labeller = label_both
+	ret$single$targeting$dist$latex.label = 'exp1-single-targeting-dist'
+
+	ret$single$targeting$error$data <- ddply(subset(combined, type == 'targeting'), .(speed, difficulty, perf),
+		function(df) {
+			data.frame(error = (sum(df$misses) / sum(df$shots)))
+			})
+	ret$single$targeting$error$plot <- ggplot(ret$single$targeting$error$data, aes(x = interaction(speed, difficulty), y=error, fill=perf)) +
+		geom_bar(stat='identity', pos='dodge') +
+		labs(title="Single task targeting error rate",
+			x = "Speed, difficulty interaction",
+			y = "Error rate") +
+		perf_fill_scale
+	ret$single$targeting$error$plot$latex.label = 'exp1-single-target-error'
 
 	ret$dual$data <- ddply(subset(combined, type == 'main'), .(speed, difficulty, oprange, perf),
 		function(df) {
@@ -941,7 +961,8 @@ modelResults <- function(data, model) {
 				concurrency = conc,
 				concurrency.se = conc.se,
 				concurrency.low = conc - 2*conc.se,
-				concurrency.high = conc + 2*conc.se
+				concurrency.high = conc + 2*conc.se,
+				error = sum(df$misses) / sum(df$shots)
 				)
 			})
 	ret$dual$addition$plot <- ggplot(ret$dual$data, aes(interaction(speed, difficulty, oprange), addition, fill=perf)) +
@@ -982,7 +1003,23 @@ modelResults <- function(data, model) {
 			y="Concurrency") +
 		perf_fill_scale +
 		rotate_x_text
-	ret$dual$concurrency$plot$latex.label = 'exp1-concurrency-bar'
+	ret$dual$concurrency$plot$latex.label = 'exp1-dual-concurrency-bar'
+
+	ret$dual$error$plot <- ggplot(ret$dual$data, aes(interaction(speed, difficulty, oprange), error, fill=perf)) +
+		geom_bar(stat='identity', pos='dodge') +
+		labs(title = 'Dual task targeting error rate',
+			x='Speed, difficulty, addend range interaction',
+			y='Error rate') +
+		perf_fill_scale +
+		rotate_x_text
+	ret$dual$error$plot$latex.label <- 'exp1-dual-target-error'
+
+	ret$dual$order$plot <- compareDualTimes(data, model, 1, 0, 1) +
+		labs(title = 'Subtask completion time distribution',
+			x='Completion time (s)',
+			y='Count') +
+		scale_fill_discrete('Subtask', labels=c('Addition', 'Targeting'))
+	ret$dual$order$plot$latex.label <- 'exp1-dual-task-order'
 
 	ret
 }
