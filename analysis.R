@@ -585,6 +585,24 @@ loadModel = function(num) {
 	.GlobalEnv[[paste0("vert",num)]] = v
 	.GlobalEnv[[paste0("case",num)]] = byCase(v)
 }
+loadAddModel <- function(num) {
+	d <- assembleData(num)
+	.GlobalEnv[[paste0("d",num)]] = d
+	v = d$addition
+	v$perf = paste0("model",num)
+	v$accuracy <- NA
+	v$type = 'addition'
+	.GlobalEnv[[paste0("vert",num)]] = v
+}
+loadTargModel <- function(num) {
+	d <- assembleData(num)
+	.GlobalEnv[[paste0("d",num)]] = d
+	v = d$targeting
+	v$perf = paste0("model",num)
+	v$accuracy <- NA
+	v$type = 'targeting'
+	.GlobalEnv[[paste0("vert",num)]] = v
+}
 
 # bind dataframes into one with the columns that they all share
 rmerge <- function(...) {
@@ -649,23 +667,27 @@ assembleData <- function(subject) {
 	additionData$targets <- NULL
 	
 	# get rid of speed, difficulty, and target columns from addition data
-	additionData$speed <- as.factor(NA)
-	additionData$difficulty <- as.factor(NA)
-	additionData$target <- NA
-	# get rid of targeting accuracy columns from addition data
-	additionData$hits <- NA
-	additionData$friendHits <- NA
-	additionData$shots <- NA
-	# remove empty levels
-	additionData$oprange <- factor(additionData$oprange)
+	if(nrow(additionData) > 0) {
+		additionData$speed <- as.factor(NA)
+		additionData$difficulty <- as.factor(NA)
+		additionData$target <- NA
+		# get rid of targeting accuracy columns from addition data
+		additionData$hits <- NA
+		additionData$friendHits <- NA
+		additionData$shots <- NA
+		# remove empty levels
+		additionData$oprange <- factor(additionData$oprange)
+	}
 
 	# add targeting accuracy fraction column to remaining data
 	mainData$accuracy <- mainData$hits / mainData$shots
 	
 	# separate targeting-only trials
 	targetingData <- mainData[mainData$oprange == "[]", ]
-	targetingData$oprange <- NA
-	targetingData$addition <- NA
+	if(nrow(targetingData) > 0) {
+		targetingData$oprange <- NA
+		targetingData$addition <- NA
+	}
 	mainData <- mainData[mainData$oprange != "[]", ]
 
 	# remove empty factors
@@ -674,37 +696,37 @@ assembleData <- function(subject) {
 	# prepare the separated data
 	mainDatasss <- split(mainData, list(mainData$speed, mainData$oprange, mainData$difficulty))
 
-	if(nrow(additionData) > 0) {
+	# if(nrow(additionData) > 0) {
 
-		# show boxplot of main data
-		#boxplot(complete~targets*speed*oprange, mainData, notch=TRUE)
-		oprangeLow = levels(additionData$oprange)[1]
-		oprangeHigh = levels(additionData$oprange)[2]
-		# get the mean of the low addition only tasks
-		additionLowMean <- mean(additionData[additionData$oprange==levels(additionData$oprange)[1], ]$complete)
-		# get the mean of the high addition only tasks
-		additionHighMean <- mean(additionData[additionData$oprange==levels(additionData$oprange)[2], ]$complete)
-		# put in dataframe
-		additionMeans <- data.frame(oprange = levels(additionData$oprange), mean = c(additionLowMean, additionHighMean))
-	}
+	# 	# show boxplot of main data
+	# 	#boxplot(complete~targets*speed*oprange, mainData, notch=TRUE)
+	# 	oprangeLow = levels(additionData$oprange)[1]
+	# 	oprangeHigh = levels(additionData$oprange)[2]
+	# 	# get the mean of the low addition only tasks
+	# 	additionLowMean <- mean(additionData[additionData$oprange==levels(additionData$oprange)[1], ]$complete)
+	# 	# get the mean of the high addition only tasks
+	# 	additionHighMean <- mean(additionData[additionData$oprange==levels(additionData$oprange)[2], ]$complete)
+	# 	# put in dataframe
+	# 	additionMeans <- data.frame(oprange = levels(additionData$oprange), mean = c(additionLowMean, additionHighMean))
+	# }
 
-	if(nrow(targetingData) > 0) {
-		# get the mean of the low, low targeting only tasks
-		speedLow = levels(targetingData$speed)[1]
-		speedHigh = levels(targetingData$speed)[2]
-		difficultyLow = levels(targetingData$difficulty)[1]
-		difficultyHigh = levels(targetingData$difficulty)[2]
-		targetLowLowMean <- mean(targetingData[targetingData$speed == speedLow & targetingData$difficulty == difficultyLow, ]$complete)
-		# get the mean of the low, high targeting only tasks
-		targetLowHighMean <- mean(targetingData[targetingData$speed == speedLow & targetingData$difficulty == difficultyHigh, ]$complete)
-		# get the mean of the high, low targeting only tasks
-		targetHighLowMean <- mean(targetingData[targetingData$speed == speedHigh & targetingData$difficulty == difficultyLow, ]$complete)
-		# get the mean of the low, low targeting only tasks
-		targetHighHighMean <- mean(targetingData[targetingData$speed == speedHigh & targetingData$difficulty == difficultyHigh, ]$complete)
-		# put in dataframe
-		targetMeans <- data.frame(speed = rep(levels(targetingData$speed), each=2), difficulty = rep(levels(targetingData$difficulty), 2),
-			mean = c(targetLowLowMean, targetLowHighMean, targetHighLowMean, targetHighHighMean))
-	}
+	# if(nrow(targetingData) > 0) {
+	# 	# get the mean of the low, low targeting only tasks
+	# 	speedLow = levels(targetingData$speed)[1]
+	# 	speedHigh = levels(targetingData$speed)[2]
+	# 	difficultyLow = levels(targetingData$difficulty)[1]
+	# 	difficultyHigh = levels(targetingData$difficulty)[2]
+	# 	targetLowLowMean <- mean(targetingData[targetingData$speed == speedLow & targetingData$difficulty == difficultyLow, ]$complete)
+	# 	# get the mean of the low, high targeting only tasks
+	# 	targetLowHighMean <- mean(targetingData[targetingData$speed == speedLow & targetingData$difficulty == difficultyHigh, ]$complete)
+	# 	# get the mean of the high, low targeting only tasks
+	# 	targetHighLowMean <- mean(targetingData[targetingData$speed == speedHigh & targetingData$difficulty == difficultyLow, ]$complete)
+	# 	# get the mean of the low, low targeting only tasks
+	# 	targetHighHighMean <- mean(targetingData[targetingData$speed == speedHigh & targetingData$difficulty == difficultyHigh, ]$complete)
+	# 	# put in dataframe
+	# 	targetMeans <- data.frame(speed = rep(levels(targetingData$speed), each=2), difficulty = rep(levels(targetingData$difficulty), 2),
+	# 		mean = c(targetLowLowMean, targetLowHighMean, targetHighLowMean, targetHighHighMean))
+	# }
 
 	# return results in a list
 	return(list(
@@ -1080,16 +1102,17 @@ singleResults <- function(data) {
 	ret$addition$plot$latex.label = 'figure.exp2-single-addition-dist'
 
 	if(nrow(subset(data, type == 'targeting')) > 0) {
+		ret$targeting$data <- ddply(subset(data, type == 'targeting'), .(incentive), function(df) {
 
-		targ <- mean(subset(data, type == 'targeting')$target)
-		targ.se <- se(subset(data, type == 'targeting')$target)
-		ret$targeting$data <- 
+			targ <- mean(df$target)
+			targ.se <- se(df$target)
 			# TODO remove outliers?
 			data.frame(
 				target = targ,
 				target.se = targ.se,
 				target.low = targ - 2*targ.se,
 				target.high = targ + 2*targ.se)
+		})
 		# ret$targeting$data <- subset(data, type == 'targeting')
 		ret$targeting$plot <- ggplot(ret$targeting$data, aes(incentive, target)) +
 			geom_bar(stat='identity', pos='dodge') +
@@ -1110,9 +1133,9 @@ dualResults <- function(data) {
 		ret$agg$data <- ddply(subset(data, type == 'main'), .(oprange, incentive),
 			function(df) {
 				# TODO remove outliers?
-				add <- mean(df$addition)
+				add <- mean(df$addition, na.rm = TRUE)
 				add.se <- se(df$addition)
-				targ <- mean(df$target)
+				targ <- mean(df$target, na.rm = TRUE)
 				targ.se <- se(df$target)
 				data.frame(
 					addition = add,
@@ -1274,14 +1297,14 @@ modelResults <- function(data, model) {
 			y="Completion time (s)") +
 		perf_fill_scale +
 		rotate_x_text
-	ret$dual$targeting$plot$latex.label = 'exp2-dual-targeting-bar'
+	ret$dual$targeting$plot$latex.label = 'exp2-dual-target-bar'
 
 	ret$dual$score$plot <- ggplot(ret$dual$data, aes(interaction(oprange, incentive), score, fill=perf)) +
 		geom_bar(stat='identity', pos='dodge') +
 		geom_errorbar(aes(ymin=score.low, ymax=score.high), pos=position_dodge(width=0.9), width = 0.25) +
 		labs(title="Dual task score",
 			x="Addend range, incentive interaction",
-			y="Completion time (s)") +
+			y="Score ($)") +
 		perf_fill_scale +
 		rotate_x_text
 	ret$dual$score$plot$latex.label = 'exp2-dual-score-bar'
@@ -1294,11 +1317,11 @@ modelResults <- function(data, model) {
 			y="Concurrency") +
 		perf_fill_scale +
 		rotate_x_text
-	ret$dual$concurrency$plot$latex.label = 'exp1-concurrency-bar'
+	ret$dual$concurrency$plot$latex.label = 'exp2-dual-concurrency-bar'
 
+	# TODO take out titles
 	ret
 }
-
 
 maxdepth = 7
 saveLatexPlots <- function(results) {
@@ -1308,6 +1331,7 @@ saveLatexPlots <- function(results) {
 scanObjectForPlots <- function(object, depth) {
 	# if object has a latex label save the plot
 	if('latex.label' %in% names(object)) {
+		print(paste0('saving ', object$latex.label))
 		ggsave(paste0('images/',object$latex.label, '.pdf'), object)
 	} else {
 		if(depth < maxdepth & is.list(object) & !is.data.frame(object)) {
