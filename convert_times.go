@@ -148,7 +148,7 @@ func makeTargets(lines []string, startIndex int) []Target {
 	return targetObjs
 }
 
-func parseResults(lines []string, targets int) map[string][]float64 {
+func parseResults(lines []string, targets int, addition_refresh bool) map[string][]float64 {
 	// define regexes for target hits and starts
 	hitRE, _ := regexp.Compile(`TargetHit, ([\d\.]+), `)
 	startRE, _ := regexp.Compile(`TargetStart, ([\d\.]+), (\d+), (\d+), (\d+)`)
@@ -277,6 +277,10 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 			op1, _ = strconv.ParseInt(match[2], 10, 64)
 			op2, _ = strconv.ParseInt(match[3], 10, 64)
 			additionStartTime, _ = strconv.ParseFloat(match[1], 64)
+			// add 0.2 because problem is hidden for 200 ms
+			if addition_refresh {
+				additionStartTime += 0.2
+			}
 		} else if match = targetCompleteRE.FindStringSubmatch(line); match != nil {
 			// create a target complete entry
 			additionTimes = append(additionTimes, -1)
@@ -309,8 +313,8 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 		"op1": op1s, "op2": op2s}
 }
 
-func printHitAndAdditionTimes(lines []string, targets int) {
-	results := parseResults(lines, targets)
+func printHitAndAdditionTimes(lines []string, targets int, addition_refresh bool) {
+	results := parseResults(lines, targets, addition_refresh)
 	//hitTimes := results["hit"]
 	//additionTimes := results["addition"]
 	taskCompleteTimes := results["complete"]
@@ -463,6 +467,7 @@ func main() {
 	var blockName string
 	var trialNum int
 	var rootDir string
+	var human bool
 
 	// get subject and trial from command line ifassed
 	flag.IntVar(&subject, "s", 5, "The number of the subject")
@@ -472,6 +477,7 @@ func main() {
 	flag.StringVar(&blockName, "block", "", "Specify a block to output")
 	flag.IntVar(&trialNum, "trial", -1, "Specify a trial to output")
 	flag.StringVar(&rootDir, "root", ".", "Specify the directory that contains output/")
+	flag.BoolVar(&human, "human", false, "Set human trials")
 	flag.Parse()
 	rootDir = fmt.Sprint(rootDir, "/")
 
@@ -529,7 +535,7 @@ func main() {
 			trial_start_regex, _ := regexp.Compile(`TrialStart, (\d{13})`)
 
 			// get string of trial start time
-			fmt.Printf("matching trial start in block %s\n", block)
+			fmt.Printf("matching trial start in block %s, trial %s\n", block, trial)
 			stamp_string := trial_start_regex.FindStringSubmatch(contents)[1]
 
 			// get time object for start time
@@ -561,7 +567,7 @@ func main() {
 			if levels != nil {
 				var enemyTargets int = int(math.Ceil(float64(levels.TargetNumber) / 2))
 				//printHitAndAdditionTimes(lines, targets)
-				times := parseResults(lines, enemyTargets)
+				times := parseResults(lines, enemyTargets, human)
 				iterations := len(times["addition"])
 				// Check lengths of arrays
 				for key, arr := range times {
