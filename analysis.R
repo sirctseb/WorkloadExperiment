@@ -1017,7 +1017,7 @@ imprintResults <- function(res) {
 	# data from running imprint. should set up a build process for it
 
 	# reusable fill scale labels
-	perf_fill_scale = scale_fill_discrete('Data source', labels=c("Human", "Model", "IMPRINT"))
+	perf_fill_scale = scale_fill_discrete('Data source', labels=c("Human", "Model", "IMPRINT", "IMPRINT (AWS)"))
 	# reusable x title rotation
 	rotate_x_text = theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5))
 
@@ -1037,10 +1037,10 @@ imprintResults <- function(res) {
 		target.se = c(0.01, 0.01, 0.02, 0.03)
 		)
 
-	makeDualDf <- function(oprange_in, difficulty_in, speed_in, res) {
+	makeDualDf <- function(oprange_in, difficulty_in, speed_in, res, pref='.w') {
 		ifelse(oprange_in == '[1 12]', on <- 0, on <- 1)
 		ifelse(speed_in == 0, sn <- 0, sn <-1)
-		file <- paste0('imprint/', on, difficulty_in, sn, '.w.txt')
+		file <- paste0('imprint/', on, difficulty_in, sn, pref, '.txt')
 		table <- read.table(file, sep=',', strip.white = TRUE, header = TRUE)
 		table.a <- subset(table, task == 'addition')
 		table.t <- subset(table, task == 'target')
@@ -1068,6 +1068,23 @@ imprintResults <- function(res) {
 	ret$dual$data <- rbind(ret$dual$data, makeDualDf('[13 25]', 0, 200, res)) # p=0.4
 	ret$dual$data <- rbind(ret$dual$data, makeDualDf('[13 25]', 1, 0, res)) # p=0.5
 	ret$dual$data <- rbind(ret$dual$data, makeDualDf('[13 25]', 1, 200, res)) # p=0.5
+	ret$dual$data$perf <- 'imprint'
+
+	# build aws version
+	aws <- makeDualDf('[1 12]', 0, 0, res, '.aws') # p=0.5
+	levels(aws$oprange) <- c('[1 12]', '[13 25]')
+	levels(aws$speed) <- c(0,200)
+	levels(aws$difficulty) <- c(0,1)
+	aws <- rbind(aws, makeDualDf('[1 12]', 0, 200, res, '.aws')) # p=0.5
+	aws <- rbind(aws, makeDualDf('[1 12]', 1, 0, res, '.aws')) # p=0.3
+	aws <- rbind(aws, makeDualDf('[1 12]', 1, 200, res, '.aws')) # p=0.3
+	aws <- rbind(aws, makeDualDf('[13 25]', 0, 0, res, '.aws')) # p=0.5
+	aws <- rbind(aws, makeDualDf('[13 25]', 0, 200, res, '.aws')) # p=0.4
+	aws <- rbind(aws, makeDualDf('[13 25]', 1, 0, res, '.aws')) # p=0.5
+	aws <- rbind(aws, makeDualDf('[13 25]', 1, 200, res, '.aws')) # p=0.5
+	aws$perf <- 'imprint.aws'
+
+	ret$dual$data <- rbind(ret$dual$data, aws)
 
 	levels(ret$dual$data$difficulty) <- c('Low', 'High')
 
@@ -1093,7 +1110,6 @@ imprintResults <- function(res) {
 		complete.high <- complete + 2 * complete.se
 		concurrency.low <- concurrency - 2 * concurrency.se
 		concurrency.high <- concurrency + 2 * concurrency.se
-		perf <- 'IMPRINT'
 		});
 
 	# ret$dual$data$perf <- factor(ret$dual$data$perf)
@@ -1102,9 +1118,28 @@ imprintResults <- function(res) {
 	# levels(model$perf) <- c(levels(model$perf), 'IMPRINT')
 	ret$dual$data <- rbind(model, ret$dual$data)
 	ret$dual$data$perf <- factor(ret$dual$data$perf)
-	ret$dual$data$perf2 <- factor(ret$dual$data$perf, levels(ret$dual$data$perf)[c(1,3,2)])
+	ret$dual$data$perf2 <- factor(ret$dual$data$perf, levels(ret$dual$data$perf)[c(1,4,2,3)])
 
-	ret$dual$complete$plot <- ggplot(ret$dual$data, aes(interaction(speed, difficulty, oprange), complete, fill=perf2)) +
+	imprint.plot.data <- subset(ret$dual$data, perf != 'imprint.aws')
+	ret$dual$addition$plot <- ggplot(imprint.plot.data, aes(interaction(speed, difficulty, oprange), addition, fill=perf2)) +
+		geom_bar(stat='identity', pos='dodge') +
+		geom_errorbar(aes(ymin=addition.low, ymax=addition.high), pos=position_dodge(width=0.9), width=0.25) +
+		labs(x="Speed, difficulty, addend range interaction",
+			y="Completion time (s)") +
+		perf_fill_scale +
+		rotate_x_text
+	ret$dual$addition$plot$latex.label = 'exp1-dual-addition-bar-imprint'
+
+	ret$dual$targeting$plot <- ggplot(imprint.plot.data, aes(interaction(speed, difficulty, oprange), target, fill=perf2)) +
+		geom_bar(stat='identity', pos='dodge') +
+		geom_errorbar(aes(ymin=target.low, ymax=target.high), pos=position_dodge(width=0.9), width = 0.25) +
+		labs(x="Speed, difficulty, addend range interaction",
+			y="Completion time (s)") +
+		perf_fill_scale +
+		rotate_x_text
+	ret$dual$targeting$plot$latex.label = 'exp1-dual-targeting-bar-imprint'
+
+	ret$dual$complete$plot <- ggplot(imprint.plot.data, aes(interaction(speed, difficulty, oprange), complete, fill=perf2)) +
 		geom_bar(stat='identity', pos='dodge') +
 		geom_errorbar(aes(ymin=complete.low, ymax=complete.high), pos=position_dodge(width=0.9), width = 0.25) +
 		labs(x="Speed, difficulty, addend range interaction",
@@ -1113,7 +1148,16 @@ imprintResults <- function(res) {
 		rotate_x_text
 	ret$dual$complete$plot$latex.label = 'exp1-dual-complete-bar-imprint'
 
-	ret$dual$concurrency$plot <- ggplot(ret$dual$data, aes(interaction(speed, difficulty, oprange), concurrency, fill=perf2)) +
+	ret$dual$complete$plot <- ggplot(imprint.plot.data, aes(interaction(speed, difficulty, oprange), complete, fill=perf2)) +
+		geom_bar(stat='identity', pos='dodge') +
+		geom_errorbar(aes(ymin=complete.low, ymax=complete.high), pos=position_dodge(width=0.9), width = 0.25) +
+		labs(x="Speed, difficulty, addend range interaction",
+			y="Execution time (s)") +
+		perf_fill_scale +
+		rotate_x_text
+	ret$dual$complete$plot$latex.label = 'exp1-dual-complete-bar-imprint'
+
+	ret$dual$concurrency$plot <- ggplot(imprint.plot.data, aes(interaction(speed, difficulty, oprange), concurrency, fill=perf2)) +
 		geom_bar(stat='identity', pos='dodge') +
 		geom_errorbar(aes(ymin=concurrency.low, ymax=concurrency.high), pos=position_dodge(width=0.9), width = 0.25) +
 		labs(x="Speed, difficulty, addend range interaction",
@@ -1122,6 +1166,23 @@ imprintResults <- function(res) {
 		rotate_x_text
 	ret$dual$concurrency$plot$latex.label = 'exp1-dual-concurrency-bar-imprint'
 
+	ret$dual$complete.aws$plot <- ggplot(ret$dual$data, aes(interaction(speed, difficulty, oprange), complete, fill=perf2)) +
+		geom_bar(stat='identity', pos='dodge') +
+		geom_errorbar(aes(ymin=complete.low, ymax=complete.high), pos=position_dodge(width=0.9), width = 0.25) +
+		labs(x="Speed, difficulty, addend range interaction",
+			y="Execution time (s)") +
+		perf_fill_scale +
+		rotate_x_text
+	ret$dual$complete.aws$plot$latex.label = 'exp1-dual-complete-bar-imprint-aws'
+
+	ret$dual$concurrency.aws$plot <- ggplot(ret$dual$data, aes(interaction(speed, difficulty, oprange), concurrency, fill=perf2)) +
+		geom_bar(stat='identity', pos='dodge') +
+		geom_errorbar(aes(ymin=concurrency.low, ymax=concurrency.high), pos=position_dodge(width=0.9), width = 0.25) +
+		labs(x="Speed, difficulty, addend range interaction",
+			y="Concurrency") +
+		perf_fill_scale +
+		rotate_x_text
+	ret$dual$concurrency.aws$plot$latex.label = 'exp1-dual-concurrency-bar-imprint-aws'
 
 	ret
 }
