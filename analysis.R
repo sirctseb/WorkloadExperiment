@@ -1095,8 +1095,7 @@ singleResults <- function(data) {
 	# TODO this should be a bar plot to be consistent with all the other things
 	ret$addition$plot <- ggplot(ret$addition$data, aes(addition, fill=oprange)) +
 		geom_histogram(pos='dodge') +
-		labs(title='Addition single-task execution times',
-			y='Count',
+		labs(y='Count',
 			x='Execution time (s)') +
 		scale_fill_discrete('Addend range')
 	ret$addition$plot$latex.label = 'figure.exp2-single-addition-dist'
@@ -1117,8 +1116,7 @@ singleResults <- function(data) {
 		ret$targeting$plot <- ggplot(ret$targeting$data, aes(incentive, target)) +
 			geom_bar(stat='identity', pos='dodge') +
 			geom_errorbar(aes(ymin=target.low, ymax=target.high), pos=position_dodge(width=0.9), width = 0.25) +
-			labs(title='Targeting single-task execution time',
-				x = 'Incentive',
+			labs(x = 'Incentive',
 				y='Execution time (s)')
 		ret$targeting$plot$latex.label = 'figure.exp2-single-target-dist'
 	}
@@ -1150,8 +1148,7 @@ dualResults <- function(data) {
 		ret$agg$target$plot <- ggplot(ret$agg$data, aes(oprange, target, fill=incentive)) +
 			geom_bar(stat='identity', pos='dodge') +
 			geom_errorbar(aes(ymin=target.low, ymax=target.high), pos=position_dodge(width=0.9), width=0.25) +
-			labs(title='Dual-task execution time',
-				x='Addend range',
+			labs(x='Addend range',
 				y='Target time (s)') +
 			scale_fill_discrete('Incentive')
 		ret$agg$target$plot$latex.label = 'exp2-dual-times-target-iv'
@@ -1159,8 +1156,7 @@ dualResults <- function(data) {
 		ret$agg$addition$plot <- ggplot(ret$agg$data, aes(oprange, addition, fill=incentive)) +
 			geom_bar(stat='identity', pos='dodge') +
 			geom_errorbar(aes(ymin=addition.low, ymax=addition.high), pos=position_dodge(width=0.9), width=0.25) +
-			labs(title='Dual-task execution time',
-				x='Addend range',
+			labs(x='Addend range',
 				y='Addition time (s)') +
 			scale_fill_discrete('Incentive')
 		ret$agg$addition$plot$latex.label = 'exp2-dual-times-addition-iv'
@@ -1192,8 +1188,7 @@ modelResults <- function(data, model) {
 	ret$single$addition$plot <- ggplot(ret$single$addition$data, aes(interaction(incentive, oprange), addition, fill=perf)) +
 		geom_bar(stat='identity', pos='dodge') +
 		geom_errorbar(aes(ymin=addition.low, ymax=addition.high), pos=position_dodge(width=0.9), width=0.25) +
-		labs(title="Addition single-task execution times",
-			x="Incentive, addend range interaction",
+		labs(x="Incentive, addend range interaction",
 			y="Execution time (s)") +
 		perf_fill_scale
 	ret$single$addition$plot$latex.label = 'exp2-single-addition-bar'
@@ -1223,8 +1218,7 @@ modelResults <- function(data, model) {
 	ret$single$targeting$plot <- ggplot(ret$single$targeting$data, aes(incentive, target, fill=perf)) +
 		geom_bar(stat='identity', pos='dodge') +
 		geom_errorbar(aes(ymin=target.low, ymax=target.high), pos=position_dodge(width=0.9), width=0.25) +
-		labs(title="Targeting single-task execution times",
-			x="Incentive", # TODO set labels on x axis
+		labs(x="Incentive", # TODO set labels on x axis
 			y="Execution time(s)") +
 		perf_fill_scale
 	ret$single$targeting$plot$latex.label <- 'exp2-single-target-bar'
@@ -1282,18 +1276,16 @@ modelResults <- function(data, model) {
 	ret$dual$addition$plot <- ggplot(ret$dual$data, aes(interaction(oprange, incentive), addition, fill=perf)) +
 		geom_bar(stat='identity', pos='dodge') +
 		geom_errorbar(aes(ymin=addition.low, ymax=addition.high), pos=position_dodge(width=0.9), width=0.25) +
-		labs(title="Addition dual-task execution times",
-			x="Addend range, incentive interaction",
-			y="Completion time (s)")
-		# perf_fill_scale +
+		labs(x="Addend range, incentive interaction",
+			y="Completion time (s)") +
+		perf_fill_scale
 		# rotate_x_text
 	ret$dual$addition$plot$latex.label = 'exp2-dual-addition-bar'
 
 	ret$dual$targeting$plot <- ggplot(ret$dual$data, aes(interaction(oprange, incentive), target, fill=perf)) +
 		geom_bar(stat='identity', pos='dodge') +
 		geom_errorbar(aes(ymin=target.low, ymax=target.high), pos=position_dodge(width=0.9), width = 0.25) +
-		labs(title="Targeting dual-task execution times",
-			x="Addend range, incentive interaction",
+		labs(x="Addend range, incentive interaction",
 			y="Completion time (s)") +
 		perf_fill_scale +
 		rotate_x_text
@@ -1302,8 +1294,7 @@ modelResults <- function(data, model) {
 	ret$dual$score$plot <- ggplot(ret$dual$data, aes(interaction(oprange, incentive), score, fill=perf)) +
 		geom_bar(stat='identity', pos='dodge') +
 		geom_errorbar(aes(ymin=score.low, ymax=score.high), pos=position_dodge(width=0.9), width = 0.25) +
-		labs(title="Dual task score",
-			x="Addend range, incentive interaction",
+		labs(x="Addend range, incentive interaction",
 			y="Score ($)") +
 		perf_fill_scale +
 		rotate_x_text
@@ -1312,8 +1303,7 @@ modelResults <- function(data, model) {
 	ret$dual$concurrency$plot <- ggplot(ret$dual$data, aes(interaction(oprange, incentive), concurrency, fill=perf)) +
 		geom_bar(stat='identity', pos='dodge') +
 		geom_errorbar(aes(ymin=concurrency.low, ymax=concurrency.high), pos=position_dodge(width=0.9), width = 0.25) +
-		labs(title="Concurrency",
-			x="Addend range, incentive interaction",
+		labs(x="Addend range, incentive interaction",
 			y="Concurrency") +
 		perf_fill_scale +
 		rotate_x_text
