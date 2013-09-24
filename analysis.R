@@ -776,6 +776,7 @@ exp1Results <- function(data, modelData) {
 	ret$single <- singleResults(data)
 	ret$dual <- dualResults(data)
 	ret$model <- modelResults(data, modelData)
+	ret$imprint <- imprintResults()
 
 	ret
 }
@@ -1020,6 +1021,76 @@ modelResults <- function(data, model) {
 			y='Count') +
 		scale_fill_discrete('Subtask', labels=c('Addition', 'Targeting'))
 	ret$dual$order$plot$latex.label <- 'exp1-dual-task-order'
+
+	ret
+}
+
+imprintResults <- function(res) {
+	ret <- list()
+
+	# data from running imprint. should set up a build process for it
+
+	ret$single$addition$data <- data.frame(
+		oprange = c('[1 12]', '[13 25]'),
+		addition = c(1.250292, 2.061437),
+		addition.se = c(0.0167, 0.024)
+		)
+	# TODO plot?
+
+	# TODO single targeting data
+	# TODO set from IMPRINT runs
+	ret$single$target$data <- data.frame(
+		speed = as.factor(c(0,200,0,200)),
+		difficulty = as.factor(c(0,0,1,1))	,
+		target = c(1.85, 1.87, 2.32, 2.44),
+		target.se = c(0.01, 0.01, 0.02, 0.03)
+		)
+
+	makeDualDf <- function(oprange, difficulty, speed) {
+		ifelse(oprange == '[1 12]', on <- 0, on <- 1)
+		ifelse(speed == 0, sn <- 0, sn <-1)
+		file <- paste0('imprint/', on, difficulty, sn, '.w.txt')
+		table <- read.table(file, sep=',', strip.white = TRUE, header = TRUE)
+		table.a <- subset(table, task == 'addition')
+		table.t <- subset(table, task == 'target')
+		data.frame(oprange = oprange, speed = speed, difficulty = difficulty,
+			addition = mean(table.a$time), target = mean(table.t$time),
+			addition.se = se(table.a$time), target.se = se(table.t$time),
+			complete = mean(pmax(table.a$time, table.t$time)),
+			complete.se = se(pmax(table.a$time, table.t$time)))
+	}
+	ret$dual$data <- makeDualDf('[1 12]', 0, 0) # p=0.5
+	levels(ret$dual$data$oprange) <- c('[1 12]', '[13 25]')
+	levels(ret$dual$data$speed) <- c(0,200)
+	levels(ret$dual$data$difficulty) <- c(0,1)
+
+	ret$dual$data <- rbind(ret$dual$data, makeDualDf('[1 12]', 0, 200)) # p=0.5
+	ret$dual$data <- rbind(ret$dual$data, makeDualDf('[1 12]', 1, 0)) # p=0.3
+	ret$dual$data <- rbind(ret$dual$data, makeDualDf('[1 12]', 1, 200)) # p=0.3
+	ret$dual$data <- rbind(ret$dual$data, makeDualDf('[13 25]', 0, 0)) # p=0.5
+	ret$dual$data <- rbind(ret$dual$data, makeDualDf('[13 25]', 0, 200)) # p=0.4
+	ret$dual$data <- rbind(ret$dual$data, makeDualDf('[13 25]', 1, 0)) # p=0.5
+	ret$dual$data <- rbind(ret$dual$data, makeDualDf('[13 25]', 1, 200)) # p=0.5
+
+	ret$dual$data <- ddply(ret$dual$data, .(oprange, speed, difficulty), function(df) {
+		add <- subset(ret$single$addition$data, oprange == df$oprange[1])$addition
+		targ <- subset(ret$single$target$data, speed == df$speed[1] & difficulty == df$difficulty[1])$target
+		df$concurrency <- (df$complete - (add + targ)) / -min(add, targ)
+		# TODO concurrency.se
+		df
+		})
+
+	ret$dual$data <- within(ret$dual$data, {
+		addition.low <- addition - 2 * addition.se,
+		addition.high <- addition + 2 * addition.se,
+		target.low <- target - 2 * target.se,
+		target.high <- target + 2 * target.se,
+		complete.low <- complete - 2 * complete.se,
+		complete.high <- complete + 2 * complete.se,
+		concurrency.low <- concurrency - 2 * concurrency.se,
+		concurrency.high <- concurrency + 2 * concurrency.se
+		});
+
 
 	ret
 }
