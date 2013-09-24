@@ -919,7 +919,7 @@ modelResults <- function(data, model) {
 			x='Execution time (s)',
 			y='Count') +
 		perf_fill_scale +
-		facet_grid(speed~difficulty, labeller = label_both
+		facet_grid(speed~difficulty, labeller = label_both)
 	ret$single$targeting$dist$latex.label = 'exp1-single-targeting-dist'
 
 	ret$single$targeting$error$data <- ddply(subset(combined, type == 'targeting'), .(speed, difficulty, perf),
