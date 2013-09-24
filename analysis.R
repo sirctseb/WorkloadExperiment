@@ -776,7 +776,7 @@ exp1Results <- function(data, modelData) {
 	ret$single <- singleResults(data)
 	ret$dual <- dualResults(data)
 	ret$model <- modelResults(data, modelData)
-	ret$imprint <- imprintResults()
+	ret$imprint <- imprintResults(ret)
 
 	ret
 }
@@ -788,8 +788,7 @@ singleResults <- function(data) {
 	# TODO this should be a bar plot to be consistent with all the other things
 	ret$addition$plot <- ggplot(ret$addition$data, aes(addition, fill=oprange)) +
 		geom_histogram(pos='dodge') +
-		labs(title='Addition single-task execution times',
-			y='Count',
+		labs(y='Count',
 			x='Execution time (s)') +
 		scale_fill_discrete('Addend range')
 
@@ -810,8 +809,7 @@ singleResults <- function(data) {
 		ret$targeting$plot <- ggplot(ret$targeting$data, aes(difficulty, target, fill=speed)) +
 			geom_bar(stat='identity', pos='dodge') +
 			geom_errorbar(aes(ymin=target.low, ymax=target.high), pos=position_dodge(width=0.9), width = 0.25) +
-			labs(title='Targeting single-task execution time',
-				x='Difficulty',
+			labs(x='Difficulty',
 				y='Execution time (s)') +
 			scale_fill_discrete('Speed\n(pixels/s)')
 	}
@@ -837,8 +835,7 @@ dualResults <- function(data) {
 		ret$agg$plot <- ggplot(ret$agg$data, aes(difficulty, complete, fill=oprange)) +
 			geom_bar(stat='identity', pos='dodge') +
 			geom_errorbar(aes(ymin=complete.low, ymax=complete.high), pos=position_dodge(width=0.9), width=0.25) +
-			labs(title='Dual-task execution time',
-				x='Targeting difficulty',
+			labs(x='Targeting difficulty',
 				y='Execution time (s)') +
 			scale_fill_discrete('Addend range')
 		ret$agg$plot$latex.label = 'exp1-dual-times-iv'
@@ -871,8 +868,7 @@ modelResults <- function(data, model) {
 	ret$single$addition$plot <- ggplot(ret$single$addition$data, aes(oprange, addition, fill=perf)) +
 		geom_bar(stat='identity', pos='dodge') +
 		geom_errorbar(aes(ymin=addition.low, ymax=addition.high), pos=position_dodge(width=0.9), width=0.25) +
-		labs(title="Addition single-task execution times",
-			x="Addend range",
+		labs(x="Addend range",
 			y="Execution time (s)") +
 		perf_fill_scale
 	ret$single$addition$plot$latex.label = 'exp1-single-addition-bar'
@@ -884,8 +880,7 @@ modelResults <- function(data, model) {
 	ret$single$addition$dist <- ggplot(subset(combined, type == 'addition'),
 		aes(addition, fill=perf)) +
 		geom_histogram(pos='dodge') +
-		labs(title="Execution time distributions",
-			x='Execution time (s)',
+		labs(x='Execution time (s)',
 			y='Count') +
 		perf_fill_scale +
 		facet_grid(oprange~.)
@@ -907,8 +902,7 @@ modelResults <- function(data, model) {
 	ret$single$targeting$plot <- ggplot(ret$single$targeting$data, aes(interaction(speed, difficulty), target, fill=perf)) +
 		geom_bar(stat='identity', pos='dodge') +
 		geom_errorbar(aes(ymin=target.low, ymax=target.high), pos=position_dodge(width=0.9), width=0.25) +
-		labs(title="Targeting single-task execution times",
-			x="Speed, difficulty interaction",
+		labs(x="Speed, difficulty interaction",
 			y="Execution time(s)") +
 		perf_fill_scale
 	ret$single$targeting$plot$latex.label <- 'exp1-single-target-bar'
@@ -916,8 +910,7 @@ modelResults <- function(data, model) {
 	ret$single$targeting$dist <- ggplot(subset(combined, type == 'targeting'),
 		aes(target, fill=perf)) +
 		geom_histogram(pos='dodge') +
-		labs(title="Execution time distributions",
-			x='Execution time (s)',
+		labs(x='Execution time (s)',
 			y='Count') +
 		perf_fill_scale +
 		facet_grid(speed~difficulty, labeller = label_both)
@@ -929,8 +922,7 @@ modelResults <- function(data, model) {
 			})
 	ret$single$targeting$error$plot <- ggplot(ret$single$targeting$error$data, aes(x = interaction(speed, difficulty), y=error, fill=perf)) +
 		geom_bar(stat='identity', pos='dodge') +
-		labs(title="Single task targeting error rate",
-			x = "Speed, difficulty interaction",
+		labs(x = "Speed, difficulty interaction",
 			y = "Error rate") +
 		perf_fill_scale
 	ret$single$targeting$error$plot$latex.label = 'exp1-single-target-error'
@@ -969,8 +961,7 @@ modelResults <- function(data, model) {
 	ret$dual$addition$plot <- ggplot(ret$dual$data, aes(interaction(speed, difficulty, oprange), addition, fill=perf)) +
 		geom_bar(stat='identity', pos='dodge') +
 		geom_errorbar(aes(ymin=addition.low, ymax=addition.high), pos=position_dodge(width=0.9), width=0.25) +
-		labs(title="Addition dual-task execution times",
-			x="Speed, difficulty, addend range interaction",
+		labs(x="Speed, difficulty, addend range interaction",
 			y="Completion time (s)") +
 		perf_fill_scale +
 		rotate_x_text
@@ -979,8 +970,7 @@ modelResults <- function(data, model) {
 	ret$dual$targeting$plot <- ggplot(ret$dual$data, aes(interaction(speed, difficulty, oprange), target, fill=perf)) +
 		geom_bar(stat='identity', pos='dodge') +
 		geom_errorbar(aes(ymin=target.low, ymax=target.high), pos=position_dodge(width=0.9), width = 0.25) +
-		labs(title="Targeting dual-task execution times",
-			x="Speed, difficulty, addend range interaction",
+		labs(x="Speed, difficulty, addend range interaction",
 			y="Completion time (s)") +
 		perf_fill_scale +
 		rotate_x_text
@@ -989,8 +979,7 @@ modelResults <- function(data, model) {
 	ret$dual$complete$plot <- ggplot(ret$dual$data, aes(interaction(speed, difficulty, oprange), complete, fill=perf)) +
 		geom_bar(stat='identity', pos='dodge') +
 		geom_errorbar(aes(ymin=complete.low, ymax=complete.high), pos=position_dodge(width=0.9), width = 0.25) +
-		labs(title="Dual task execution times",
-			x="Speed, difficulty, addend range interaction",
+		labs(x="Speed, difficulty, addend range interaction",
 			y="Execution time (s)") +
 		perf_fill_scale +
 		rotate_x_text
@@ -999,8 +988,7 @@ modelResults <- function(data, model) {
 	ret$dual$concurrency$plot <- ggplot(ret$dual$data, aes(interaction(speed, difficulty, oprange), concurrency, fill=perf)) +
 		geom_bar(stat='identity', pos='dodge') +
 		geom_errorbar(aes(ymin=concurrency.low, ymax=concurrency.high), pos=position_dodge(width=0.9), width = 0.25) +
-		labs(title="Concurrency",
-			x="Speed, difficulty, addend range interaction",
+		labs(x="Speed, difficulty, addend range interaction",
 			y="Concurrency") +
 		perf_fill_scale +
 		rotate_x_text
@@ -1008,16 +996,14 @@ modelResults <- function(data, model) {
 
 	ret$dual$error$plot <- ggplot(ret$dual$data, aes(interaction(speed, difficulty, oprange), error, fill=perf)) +
 		geom_bar(stat='identity', pos='dodge') +
-		labs(title = 'Dual task targeting error rate',
-			x='Speed, difficulty, addend range interaction',
+		labs(x='Speed, difficulty, addend range interaction',
 			y='Error rate') +
 		perf_fill_scale +
 		rotate_x_text
 	ret$dual$error$plot$latex.label <- 'exp1-dual-target-error'
 
 	ret$dual$order$plot <- compareDualTimes(data, model, 1, 0, 1) +
-		labs(title = 'Subtask completion time distribution',
-			x='Completion time (s)',
+		labs(x='Completion time (s)',
 			y='Count') +
 		scale_fill_discrete('Subtask', labels=c('Addition', 'Targeting'))
 	ret$dual$order$plot$latex.label <- 'exp1-dual-task-order'
@@ -1029,6 +1015,11 @@ imprintResults <- function(res) {
 	ret <- list()
 
 	# data from running imprint. should set up a build process for it
+
+	# reusable fill scale labels
+	perf_fill_scale = scale_fill_discrete('Data source', labels=c("Human", "Model", "IMPRINT"))
+	# reusable x title rotation
+	rotate_x_text = theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5))
 
 	ret$single$addition$data <- data.frame(
 		oprange = c('[1 12]', '[13 25]'),
@@ -1046,50 +1037,90 @@ imprintResults <- function(res) {
 		target.se = c(0.01, 0.01, 0.02, 0.03)
 		)
 
-	makeDualDf <- function(oprange, difficulty, speed) {
-		ifelse(oprange == '[1 12]', on <- 0, on <- 1)
-		ifelse(speed == 0, sn <- 0, sn <-1)
-		file <- paste0('imprint/', on, difficulty, sn, '.w.txt')
+	makeDualDf <- function(oprange_in, difficulty_in, speed_in, res) {
+		ifelse(oprange_in == '[1 12]', on <- 0, on <- 1)
+		ifelse(speed_in == 0, sn <- 0, sn <-1)
+		file <- paste0('imprint/', on, difficulty_in, sn, '.w.txt')
 		table <- read.table(file, sep=',', strip.white = TRUE, header = TRUE)
 		table.a <- subset(table, task == 'addition')
 		table.t <- subset(table, task == 'target')
-		data.frame(oprange = oprange, speed = speed, difficulty = difficulty,
+		ifelse(difficulty_in == 0, dlevel <- "Low", dlevel <- "High")
+		a.single <- subset(res$model$single$addition$data, oprange == oprange_in & perf != 'human')$addition
+		t.single <- subset(res$model$single$targeting$data, difficulty == dlevel & speed == speed_in & perf != 'human')$target
+		conc <- (pmax(table.a$time, table.t$time) - (a.single + t.single)) / -min(a.single, t.single)
+		data.frame(oprange = oprange_in, speed = speed_in, difficulty = difficulty_in,
 			addition = mean(table.a$time), target = mean(table.t$time),
 			addition.se = se(table.a$time), target.se = se(table.t$time),
 			complete = mean(pmax(table.a$time, table.t$time)),
-			complete.se = se(pmax(table.a$time, table.t$time)))
+			complete.se = se(pmax(table.a$time, table.t$time)),
+			concurrency = mean(conc),
+			concurrency.se = se(conc))
 	}
-	ret$dual$data <- makeDualDf('[1 12]', 0, 0) # p=0.5
+	ret$dual$data <- makeDualDf('[1 12]', 0, 0, res) # p=0.5
 	levels(ret$dual$data$oprange) <- c('[1 12]', '[13 25]')
 	levels(ret$dual$data$speed) <- c(0,200)
 	levels(ret$dual$data$difficulty) <- c(0,1)
 
-	ret$dual$data <- rbind(ret$dual$data, makeDualDf('[1 12]', 0, 200)) # p=0.5
-	ret$dual$data <- rbind(ret$dual$data, makeDualDf('[1 12]', 1, 0)) # p=0.3
-	ret$dual$data <- rbind(ret$dual$data, makeDualDf('[1 12]', 1, 200)) # p=0.3
-	ret$dual$data <- rbind(ret$dual$data, makeDualDf('[13 25]', 0, 0)) # p=0.5
-	ret$dual$data <- rbind(ret$dual$data, makeDualDf('[13 25]', 0, 200)) # p=0.4
-	ret$dual$data <- rbind(ret$dual$data, makeDualDf('[13 25]', 1, 0)) # p=0.5
-	ret$dual$data <- rbind(ret$dual$data, makeDualDf('[13 25]', 1, 200)) # p=0.5
+	ret$dual$data <- rbind(ret$dual$data, makeDualDf('[1 12]', 0, 200, res)) # p=0.5
+	ret$dual$data <- rbind(ret$dual$data, makeDualDf('[1 12]', 1, 0, res)) # p=0.3
+	ret$dual$data <- rbind(ret$dual$data, makeDualDf('[1 12]', 1, 200, res)) # p=0.3
+	ret$dual$data <- rbind(ret$dual$data, makeDualDf('[13 25]', 0, 0, res)) # p=0.5
+	ret$dual$data <- rbind(ret$dual$data, makeDualDf('[13 25]', 0, 200, res)) # p=0.4
+	ret$dual$data <- rbind(ret$dual$data, makeDualDf('[13 25]', 1, 0, res)) # p=0.5
+	ret$dual$data <- rbind(ret$dual$data, makeDualDf('[13 25]', 1, 200, res)) # p=0.5
 
-	ret$dual$data <- ddply(ret$dual$data, .(oprange, speed, difficulty), function(df) {
-		add <- subset(ret$single$addition$data, oprange == df$oprange[1])$addition
-		targ <- subset(ret$single$target$data, speed == df$speed[1] & difficulty == df$difficulty[1])$target
-		df$concurrency <- (df$complete - (add + targ)) / -min(add, targ)
-		# TODO concurrency.se
-		df
-		})
+	levels(ret$dual$data$difficulty) <- c('Low', 'High')
+
+	# ret$dual$data <- ddply(ret$dual$data, .(oprange, speed, difficulty), function(df) {
+	# 	add <- subset(ret$single$addition$data, oprange == df$oprange[1])$addition
+	# 	targ <- subset(ret$single$target$data, speed == df$speed[1] & difficulty == df$difficulty[1])$target
+	# 	df$concurrency <- (df$complete - (add + targ)) / -min(add, targ)
+	# 	# TODO concurrency.se
+	# 	df
+	# 	})
+
+	# ret$concurrency <- 1 - ((DAT + DTT - AT - TT) / (AT + TT))
+	# numse <- sqrt(sum(c(DATse, DTTse, ATse, TTse)^2))
+	# dense <- sqrt(sum(c(ATse, TTse)^2))
+	# ret$se <- ((DAT + DTT - AT - TT) / (AT + TT)) * sqrt(sum(c(numse/(DAT + DTT - AT - TT), dense / (AT + TT))^2))
 
 	ret$dual$data <- within(ret$dual$data, {
-		addition.low <- addition - 2 * addition.se,
-		addition.high <- addition + 2 * addition.se,
-		target.low <- target - 2 * target.se,
-		target.high <- target + 2 * target.se,
-		complete.low <- complete - 2 * complete.se,
-		complete.high <- complete + 2 * complete.se,
-		concurrency.low <- concurrency - 2 * concurrency.se,
+		addition.low <- addition - 2 * addition.se
+		addition.high <- addition + 2 * addition.se
+		target.low <- target - 2 * target.se
+		target.high <- target + 2 * target.se
+		complete.low <- complete - 2 * complete.se
+		complete.high <- complete + 2 * complete.se
+		concurrency.low <- concurrency - 2 * concurrency.se
 		concurrency.high <- concurrency + 2 * concurrency.se
+		perf <- 'IMPRINT'
 		});
+
+	# ret$dual$data$perf <- factor(ret$dual$data$perf)
+	model <- subset(res$model$dual$data, select = -c(error))
+	# model$perf <- factor(model$perf)
+	# levels(model$perf) <- c(levels(model$perf), 'IMPRINT')
+	ret$dual$data <- rbind(model, ret$dual$data)
+	ret$dual$data$perf <- factor(ret$dual$data$perf)
+	ret$dual$data$perf2 <- factor(ret$dual$data$perf, levels(ret$dual$data$perf)[c(1,3,2)])
+
+	ret$dual$complete$plot <- ggplot(ret$dual$data, aes(interaction(speed, difficulty, oprange), complete, fill=perf2)) +
+		geom_bar(stat='identity', pos='dodge') +
+		geom_errorbar(aes(ymin=complete.low, ymax=complete.high), pos=position_dodge(width=0.9), width = 0.25) +
+		labs(x="Speed, difficulty, addend range interaction",
+			y="Execution time (s)") +
+		perf_fill_scale +
+		rotate_x_text
+	ret$dual$complete$plot$latex.label = 'exp1-dual-complete-bar-imprint'
+
+	ret$dual$concurrency$plot <- ggplot(ret$dual$data, aes(interaction(speed, difficulty, oprange), concurrency, fill=perf2)) +
+		geom_bar(stat='identity', pos='dodge') +
+		geom_errorbar(aes(ymin=concurrency.low, ymax=concurrency.high), pos=position_dodge(width=0.9), width = 0.25) +
+		labs(x="Speed, difficulty, addend range interaction",
+			y="Concurrency") +
+		perf_fill_scale +
+		rotate_x_text
+	ret$dual$concurrency$plot$latex.label = 'exp1-dual-concurrency-bar-imprint'
 
 
 	ret
