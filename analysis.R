@@ -1189,6 +1189,8 @@ modelResults <- function(data, model) {
 		geom_bar(stat='identity', pos='dodge') +
 		geom_errorbar(aes(ymin=addition.low, ymax=addition.high), pos=position_dodge(width=0.9), width=0.25) +
 		labs(x="Incentive, addend range interaction",
+			# TODO choose either Execution or Completion for all plots
+			# TODO also normalize x-axis interaction order
 			y="Execution time (s)") +
 		perf_fill_scale
 	ret$single$addition$plot$latex.label = 'exp2-single-addition-bar'
@@ -1273,6 +1275,11 @@ modelResults <- function(data, model) {
 				concurrency.high = conc + 2*conc.se
 				)
 			})
+	# TODO addition and targeting execution times in dual task in the same plot
+	add.targ <- melt(ret$dual$data, measure.var = c('addition', 'target'))
+	ret$dual$add.targ$plot <- ggplot(add.targ, aes(interaction(oprange, incentive), value, fill=interaction(perf, variable))) +
+		geom_bar(stat='identity', pos='dodge')
+
 	ret$dual$addition$plot <- ggplot(ret$dual$data, aes(interaction(oprange, incentive), addition, fill=perf)) +
 		geom_bar(stat='identity', pos='dodge') +
 		geom_errorbar(aes(ymin=addition.low, ymax=addition.high), pos=position_dodge(width=0.9), width=0.25) +
