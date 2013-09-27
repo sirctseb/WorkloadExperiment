@@ -493,7 +493,7 @@ loadModel = function(num) {
 	.GlobalEnv[[paste0("vert",num)]] = v
 	.GlobalEnv[[paste0("case",num)]] = byCase(v)
 }
-loadAddModel = function(num) {
+loadAddModel <- function(num) {
 	d = assembleData(num)
 	.GlobalEnv[[paste0("d",num)]] = d
 	v = d$addition
@@ -592,8 +592,10 @@ assembleData <- function(subject) {
 	
 	# separate targeting-only trials
 	targetingData <- mainData[mainData$oprange == "[]", ]
-	targetingData$oprange <- NA
-	targetingData$addition <- NA
+	if(nrow(targetingData) > 0) {
+		targetingData$oprange <- NA
+		targetingData$addition <- NA
+	}
 	mainData <- mainData[mainData$oprange != "[]", ]
 
 	# remove empty factors
