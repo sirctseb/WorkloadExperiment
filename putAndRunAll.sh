@@ -1,6 +1,6 @@
 #!/bin/bash
 BLOCKS=${3:-1 2 3 4 5 6 7 8 9 10 11 12 13 14}
-TRIALS=${4:-480}
+TRIALS=${4:-240}
 
 for block in $BLOCKS; do
 	terminal-notifier -message "putting block $block"
