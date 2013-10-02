@@ -1010,6 +1010,15 @@ modelResults <- function(data, model) {
 		scale_fill_discrete('Subtask', labels=c('Addition', 'Targeting'))
 	ret$dual$order$plot$latex.label <- 'exp1-dual-task-order'
 
+	ret$dual$conflict$plot <- ggplot(subset(combined, type == 'main' & speed == 0), aes(addition, firstHit, color=perf)) +
+		geom_point() +
+		scale_color_discrete('Data source', labels=c("Human", "Model")) +
+		facet_grid(oprange~difficulty, labeller = label_both) +
+		geom_abline() +
+		labs(x='Addition execution time (s)',
+			y='Time to first target hit (s)')
+	ret$dual$conflict$plot$latex.label <- 'exp1-dual-conflict'
+
 	ret
 }
 
