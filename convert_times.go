@@ -162,7 +162,7 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 	//trialStartRE, _ := regexp.Compile(`TrialStart, ([\d\.]+)`)
 
 	// make slice for hit times
-	hitTimes := make([]float64, 0, 100)
+	firstHitTimes := make([]float64, 0, 100)
 	// make slice for additiont imes
 	additionTimes := make([]float64, 0, 100)
 	// make slice for task completion times
@@ -203,7 +203,9 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 			// find the time of the hit
 			time, _ := strconv.ParseFloat(match[1], 64)
 			// compute and store the target hit time from the start or last hit time
-			hitTimes = append(hitTimes, time-lastHitTime)
+			if targetsHit == 0 {
+				firstHitTimes = append(firstHitTimes, time-lastHitTime)
+			}
 			// update the last hit time
 			lastHitTime = time
 			// increment number of targets hit
@@ -272,6 +274,9 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 			// TODO this depends on 5 second iterations. we should make this look it up
 			if targetsHit < targets {
 				finalHitTimes = append(finalHitTimes, 6.)
+			}
+			if targetsHit == 0 {
+				firstHitTimes = append(firstHitTimes, 6.)
 			}
 			// if no addition, fill with 0
 			if !additionFound {
@@ -364,7 +369,7 @@ func parseResults(lines []string, targets int) map[string][]float64 {
 	op2s = op2s[:len(additionTimes)]
 	return map[string][]float64{"addition": additionTimes, "complete": taskCompleteTimes, "finalHit": finalHitTimes,
 		"hits": numberHits, "friendHits": numberFriendHits, "shots": numberShots, "friendHovers": numberFriendHovers,
-		"op1": op1s, "op2": op2s}
+		"op1": op1s, "op2": op2s, "firstHit": firstHitTimes}
 }
 
 func printHitAndAdditionTimes(lines []string, targets int) {
@@ -443,7 +448,7 @@ func printTaskData(subject int, block, trial string) {
 func printRHeader(file *os.File) {
 	// TODO we should really read this from the file in case any of the parameters change
 	//fmt.Println("targets, speed, oprange, et1, et2, et3, et4, et5, et6, et7, et8, et9, et10, et11, et12")
-	fmt.Fprintln(file, "practice, targets, speed, oprange, difficulty, addition, target, complete, hits, friendHits, shots, hovers, op1, op2")
+	fmt.Fprintln(file, "practice, targets, speed, oprange, difficulty, addition, target, complete, hits, friendHits, shots, hovers, op1, op2, firstHit")
 }
 
 func printAccuracy(contents string) {
@@ -644,11 +649,11 @@ func main() {
 
 				// TODO magic number 12 iterations should be looked up
 				for index := 0; index < iterations; index++ {
-					fmt.Fprintf(result_file, "%t, %d, %d, %v, %d, %f, %f, %f, %d, %d, %d, %d, %d, %d\n",
+					fmt.Fprintf(result_file, "%t, %d, %d, %v, %d, %f, %f, %f, %d, %d, %d, %d, %d, %d, %f\n",
 						levels.Practice,
 						levels.TargetNumber, levels.TargetSpeed, levels.AdditionDifficulty, levels.TargetDifficulty,
 						times["addition"][index], times["finalHit"][index], times["complete"][index], int(times["hits"][index]),
-						int(times["friendHits"][index]), int(times["shots"][index]), int(times["friendHovers"][index]), int(times["op1"][index]), int(times["op2"][index]))
+						int(times["friendHits"][index]), int(times["shots"][index]), int(times["friendHovers"][index]), int(times["op1"][index]), int(times["op2"][index]), times["firstHit"][index])
 				}
 			}
 		}
