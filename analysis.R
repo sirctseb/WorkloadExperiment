@@ -800,7 +800,7 @@ singleResults <- function(data) {
 		geom_histogram(pos='dodge') +
 		labs(y='Count',
 			x='Execution time (s)') +
-		scale_fill_discrete('Addend range')
+		scale_fill_grey('Addend range')
 
 	if(nrow(subset(data, type == 'targeting')) > 0) {
 
@@ -821,7 +821,7 @@ singleResults <- function(data) {
 			geom_errorbar(aes(ymin=target.low, ymax=target.high), pos=position_dodge(width=0.9), width = 0.25) +
 			labs(x='Difficulty',
 				y='Execution time (s)') +
-			scale_fill_discrete('Speed\n(pixels/s)')
+			scale_fill_grey('Speed\n(pixels/s)')
 	}
 
 	ret
@@ -847,7 +847,7 @@ dualResults <- function(data) {
 			geom_errorbar(aes(ymin=complete.low, ymax=complete.high), pos=position_dodge(width=0.9), width=0.25) +
 			labs(x='Targeting difficulty',
 				y='Execution time (s)') +
-			scale_fill_discrete('Addend range')
+			scale_fill_grey('Addend range')
 		ret$agg$plot$latex.label = 'exp1-dual-times-iv'
 	}
 
