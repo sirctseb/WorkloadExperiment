@@ -70,21 +70,29 @@ flatTLX <- function(tlx) {
 }
 meanTLX <- function(tlx) {
 	res = ddply(tlx,
-		~interaction(difficulty,speed,oprange),
-		function(frame) {
-			res = cbind(
-				rbind(
-					colMeans(
-						subset(frame, select=-c(difficulty,speed,oprange))
-						)
-					),
-				frame[1,c("difficulty", "speed", "oprange")])
-			res$difficulty = as.factor(res$difficulty)
-			res$speed = as.factor(res$speed)
-			res$oprange = as.factor(res$oprange)
-			res
-		})
-	levels(res$oprange) = c("[1 12]", "[13 25]")
+		.(difficulty, speed, oprange),
+		# ~interaction(difficulty,speed,oprange),
+		# function(frame) {
+		# 	res = cbind(
+		# 		rbind(
+		# 			colMeans(
+		# 				subset(frame, select=-c(difficulty,speed,oprange))
+		# 				)
+		# 			),
+		# 		frame[1,c("difficulty", "speed", "oprange")])
+		# 	res$difficulty = as.factor(res$difficulty)
+		# 	res$speed = as.factor(res$speed)
+		# 	res$oprange = as.factor(res$oprange)
+		# 	res
+		# 	cbind(colMeans(subset(frame, select=-c(difficulty, speed, oprange))),
+		# 		frame[1,c('difficulty', 'speed', 'oprange')])
+		# })
+		numcolwise(mean))
+	res$difficulty = as.factor(res$difficulty)
+	res$speed = as.factor(res$speed)
+	res$oprange = as.factor(res$oprange)
+	# levels(res$oprange) = c("[1 12]", "[13 25]")
+	levels(res$difficulty) = c("Low", "High")
 	res
 }
 getModelWorkload <- function(type, block, subject) {
@@ -864,7 +872,9 @@ modelResults <- function(data, model) {
 				addition.high = add + 2*add.se)
 			})
 	# reusable fill scale labels
-	perf_fill_scale = scale_fill_discrete('Data source', labels=c("Human", "Model"))
+	# perf_fill_scale = scale_fill_discrete('Data source', labels=c("Human", "Model"))
+	# perf_fill_scale = discrete_scale('Data source', labels=c('Human', 'Model'))
+	perf_fill_scale = scale_fill_grey('Data source', labels=c('Human', 'Model'))
 	# reusable x title rotation
 	rotate_x_text = theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5))
 	ret$single$addition$plot <- ggplot(ret$single$addition$data, aes(oprange, addition, fill=perf)) +
@@ -1007,7 +1017,7 @@ modelResults <- function(data, model) {
 	ret$dual$order$plot <- compareDualTimes(data, model, 1, 0, 1) +
 		labs(x='Completion time (s)',
 			y='Count') +
-		scale_fill_discrete('Subtask', labels=c('Addition', 'Targeting'))
+		scale_fill_grey('Subtask', labels=c('Addition', 'Targeting'))
 	ret$dual$order$plot$latex.label <- 'exp1-dual-task-order'
 
 	ret$dual$conflict$plot <- ggplot(subset(combined, type == 'main' & speed == 0), aes(addition, firstHit, color=perf)) +
@@ -1028,7 +1038,7 @@ imprintResults <- function(res) {
 	# data from running imprint. should set up a build process for it
 
 	# reusable fill scale labels
-	perf_fill_scale = scale_fill_discrete('Data source', labels=c("Human", "Model", "IMPRINT", "IMPRINT (AWS)"))
+	perf_fill_scale = scale_fill_grey('Data source', labels=c("Human", "Model", "IMPRINT", "IMPRINT (AWS)"))
 	# reusable x title rotation
 	rotate_x_text = theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5))
 
