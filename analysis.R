@@ -1097,7 +1097,7 @@ singleResults <- function(data) {
 		geom_histogram(pos='dodge') +
 		labs(y='Count',
 			x='Execution time (s)') +
-		scale_fill_discrete('Addend range')
+		scale_fill_grey('Addend range')
 	ret$addition$plot$latex.label = 'figure.exp2-single-addition-dist'
 
 	if(nrow(subset(data, type == 'targeting')) > 0) {
@@ -1150,7 +1150,7 @@ dualResults <- function(data) {
 			geom_errorbar(aes(ymin=target.low, ymax=target.high), pos=position_dodge(width=0.9), width=0.25) +
 			labs(x='Addend range',
 				y='Target time (s)') +
-			scale_fill_discrete('Incentive')
+			scale_fill_grey('Incentive')
 		ret$agg$target$plot$latex.label = 'exp2-dual-times-target-iv'
 
 		ret$agg$addition$plot <- ggplot(ret$agg$data, aes(oprange, addition, fill=incentive)) +
@@ -1158,7 +1158,7 @@ dualResults <- function(data) {
 			geom_errorbar(aes(ymin=addition.low, ymax=addition.high), pos=position_dodge(width=0.9), width=0.25) +
 			labs(x='Addend range',
 				y='Addition time (s)') +
-			scale_fill_discrete('Incentive')
+			scale_fill_grey('Incentive')
 		ret$agg$addition$plot$latex.label = 'exp2-dual-times-addition-iv'
 	}
 
@@ -1182,7 +1182,7 @@ modelResults <- function(data, model) {
 				addition.high = add + 2*add.se)
 			})
 	# reusable fill scale labels
-	perf_fill_scale = scale_fill_discrete('Data source', labels=c("Human", "Model"))
+	perf_fill_scale = scale_fill_grey('Data source', labels=c("Human", "Model"))
 	# reusable x title rotation
 	rotate_x_text = theme(axis.text.x = element_text(angle=90,hjust=1,vjust=0.5))
 	ret$single$addition$plot <- ggplot(ret$single$addition$data, aes(interaction(incentive, oprange), addition, fill=perf)) +
