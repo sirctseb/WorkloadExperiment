@@ -1207,6 +1207,25 @@ imprintResults <- function(res) {
 
 	ret
 }
+concPlot <- function() {
+	ret = list()
+	ab <- data.frame(x = c(4,6), y = c(0,0))
+	ret$ab <- ggplot(ab, aes(x,y)) +
+		geom_point() +
+		scale_x_continuous(breaks=c(4,6), labels=c("A", "B"), limits=c(3,11)) +
+		scale_y_continuous(breaks=c(0,0.5,1),limits = c(-0.05, 1.1))
+	aplusb <- data.frame(x = c(6,10), y = c(1,0))
+	ret$aplusb <-
+		# ggplot(aplusb, aes(x,y)) +
+		ret$ab +
+		geom_point(data=aplusb, aes(x,y)) +
+		# geom_point() +
+		geom_line(data=aplusb, aes(x,y)) +
+		scale_x_continuous(breaks=c(4,6,10), labels=c("A", "B", "A+B"), limits=c(3,11)) +
+		labs(x="Execution time", y="Concurrency")
+		# ggplot(aplusb, aes(x,y)) +
+	ret
+}
 
 maxdepth = 7
 saveLatexPlots <- function(results) {
