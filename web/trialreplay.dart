@@ -4,7 +4,7 @@ part of WorkloadExperiment;
 class TrialReplay implements TargetDelegate {
   // logger for replay
   static Logger logger = new Logger("replay")..level = Level.INFO;
-  
+
   // trial state
   /// The current time in seconds from the start of the trial. can be negative
   num get time => _time;
@@ -17,35 +17,35 @@ class TrialReplay implements TargetDelegate {
   List<Target> targets;
   /// The addition operands
   int op1, op2;
-  
+
   /// The start time of the iteration in seconds since the start of the trial
   num get iterationStartTime => _iterationStartTime;
   num _iterationStartTime;
   /// The length of the trial in seconds
   num get trialLength => (trialEndStamp - trialStartStamp)/1000;
-  
+
   /// The trial start time in unix ms
   int trialStartStamp;
   /// The trial end time in unix ms
   int trialEndStamp;
-  
+
   /// The iteration time of the first target hit of the iteration
   num hit1Time;
   /// The iteration time of the second target hit of the iteration
   num hit2Time;
   /// The iteration time when the addition problem was completed
   num additionTime;
-  
+
   /// The block description for this trial
   Map block;
-  
+
   /// True if we are running real-time playback
   bool playing = false;
   /// The trial time when the playback started
   num trialTimePlaybackStart;
   /// The time passed to the animation frame request callback when the animation started
   num animationPlaybackStartTime;
-  
+
   // access to trial controller
   TaskController _delegate;
   TaskController get delegate => _delegate;
@@ -56,17 +56,17 @@ class TrialReplay implements TargetDelegate {
       dataSubscription.cancel();
       dataSubscription = null;
     }
-    
+
     // set backing field
     _delegate = del;
-    
+
     // subscribe to messages from server
     if(delegate.wsReady) {
       dataSubscription = delegate.ws.onMessage.listen(receiveData);
     }
   }
   StreamSubscription dataSubscription;
-  
+
   // TargetDelegate implementation
   void TargetClicked(Target target, MouseEvent event) {
     // don't do anything;
@@ -77,16 +77,16 @@ class TrialReplay implements TargetDelegate {
   void TargetOut(Target target, MouseEvent event) {
     // don't do anything
   }
-  
+
   // data
   List<Map> mouseMoves;
   List<Map> events;
-  
+
   // load data
-  void loadTrial(String path) {
+  void loadTrial(Map descriptor) {
     if(delegate != null && delegate.wsReady) {
       // send request for data file contents
-      delegate.ws.send(stringify({"cmd": "replay", "data": "datafile", "path": path}));
+      delegate.ws.send(stringify({"cmd": "replay", "data": "datafile"}..addAll(descriptor)));
     } else {
       // TODO error message
     }
@@ -172,7 +172,8 @@ class TrialReplay implements TargetDelegate {
               data["trials"].map(
                   (trial) => new DivElement()
                   ..text = trial["name"]
-                  ..onClick.listen((event) => loadTrial("output/${trial['subject']}/${trial['block']}/${trial['name']}"))
+                  //..onClick.listen((event) => loadTrial("output/${trial['subject']}/${trial['block']}/${trial['name']}"))
+                  ..onClick.listen((even) => loadTrial({'subject': trial['subject'], 'block': trial['block'], 'trial': trial['name']}))
               )
           );
         }
@@ -181,24 +182,24 @@ class TrialReplay implements TargetDelegate {
       // ignore if not valid json
     }
   }
-  
+
   // map from target ids of the original targets to the target objects we are replaying them with
   Map<int, Target> targetIDmap = new Map<int, Target>();
-  
+
   // the amount of time to show a miss during replay
   final num MISS_SHOW_TIME = 0.1;
-  
+
   /// Move the replay to a given trial time
   set time(num t) {
-    
+
     logger.fine("setting time to $t");
-    
+
     // TODO error check input
     _time = t;
-    
+
     // get index of last event
     int lastEventIndex = findLastEventIndex(t);
-    
+
     // find iteration start index
     int iterationStartIndex = -1;
     for(iterationStartIndex = lastEventIndex;
@@ -210,12 +211,12 @@ class TrialReplay implements TargetDelegate {
       logger.fine("Time $t appears to be before any iteration started");
       return;
     }
-    
+
     // set iteration start time
     _iterationStartTime = events[iterationStartIndex]["trialTime"];
-    
+
     logger.fine("this iteration started at $_iterationStartTime");
-    
+
     // find most recent mouse move
     var lastMove = findLastMouseMove(t);
     logger.fine("mouse at ${lastMove['x']}, ${lastMove['y']}");
@@ -259,7 +260,7 @@ class TrialReplay implements TargetDelegate {
           currTarget.move(currTarget.x + param * (events[i]["x"] - currTarget.x),
                           currTarget.y + param * (events[i]["y"] - currTarget.y));
           // test if target element contains mouse position and add hover class
-          Rect tRect = currTarget.element.getBoundingClientRect(); 
+          Rect tRect = currTarget.element.getBoundingClientRect();
           if(mouseX >= tRect.left && mouseX <= tRect.right &&
               mouseY >= tRect.top && mouseY <= tRect.bottom) {
             currTarget.element.classes.add("hover");
@@ -269,7 +270,7 @@ class TrialReplay implements TargetDelegate {
           // set enemy / friend
           currTarget.enemy = events[i]["event"] == "TargetHit" || (events[i]["event"] == "TargetTimeout" && events[i]["enemy"] == 0);
           targ++;
-          
+
           // set hit indicator locations
           if(events[i]["event"] == "TargetHit") {
             query("#hit${hit+1}").style.left = "${100 * events[i]['iterationTime'] / 6}%";
@@ -425,7 +426,7 @@ class TrialReplay implements TargetDelegate {
     // TODO magic number. this assumes 6 second iterations
     iterationTime = 6 * p;
   }
-  
+
   /// Go to the time of the nth hit of the iteration
   void goToHit(int hit) {
     // set the iteration time
@@ -433,7 +434,7 @@ class TrialReplay implements TargetDelegate {
     // update time view
     updateTimeViews();
   }
-  
+
   void doPlaybackFrame(num t) {
     // compute new trial time
     num newTrialTime = trialTimePlaybackStart + (t - animationPlaybackStartTime)/1000;
@@ -453,7 +454,7 @@ class TrialReplay implements TargetDelegate {
       //window.animationFrame.then(doPlaybackFrame);
     }
   }
-  
+
   // ui elements
   RangeInputElement iterationSlider = query("#iteration-time-slider");
   RangeInputElement trialSlider = query("#trial-time-slider");
@@ -461,7 +462,7 @@ class TrialReplay implements TargetDelegate {
   InputElement trialTimeBox = query("#trial-time");
   ButtonElement startButton = query("#replay-play");
   ButtonElement stopButton = query("#replay-stop");
-  
+
   void updateTimeViews({updateIterationSlider: true, updateTrialSlider: true,
                         updateIterationTimeBox: true, updateTrialTimeBox: true}) {
     if(updateIterationSlider) {
@@ -482,13 +483,13 @@ class TrialReplay implements TargetDelegate {
       trialTimeBox.value = "$time";
     }
   }
-  
+
   /// initialize replay view
   /// ask for list of subjects and display them
   void init() {
     loadSubjects();
   }
- 
+
   final int SLIDER_RESOLUTION = 10000;
   TrialReplay() {
     // add listener for trial time input changes
@@ -542,7 +543,7 @@ class TrialReplay implements TargetDelegate {
       logger.info("setting playing to false");
       playing = false;
     });
-    
+
     // add click handlers to the target hit time indicator divs
     query("#hit1").onClick.listen((event) {
       goToHit(1);
@@ -557,12 +558,12 @@ class TrialReplay implements TargetDelegate {
       // update time views
       updateTimeViews();
     });
-    
+
     // add click handler to the expand bar
     query("#expand-bar").onClick.listen((event) {
       query("#replay-select-lists").classes.toggle("hidden");
     });
-    
+
     // create targets
     targets = [new Target(this, true), new Target(this, true), new Target(this, false)];
     // add targets to replay ui
@@ -586,7 +587,7 @@ class TrialDataParser {
   static RegExp miss = new RegExp(r"MouseDown, (\d*), (\d*), (\d*), MISS");
   static RegExp targetOver = new RegExp(r"TargetOver, (\d*), (\d*), (\d*), (\d*), (friend|enemy)");
   static RegExp targetOut = new RegExp(r"TargetOut, (\d*), (\d*), (\d*), (\d*), (friend|enemy)");
-  
+
   static List<Map> parseMouseMoveData(String data) {
     // parse all mouse moves and put into list
     return mouseMove.allMatches(data).map((match) => {"time": int.parse(match.group(1)),
@@ -693,7 +694,7 @@ class TrialDataParser {
     }
     return events;
   }
-  
+
   static Map parseTimes(Match match, Map event) {
     int time = int.parse(match.group(1));
     event["time"] = time;

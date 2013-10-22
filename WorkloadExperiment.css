@@ -203,9 +203,12 @@ body.high-targeting-difficulty .target.friend:hover {
 #replay-select-lists.hidden {
   display:none;
 }
-/* put lists side by side */
 .replay-select-list {
+  /* put lists side by side */
   display: inline-block;
+  /* keep from growing too tall */
+  max-height:400px;
+  overflow: scroll;
 }
 
 .replay-ui .replay-time-slider {

@@ -2,7 +2,7 @@ library DataServer;
 import "dart:io";
 import "dart:json";
 import "package:logging/logging.dart";
-import "package:path/path.dart";
+import "package:path/path.dart" as path;
 
 void main() {
   Server server = new Server();
@@ -21,7 +21,8 @@ class Server {
   IOSink sink;
   Process recordingProcess;
 
-  String get subjectDirStr => "output/subject$subjectNumber";
+  String get outputDirStr => "../output";
+  String get subjectDirStr => "$outputDirStr/subject$subjectNumber";
   String get blockDirStr => "$subjectDirStr/block$blockNumber";
   String get blockDescPathStr => "$blockDirStr/block.txt";
   String get trialDirStr => "$blockDirStr/trial$trialNumber";
@@ -88,14 +89,15 @@ class Server {
         var request = parse(message);
         // check if it is a data file request
         if(request["cmd"] == "replay" && request["data"] == "datafile") {
-          Logger.root.info("got request for data file in ${request['path']}");
+//          Logger.root.info("got request for data file in ${request['path']}");
+          Logger.root.info("got request for data file for subject ${request['subject']}, block ${request['block']}, trial ${request['trial']}");
+          var blockDirStr = path.join(outputDirStr, request['subject'], request['block']);
           // load the block description file
-          // TODO should use path.join for these but it works as is
-          new File('${request["path"]}/block.txt')
+          new File(path.join(blockDirStr, 'block.txt'))
             .readAsString()
             .then((blockContent) {
               // load the data file and send contents back
-              new File('${request["path"]}/data.txt')
+              new File(path.join(blockDirStr, request['trial'], 'data.txt'))
                 .readAsString()
                 .then((content) {
                   Logger.root.info("finished reading file, sending to client");
@@ -106,18 +108,18 @@ class Server {
           // read the list of subjects and respond
           socket.add(
             stringify({"data": "subjects",
-              "subjects": new Directory("output").listSync().where((entry) => entry is Directory).map((dir) => {"name": basename(dir.path)}).toList()})
+              "subjects": new Directory(outputDirStr).listSync().where((entry) => entry is Directory).map((dir) => {"name": path.basename(dir.path)}).toList()})
           );
         } else if(request["cmd"] == "blocks") {
           // read the list of blocks and respond
           socket.add(
             stringify({"data": "blocks",
-              "blocks": new Directory("output/${request['subject']}")
+              "blocks": new Directory(path.join(outputDirStr, request['subject']))
                 .listSync().where((entry) => entry is Directory).map(
                     (dir) {
                       // read the block description file
                       var blockDesc = parse(new File('${dir.path}/block.txt').readAsStringSync());
-                      return {"name": basename(dir.path), "subject": request["subject"],
+                      return {"name": path.basename(dir.path), "subject": request["subject"],
                         "blockDesc": blockDesc};
                     }
                  ).toList()})
@@ -126,9 +128,9 @@ class Server {
           // read the list of trials and respond
           socket.add(
             stringify({"data": "trials",
-              "trials": new Directory('output/' + request['subject'] + '/' + request['block'])
+              "trials": new Directory(path.join(outputDirStr,request['subject'], request['block']))
                 .listSync().where((entry) => entry is Directory).map((dir) =>
-                    {"name": basename(dir.path), "subject": request["subject"], "block": request["block"]}).toList()})
+                    {"name": path.basename(dir.path), "subject": request["subject"], "block": request["block"]}).toList()})
           );
         }
       } on FormatException catch(e) {
@@ -214,7 +216,7 @@ class Server {
       sink = dataFile.openWrite();
 
       // write task description to separate file
-      new File(dirname(dataFilePathStr) + '/task.txt').writeAsString(message);
+      new File(path.dirname(dataFilePathStr) + '/task.txt').writeAsString(message);
 
       // start recording
       Logger.root.info("starting recording");
